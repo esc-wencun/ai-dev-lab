@@ -167,8 +167,9 @@ async def get_platform_info(request: Request, query_db: AsyncSession = Depends(g
             'version': AppConfig.app_version,
             'language': 'python',
             'languageVersion': platform.python_version(),
-            # druidMonitor：Druid是Java连接池，无对应物；serverMonitor：服务监控已实现（spec-08）
-            'features': {'druidMonitor': False, 'serverMonitor': True},
+            # druidMonitor/swaggerDocs：Druid连接池与springdoc页为Java特有（Python仅有/docs）；
+            # serverMonitor：服务监控已实现（spec-08）
+            'features': {'druidMonitor': False, 'serverMonitor': True, 'swaggerDocs': False},
         })
     except Exception as e:
         logger.exception(e)

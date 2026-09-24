@@ -44,6 +44,7 @@
 | 8 | [spec-08-monitor-log](spec-08-monitor-log.md) | 监控模块：在线用户/服务监控/缓存监控/日志查询 | ✅ 完成 2026-09-24 | spec-01 |
 | 9 | [spec-09-job](spec-09-job.md) | 定时任务 | ✅ 完成 2026-09-24 | spec-01 |
 | 10 | [spec-10-generator](spec-10-generator.md) | 代码生成器 | ✅ 完成 2026-09-24 | spec-04~06 |
+| 11 | [spec-11-platform-info](spec-11-platform-info.md) | 平台标识 `/getPlatformInfo`（跨端模块，契约主文档在 GO 版 specs/12.0.0） | ✅ 完成 2026-09-25 | spec-01 |
 
 > 全部完成后执行 [final-acceptance.md](final-acceptance.md) 总验收清单。
 

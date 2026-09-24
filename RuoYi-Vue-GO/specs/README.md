@@ -34,6 +34,7 @@ specs/
 | 09 | [9.0.0-监控日志](9.0.0-监控日志/spec.md) | 在线用户/服务监控/缓存监控/操作与登录日志 | ✅ 2026-09-24 | 01 |
 | 10 | [10.0.0-定时任务](10.0.0-定时任务/spec.md) | 定时任务（robfig/cron 对位 Quartz） | ✅ 2026-09-24 | 01 |
 | 11 | [11.0.0-代码生成器](11.0.0-代码生成器/spec.md) | 代码生成器（数据层端点；模板生成有意排除见 deviations #19） | ✅ 2026-09-24 | 01, 05, 07 |
+| 12 | [12.0.0-平台标识](12.0.0-平台标识/spec.md) | `/getPlatformInfo` 跨端模块（Java 基准新增 + GO + Python + 前端降级提示，契约主文档） | ✅ 2026-09-25 | 01 |
 
 > 各模块三件套均已写实（spec 含逐端点 API 清单，tasks/checklist 按勾选纪律维护）。**动工检查单**保留供后续新模块复用。
 > 全部完成后执行 [final-acceptance.md](final-acceptance.md) 总验收。**遗留待办**：① 浏览器页面级验收（02~11 的 checklist 各留一项待用户确认，curl 层已全部通过）；② 岗位/字典/角色导出与 dept updateSort 等 4 个低影响端点暂缺（见 deviations.md #14/#15）。
@@ -57,4 +58,4 @@ specs/
 ## 遗留待办（2026-09-24 全模块完成后）
 
 1. **浏览器页面级验收**：02~11 各 checklist 各留一项"前端页面正常"待用户确认（开发环境浏览器预览不可用；curl 层全部端点已逐项通过）。验证方式：停 Java/Python 版 → `go run ./cmd/server --env=dev` → 前端 80 端口打开 → 逐页操作。
-2. **低影响暂缺端点**：deviations #14（dept updateSort）、#15（post/dict/config export）、#17（monitor/server 服务监控）、#19（gen 模板生成）——均属本 Java 版定制或对 Go 无产出价值项，每条已注明补齐条件。
+2. **低影响暂缺端点**：deviations #14（dept updateSort）、#15（post/dict/config export）、#17（monitor/server 服务监控——2026-09-25 定版为平台降级提示方案，见 12.0.0）、#19（gen 模板生成）——均属本 Java 版定制或对 Go 无产出价值项，每条已注明补齐条件。

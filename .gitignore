@@ -7,6 +7,9 @@
 **/.env.local
 docker/.env
 
+# AGENTS.local.md 刻意入库（本机环境参考，内容与 .env.dev 同口径、无云凭据）；反选全局 gitignore 的 *.local.md 规则
+!AGENTS.local.md
+
 # ---- 日志 / 运行时产物 ----
 **/logs/
 *.log
