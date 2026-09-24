@@ -1,0 +1,34 @@
+# ===== 工作区根目录 .gitignore =====
+
+# ---- 敏感配置（绝不提交）----
+# 各版 .env.dev 已统一为本地 Docker 默认配置（127.0.0.1，账号 wencun/111111），无真实凭据，允许提交
+# 含真实云环境凭据的配置不提交；docker/.env 是本地覆盖文件也不提交
+**/.env.prod
+**/.env.local
+docker/.env
+
+# ---- 日志 / 运行时产物 ----
+**/logs/
+*.log
+**/download_path/
+**/upload_path/
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# ---- IDE ----
+.idea/
+.vscode/
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- Docker 数据卷（如改用 bind mount 时）----
+docker/data/

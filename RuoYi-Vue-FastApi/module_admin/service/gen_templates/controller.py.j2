@@ -1,0 +1,86 @@
+"""{{ table.tableComment or table.tableName }} 控制器
+@Author: {{ author }}
+@Date: {{ datetime }}
+分层职责：参数接收/调service/组响应；禁止直接操作db/redis
+"""
+from fastapi import APIRouter, Request, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+from config.get_db import get_db
+from module_admin.aspect.interface_auth import require_perm
+from module_admin.annotation.log_annotation import log_decorator
+from common.enums import BusinessType
+from utils.page_util import paginate
+from utils.response_util import ResponseUtil
+from module_admin.service.{{ moduleName }}_service import {{ ClassName }}Service
+
+{{ snake_class_name }}Controller = APIRouter()
+
+
+@{{ snake_class_name }}Controller.get('/{{ moduleName }}/{{ businessName }}/list',
+                          dependencies=[Depends(require_perm('{{ permissionPrefix }}:list'))])
+async def list_{{ snake_class_name }}(request: Request, query_db: AsyncSession = Depends(get_db)):
+    try:
+        data = await {{ ClassName }}Service.get_{{ snake_class_name }}_list(query_db)
+        return ResponseUtil.success(msg='查询成功',
+                                    dict_content={'rows': data, 'total': len(data)})
+    except Exception as e:
+        return ResponseUtil.error(msg=str(e))
+
+
+@{{ snake_class_name }}Controller.get('/{{ moduleName }}/{{ businessName }}/{{ '{{' }}{{ pk.java_field }}{{ '}}' }}',
+                          dependencies=[Depends(require_perm('{{ permissionPrefix }}:query'))])
+async def get_{{ snake_class_name }}(request: Request, {{ pk.java_field }}: {{ pk.java_type }},
+                          query_db: AsyncSession = Depends(get_db)):
+    try:
+        data = await {{ ClassName }}Service.get_{{ snake_class_name }}_by_id(query_db, {{ pk.java_field }})
+        return ResponseUtil.success(dict_content={'data': data})
+    except Exception as e:
+        return ResponseUtil.error(msg=str(e))
+
+
+@{{ snake_class_name }}Controller.post('/{{ moduleName }}/{{ businessName }}',
+                          dependencies=[Depends(require_perm('{{ permissionPrefix }}:add'))])
+@log_decorator(title='{{ functionName }}', business_type=BusinessType.INSERT)
+async def add_{{ snake_class_name }}(request: Request, body: dict,
+                          query_db: AsyncSession = Depends(get_db)):
+    try:
+        from module_admin.service.login_service import TokenService
+        login_user = await TokenService.get_login_user(request) or {}
+        obj = await {{ ClassName }}Service.add_{{ snake_class_name }}(query_db, body, login_user.get('user_name', ''))
+        return ResponseUtil.success()
+    except Exception as e:
+        await query_db.rollback()
+        return ResponseUtil.error(msg=str(e))
+
+
+@{{ snake_class_name }}Controller.put('/{{ moduleName }}/{{ businessName }}',
+                          dependencies=[Depends(require_perm('{{ permissionPrefix }}:edit'))])
+@log_decorator(title='{{ functionName }}', business_type=BusinessType.UPDATE)
+async def edit_{{ snake_class_name }}(request: Request, body: dict,
+                          query_db: AsyncSession = Depends(get_db)):
+    try:
+        from module_admin.service.login_service import TokenService
+        login_user = await TokenService.get_login_user(request) or {}
+        error = await {{ ClassName }}Service.edit_{{ snake_class_name }}(query_db, body, login_user.get('user_name', ''))
+        if error:
+            return ResponseUtil.failure(msg=error)
+        return ResponseUtil.success()
+    except Exception as e:
+        await query_db.rollback()
+        return ResponseUtil.error(msg=str(e))
+
+
+@{{ snake_class_name }}Controller.delete('/{{ moduleName }}/{{ businessName }}/{{ '{{' }}{{ pk.java_field }}s{{ '}}' }}',
+                          dependencies=[Depends(require_perm('{{ permissionPrefix }}:remove'))])
+@log_decorator(title='{{ functionName }}', business_type=BusinessType.DELETE)
+async def delete_{{ snake_class_name }}s(request: Request, {{ pk.java_field }}s: str,
+                          query_db: AsyncSession = Depends(get_db)):
+    try:
+        ids = [{{ 'int(x)' if pk.java_type == 'int' else 'x' }} for x in {{ pk.java_field }}s.split(',') if x]
+        error = await {{ ClassName }}Service.delete_{{ snake_class_name }}s(query_db, ids)
+        if error:
+            return ResponseUtil.failure(msg=error)
+        return ResponseUtil.success()
+    except Exception as e:
+        await query_db.rollback()
+        return ResponseUtil.error(msg=str(e))

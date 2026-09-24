@@ -1,0 +1,65 @@
+"""{{ table.tableComment or table.tableName }} 服务层
+@Author: {{ author }}
+@Date: {{ datetime }}
+分层职责：业务逻辑与事务边界；禁止拼SQL
+"""
+from datetime import datetime
+from typing import List
+from sqlalchemy.ext.asyncio import AsyncSession
+from module_admin.entity.do.{{ moduleName }}_do import {{ ClassName }}
+from module_admin.dao.{{ moduleName }}_dao import (
+    get_{{ snake_class_name }}_by_id, get_{{ snake_class_name }}_list,
+    insert_{{ snake_class_name }}_repo, update_{{ snake_class_name }}_repo,
+    delete_{{ snake_class_name }}_repo,
+)
+from utils.common_util import transform_result
+from utils.log_util import logger
+
+
+class {{ ClassName }}Service:
+    """
+    {{ functionName }}服务
+    """
+
+    @classmethod
+    async def get_{{ snake_class_name }}_list(cls, db: AsyncSession) -> List[dict]:
+        data = await get_{{ snake_class_name }}_list(db)
+        return transform_result(data)
+
+    @classmethod
+    async def get_{{ snake_class_name }}_by_id(cls, db: AsyncSession, {{ pk.java_field }}: {{ pk.java_type }}) -> Optional[dict]:
+        data = await get_{{ snake_class_name }}_by_id(db, {{ pk.java_field }})
+        return transform_result(data) if data else None
+
+    @classmethod
+    async def add_{{ snake_class_name }}(cls, db: AsyncSession, body: dict, oper_name: str):
+        obj = {{ ClassName }}(
+{% for column in columns %}{% if column.is_insert == '1' and column.is_pk != '1' %}            {{ column.java_field }}=body.get('{{ column.java_field | to_camel }}'),
+{% endif %}{% endfor %}            create_by=oper_name,
+            create_time=datetime.now(),
+        )
+        await insert_{{ snake_class_name }}_repo(db, obj)
+        await db.commit()
+        return obj
+
+    @classmethod
+    async def edit_{{ snake_class_name }}(cls, db: AsyncSession, body: dict, oper_name: str) -> str:
+        {{ pk.java_field }} = body.get('{{ pk.java_field | to_camel }}')
+        obj = await get_{{ snake_class_name }}_by_id(db, {{ pk.java_field }})
+        if not obj:
+            return '{{ functionName }}不存在'
+{% for column in columns %}{% if column.is_edit == '1' %}        obj.{{ column.java_field }} = body.get('{{ column.java_field | to_camel }}', obj.{{ column.java_field }})
+{% endif %}{% endfor %}        obj.update_by = oper_name
+        obj.update_time = datetime.now()
+        await update_{{ snake_class_name }}_repo(db, obj)
+        await db.commit()
+        return ''
+
+    @classmethod
+    async def delete_{{ snake_class_name }}s(cls, db: AsyncSession, {{ pk.java_field }}s: list) -> str:
+        for {{ pk.java_field }} in {{ pk.java_field }}s:
+            obj = await get_{{ snake_class_name }}_by_id(db, {{ pk.java_field }})
+            if obj:
+                await delete_{{ snake_class_name }}_repo(db, obj)
+        await db.commit()
+        return ''

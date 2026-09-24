@@ -1,0 +1,14 @@
+# 构建产物
+bin/
+*.exe
+
+# 配置：.env.dev 已是本地 Docker 默认配置（无真实凭据），随仓库提交；.env.prod 可能含真实凭据，不提交
+configs/.env.prod
+
+# 日志
+logs/
+*.log
+
+# IDE
+.idea/
+.vscode/

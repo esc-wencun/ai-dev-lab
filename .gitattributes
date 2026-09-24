@@ -1,0 +1,7 @@
+# 跨平台换行符统一（防止 Windows autocrlf 破坏 shell 脚本）
+*.sh text eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# 源码与配置统一 LF 入库，checkout 按平台
+* text=auto

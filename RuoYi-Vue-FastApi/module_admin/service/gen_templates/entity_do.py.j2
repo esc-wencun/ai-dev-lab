@@ -1,0 +1,16 @@
+"""{{ table.tableComment or table.tableName }} ORM模型
+@Author: {{ author }}
+@Date: {{ datetime }}
+"""
+from sqlalchemy import Column, BigInteger, Integer, String, DateTime, Float, Text
+from config.database import Base
+
+
+class {{ ClassName }}(Base):
+    """
+    {{ table.tableComment or table.tableName }}表
+    """
+    __tablename__ = '{{ tableName }}'
+
+{% for column in columns %}    {{ column.java_field }} = Column({{ column.column_type | py_column_type }}{% if column.is_pk == '1' %}, primary_key=True{% if column.is_increment == '1' %}, autoincrement=True{% endif %}{% endif %}{% if column.is_required == '1' and column.is_pk != '1' %}, nullable=False{% endif %}, comment='{{ column.columnComment }}')
+{% endfor %}

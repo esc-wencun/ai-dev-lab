@@ -1,0 +1,14 @@
+basePath: /
+info:
+  contact: {}
+  description: RuoYi 管理系统 Go 版服务端接口（复刻 Java 版契约）
+  title: RuoYi-Vue-GO API
+  version: "1.0"
+paths: {}
+securityDefinitions:
+  Bearer:
+    description: 类型 "Bearer + 空格 + token"
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

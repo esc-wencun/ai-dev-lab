@@ -1,0 +1,179 @@
+<template>
+  <div class="app-container">
+    <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
+{% for column in columns %}{% if column.is_query == '1' %}      <el-form-item label="{{ column.columnComment }}" prop="{{ column.javaField }}">
+        <el-input v-model="queryParams.{{ column.javaField }}" placeholder="请输入{{ column.columnComment }}" clearable @keyup.enter="handleQuery" />
+      </el-form-item>
+{% endif %}{% endfor %}      <el-form-item>
+        <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+        <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+      </el-form-item>
+    </el-form>
+
+    <el-row :gutter="10" class="mb8">
+      <el-col :span="1.5">
+        <el-button type="primary" plain icon="Plus" @click="handleAdd" v-hasPermi="['{{ permissionPrefix }}:add']">新增</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button type="success" plain icon="Edit" :disabled="single" @click="handleUpdate" v-hasPermi="['{{ permissionPrefix }}:edit']">修改</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete" v-hasPermi="['{{ permissionPrefix }}:remove']">删除</el-button>
+      </el-col>
+      <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
+    </el-row>
+
+    <el-table v-loading="loading" :data="{{ businessName }}List" @selection-change="handleSelectionChange">
+      <el-table-column type="selection" width="55" align="center" />
+{% for column in columns %}{% if column.is_list == '1' %}      <el-table-column label="{{ column.columnComment }}" align="center" prop="{{ column.javaField }}" />
+{% endif %}{% endfor %}      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+        <template #default="scope">
+          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['{{ permissionPrefix }}:edit']">修改</el-button>
+          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['{{ permissionPrefix }}:remove']">删除</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+
+    <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" @pagination="getList" />
+
+    <!-- 添加或修改{{ functionName }}对话框 -->
+    <el-dialog :title="title" v-model="open" width="500px" append-to-body>
+      <el-form ref="{{ businessName }}Ref" :model="form" :rules="rules" label-width="80px">
+{% for column in columns %}{% if column.is_insert == '1' and column.is_pk != '1' %}        <el-form-item label="{{ column.columnComment }}" prop="{{ column.javaField }}">
+{% if column.html_type == 'input' %}          <el-input v-model="form.{{ column.javaField }}" placeholder="请输入{{ column.columnComment }}" />
+{% elif column.html_type == 'textarea' %}          <el-input v-model="form.{{ column.javaField }}" type="textarea" placeholder="请输入内容" />
+{% elif column.html_type == 'datetime' %}          <el-date-picker clearable v-model="form.{{ column.javaField }}" type="date" value-format="YYYY-MM-DD" placeholder="请选择{{ column.columnComment }}"></el-date-picker>
+{% elif column.html_type == 'select' %}          <el-select v-model="form.{{ column.javaField }}" placeholder="请选择{{ column.columnComment }}">
+            <el-option v-for="dict in {{ column.dictType or 'sys_normal_disable' }}" :key="dict.value" :label="dict.label" :value="dict.value"></el-option>
+          </el-select>
+{% elif column.html_type == 'radio' %}          <el-radio-group v-model="form.{{ column.javaField }}">
+            <el-radio v-for="dict in {{ column.dictType or 'sys_normal_disable' }}" :key="dict.value" :value="dict.value">{{ '{{' }} dict.label {{ '}}' }}</el-radio>
+          </el-radio-group>
+{% else %}          <el-input v-model="form.{{ column.javaField }}" placeholder="请输入{{ column.columnComment }}" />
+{% endif %}        </el-form-item>
+{% endif %}{% endfor %}      </el-form>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button type="primary" @click="submitForm">确 定</el-button>
+          <el-button @click="cancel">取 消</el-button>
+        </div>
+      </template>
+    </el-dialog>
+  </div>
+</template>
+
+<script setup name="{{ BusinessName }}">
+import { list{{ BusinessName }}, get{{ BusinessName }}, add{{ BusinessName }}, update{{ BusinessName }}, del{{ BusinessName }} } from "@/api/{{ moduleName }}/{{ businessName }}";
+
+const { proxy } = getCurrentInstance();
+const {{ businessName }}List = ref([]);
+const open = ref(false);
+const loading = ref(true);
+const showSearch = ref(true);
+const ids = ref([]);
+const single = ref(true);
+const multiple = ref(true);
+const total = ref(0);
+const title = ref("");
+
+const data = reactive({
+  form: {},
+  queryParams: {
+    pageNum: 1,
+    pageSize: 10,
+  },
+  rules: {
+{% for column in columns %}{% if column.is_required == '1' and column.is_pk != '1' %}    {{ column.javaField }}: [{ required: true, message: "{{ column.columnComment }}不能为空", trigger: "blur" }],
+{% endif %}{% endfor %}  },
+});
+
+const { queryParams, form, rules } = toRefs(data);
+
+/** 查询{{ functionName }}列表 */
+function getList() {
+  loading.value = true;
+  list{{ BusinessName }}(queryParams.value).then(response => {
+    {{ businessName }}List.value = response.rows;
+    total.value = response.total;
+    loading.value = false;
+  });
+}
+
+/** 搜索按钮操作 */
+function handleQuery() {
+  queryParams.value.pageNum = 1;
+  getList();
+}
+
+/** 重置按钮操作 */
+function resetQuery() {
+  proxy.resetForm("queryRef");
+  handleQuery();
+}
+
+// 多选框选中数据
+function handleSelectionChange(selection) {
+  ids.value = selection.map(item => item.{{ pk.javaField }});
+  single.value = selection.length != 1;
+  multiple.value = !selection.length;
+}
+
+/** 新增按钮操作 */
+function handleAdd() {
+  reset();
+  open.value = true;
+  title.value = "添加{{ functionName }}";
+}
+
+/** 修改按钮操作 */
+function handleUpdate(row) {
+  reset();
+  const _{{ pk.javaField }} = row.{{ pk.javaField }} || ids.value;
+  get{{ BusinessName }}(_{{ pk.javaField }}).then(response => {
+    form.value = response.data;
+    open.value = true;
+    title.value = "修改{{ functionName }}";
+  });
+}
+
+/** 提交按钮 */
+function submitForm() {
+  proxy.$refs["{{ businessName }}Ref"].validate(valid => {
+    if (valid) {
+      if (form.value.{{ pk.javaField }} != null) {
+        update{{ BusinessName }}(form.value).then(response => {
+          proxy.$modal.msgSuccess("修改成功");
+          open.value = false;
+          getList();
+        });
+      } else {
+        add{{ BusinessName }}(form.value).then(response => {
+          proxy.$modal.msgSuccess("新增成功");
+          open.value = false;
+          getList();
+        });
+      }
+    }
+  });
+}
+
+/** 删除按钮操作 */
+function handleDelete(row) {
+  const _{{ pk.javaField }}s = row.{{ pk.javaField }} || ids.value;
+  proxy.$modal.confirm('是否确认删除{{ functionName }}编号为"' + _{{ pk.javaField }}s + '"的数据项？').then(function () {
+    return del{{ BusinessName }}(_{{ pk.javaField }}s);
+  }).then(() => {
+    getList();
+    proxy.$modal.msgSuccess("删除成功");
+  }).catch(() => {});
+}
+
+/** 导出按钮操作 */
+function handleExport() {
+  proxy.download("{{ moduleName }}/{{ businessName }}/export", {
+    ...queryParams.value,
+  }, `{{ businessName }}_${new Date().getTime()}.xlsx`);
+}
+
+getList();
+</script>

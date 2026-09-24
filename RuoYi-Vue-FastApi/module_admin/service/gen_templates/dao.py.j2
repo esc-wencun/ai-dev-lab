@@ -1,0 +1,38 @@
+"""{{ table.tableComment or table.tableName }} DAO
+@Author: {{ author }}
+@Date: {{ datetime }}
+分层职责：仅查询与写库，禁止业务判断和缓存操作
+"""
+from typing import List, Optional
+from sqlalchemy import select, func
+from sqlalchemy.ext.asyncio import AsyncSession
+from module_admin.entity.do.{{ moduleName }}_do import {{ ClassName }}
+
+
+async def get_{{ snake_class_name }}_by_id(db: AsyncSession, {{ pk.java_field }}: {{ pk.java_type }}) -> Optional[{{ ClassName }}]:
+    """按主键查询"""
+    row = (await db.execute(
+        select({{ ClassName }}).where({{ ClassName }}.{{ pk.java_field }} == {{ pk.java_field }})
+    )).first()
+    return row[0] if row else None
+
+
+async def get_{{ snake_class_name }}_list(db: AsyncSession) -> List[{{ ClassName }}]:
+    """列表查询（条件在service层按需扩展）"""
+    return list((await db.execute(
+        select({{ ClassName }}).order_by({{ ClassName }}.{{ pk.java_field }}.desc())
+    )).scalars().all())
+
+
+async def insert_{{ snake_class_name }}_repo(db: AsyncSession, {{ snake_class_name }}: {{ ClassName }}) -> {{ ClassName }}:
+    db.add({{ snake_class_name }})
+    await db.flush()
+    return {{ snake_class_name }}
+
+
+async def update_{{ snake_class_name }}_repo(db: AsyncSession, {{ snake_class_name }}: {{ ClassName }}):
+    await db.flush()
+
+
+async def delete_{{ snake_class_name }}_repo(db: AsyncSession, {{ snake_class_name }}: {{ ClassName }}):
+    await db.delete({{ snake_class_name }})
