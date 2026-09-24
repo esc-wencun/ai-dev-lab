@@ -1,26 +1,28 @@
 # AGENTS.md
 
-本文件是本工作区的**唯一 AI 编码规范源**（Single Source of Truth），所有 AI 编码工具（Claude Code / Cursor / Codex / Gemini CLI / Windsurf 等）统一识别。`CLAUDE.md` 通过 `@AGENTS.md` 导入指向本文件，请勿在两处重复维护——修改规范只改这里。
+本文件是本工作区的**唯一 AI 编码规范源**（Single Source of Truth），所有 AI 编码工具（Claude Code / Cursor / Codex / Gemini CLI / Windsurf 等）统一识别。`CLAUDE.md` 通过 `@AGENTS.md` 导入指向本文件，请勿在两处重复维护——修改规范只改这里。工作区状态（各项目定位与可改性）与兼容契约类信息同样以本文件为唯一权威源；[readme.md](readme.md) 面向人类读者，只保留摘要——修改这里的契约/状态内容时，需同步检查 readme 对应段落有无漂移。因机器而异的本机环境（解释器全路径、数据库/Redis 当前指向等）集中在 [AGENTS.local.md](AGENTS.local.md)（刻意入库的本机配置参考），本文件保持通用写法。
 
 ## 工作区结构
 
 本目录是 RuoYi 管理系统的四项目工作区：
 
-- **RuoYi-Vue/** — Java 版服务端（Spring Boot / Java 17 / MyBatis），功能与接口契约的**唯一基准**。只读参考，原则上不修改。
-- **RuoYi-Vue3/** — Vue 3 + Element Plus + Vite 前端，两个后端共用，**不修改任何前端代码**。
+- **RuoYi-Vue/** — Java 版服务端（Spring Boot / Java 17 / MyBatis），功能与接口契约的**唯一基准**。2026-09-25 起纳入可修改范围（按学习需要增量演进，如 12.0.0 SysPlatformController）；改契约时同步评估 Go/Python。
+- **RuoYi-Vue3/** — Vue 3 + Element Plus + Vite 前端，三个后端共用。2026-09-25 起纳入可修改范围（按学习需要演进）；改动需以不破坏三版后端通用性为前提（优先用 `features` 能力开关而非硬编码语言判断，见 12.0.0）。
 - **RuoYi-Vue-FastApi/** — Python (FastAPI) 版服务端，当前开发重点（学习 AI + Python 项目）。目标是与 Java 版接口完全兼容，前端零改动即可切换后端。
-- **RuoYi-Vue-GO/** — Go 版服务端（**未动工，spec 已就绪**）。定位与 Python 版相同：复刻 Java 版接口、前端零改动。规范入口 `RuoYi-Vue-GO/AGENTS.md`，任务清单 `RuoYi-Vue-GO/specs/README.md`，技术选型 `RuoYi-Vue-GO/specs/tech-stack.md`。同监听 8080，与 Java/Python 版互斥。
+- **RuoYi-Vue-GO/** — Go 版服务端（Gin + GORM）。定位与 Python 版相同：复刻 Java 版接口、前端零改动切换。规范入口 `RuoYi-Vue-GO/AGENTS.md`，任务清单 `RuoYi-Vue-GO/specs/README.md`，技术选型 `RuoYi-Vue-GO/specs/tech-stack.md`。同监听 8080，与 Java/Python 版互斥。
+
+> 「前端零改动」指三版后端切换时前端无需适配（兼容契约的目标），不是禁止改前端——2026-09-25 起前端与 Java 版均可按学习需要修改，改完注意评估对另外两个后端的影响。
 
 ## 常用命令
 
-Python 后端（在 `RuoYi-Vue-FastApi/` 下；必须用 `C:\Program Files\Python310\python.exe`，PATH 默认的 Anaconda 是 3.8 不能用）：
+Python 后端（在 `RuoYi-Vue-FastApi/` 下；需 Python 3.10+。本机默认解释器不满足要求，实际可用路径见 [AGENTS.local.md](AGENTS.local.md)，本机执行时把下例 `python` 替换为该全路径）：
 
 ```bash
-"C:\Program Files\Python310\python.exe" -m pip install -r requirements.txt   # 安装依赖
-"C:\Program Files\Python310\python.exe" app.py --env=dev                     # 启动，监听 8080
-"C:\Program Files\Python310\python.exe" -m pytest tests/ -v                  # 全部单元测试
-"C:\Program Files\Python310\python.exe" -m pytest tests/test_login_logic.py -v            # 单个测试文件
-"C:\Program Files\Python310\python.exe" -m pytest tests/test_login_logic.py -k bcrypt -v  # 按名过滤
+python -m pip install -r requirements.txt   # 安装依赖
+python app.py --env=dev                     # 启动，监听 8080
+python -m pytest tests/ -v                  # 全部单元测试
+python -m pytest tests/test_login_logic.py -v            # 单个测试文件
+python -m pytest tests/test_login_logic.py -k bcrypt -v  # 按名过滤
 ```
 
 前端（在 `RuoYi-Vue3/` 下）：
@@ -31,7 +33,7 @@ npm run dev           # 开发服务器，端口 80，/dev-api 代理到 localho
 npm run build:prod    # 生产构建
 ```
 
-Java 版（仅对照时）：`RuoYi-Vue/` 下 `mvn clean package -Dmaven.test.skip=true`，然后运行 `ruoyi-admin/target/ruoyi-admin.jar`。
+Java 版（对照或增量演进时）：`RuoYi-Vue/` 下 `mvn clean package -Dmaven.test.skip=true`，然后运行 `ruoyi-admin/target/ruoyi-admin.jar`（需 JDK 17，本机 java 全路径见 [AGENTS.local.md](AGENTS.local.md)）。
 
 接口文档：后端启动后访问 `http://localhost:8080/docs`。默认账号 `admin` / `admin123`。
 
@@ -40,9 +42,9 @@ Java 版（仅对照时）：`RuoYi-Vue/` 下 `mvn clean package -Dmaven.test.sk
 Python 版存在的意义就是复刻 Java 版接口，以下兼容点是所有开发的前提：
 
 - **响应格式**：统一 `{code, msg, ...}` 信封（`utils/response_util.py` 的 `ResponseUtil`，对位 Java `AjaxResult`）。状态码约定：业务失败 HTTP 200 + body code 500/601；无权限 code 403；未登录 code 401（也是 HTTP 200）。前端按 body code 判断，不能改成 HTTP 状态码语义。
-- **字段命名**：返回 JSON 一律驼峰（对位 Jackson 序列化）。
-- **同库同 Redis**：MySQL（阿里云 RDS `ry-vue-26-09-24` 库）和 Redis（db11）与 Java 版共用。数据库/Redis 配置以 Java 版 `RuoYi-Vue/ruoyi-admin/src/main/resources/application.yml` 和 `application-druid.yml` 为准，Java 端改动后需手动同步 `.env.dev`。
-- **关键兼容点**：BCrypt 密码互相可验；Redis 键前缀 `login_tokens:` / `captcha_codes:` / `pwd_err_cnt:` / `sys_config:`（常量在 `common/constant.py`）；JWT HS512。
+- **字段命名**：返回 JSON 一律驼峰（对位 Jackson 序列化）；日期统一 `yyyy-MM-dd HH:mm:ss`。
+- **同库同 Redis**：三版共用同一个 MySQL 与 Redis（当前指向见 [AGENTS.local.md](AGENTS.local.md)；`docker/` 提供开箱即用的本地环境，细节见 `docker/README.md`）。数据库/Redis 配置以 Java 版 `RuoYi-Vue/ruoyi-admin/src/main/resources/application.yml` 和 `application-druid.yml` 为准，Java 端改动后需手动同步各版 `.env.dev`。
+- **关键兼容点**：BCrypt 密码互相可验；Redis 键前缀七个与 Java `CacheConstants.java` 逐字一致：`login_tokens:` / `captcha_codes:` / `pwd_err_cnt:` / `sys_config:` / `sys_dict:` / `repeat_submit:` / `rate_limit:`（Python 常量在 `common/constant.py`，Go 在 `internal/common/constant`）；JWT HS512。
 - **会话不互通（已知设计，不是 bug）**：Redis 会话 value 格式不同（Java 是 FastJson 带 @type，Python 是纯 JSON），切换后端后所有用户需重新登录。
 
 ## Python 版分层规范（对位 Java ruoyi-common / ruoyi-system）

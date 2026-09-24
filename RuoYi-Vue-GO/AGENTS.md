@@ -5,7 +5,7 @@
 ## 项目定位
 
 - 用 Go 复刻 Java 版 RuoYi-Vue 服务端接口，前端 RuoYi-Vue3 零改动切换（定位与 RuoYi-Vue-FastApi 相同，同一套系统三语言实现）。
-- **当前状态：未动工，spec 驱动开发**。任务总清单见 [specs/README.md](specs/README.md)（12 个模块 0.0.0~11.0.0），技术选型结论见 [specs/tech-stack.md](specs/tech-stack.md)，与 Java 版的有意差异登记在 [specs/deviations.md](specs/deviations.md)。
+- **当前状态：全部模块已完成**（0.0.0 工程基础 ~ 12.0.0 平台标识，spec 驱动开发）。任务总清单与遗留待办见 [specs/README.md](specs/README.md)，技术选型结论见 [specs/tech-stack.md](specs/tech-stack.md)，与 Java 版的有意差异登记在 [specs/deviations.md](specs/deviations.md)。
 
 ## 技术栈（已定，依据 specs/tech-stack.md）
 
@@ -34,6 +34,6 @@ gofmt -l . && go vet ./...     # 提交前自查
 ## 环境约束（重要）
 
 1. **端口互斥**：Go 版同监听 8080，Java / Python / Go 三版**同一时间只能运行一个**，切换前端代理指向前先停掉另外两个。
-2. **共用库纪律**：MySQL（阿里云 RDS `ry-vue-26-09-24`）和 Redis（db11）与 Java、Python 版共用。配置以 Java 版 `application.yml` / `application-druid.yml` 为准，Java 端改动后手动同步 Go 版 `.env.dev`。端到端测试产生的数据**测试完必须清理**，admin 密码与会话测完必须复原（admin/admin123）。
+2. **共用库纪律**：MySQL 和 Redis 与 Java、Python 版共用，当前指向见根目录 [../AGENTS.local.md](../AGENTS.local.md)。配置以 Java 版 `application.yml` / `application-druid.yml` 为准，Java 端改动后手动同步 Go 版 `.env.dev`。端到端测试产生的数据**测试完必须清理**，admin 密码与会话测完必须复原（admin/admin123）。
 3. **会话不互通（已知设计，不是 bug）**：三个版本的 Redis 会话 value 格式各不相同（Java 是 FastJson 带 @type，Python/Go 是纯 JSON 但结构有差异），切换后端后所有用户需重新登录，详见 [specs/deviations.md](specs/deviations.md)。
 4. **Go 特有兼容坑**：time.Time RFC3339 需自定义驼峰时间输出、json tag 显式驼峰、int64 主键不转 string 等，见 [specs/tech-stack.md](specs/tech-stack.md) 第四节。
