@@ -7,6 +7,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"net/http"
+	"runtime"
 	"strings"
 	"time"
 
@@ -169,6 +170,23 @@ func (h *LoginHandler) Unlockscreen(c *gin.Context) {
 // Index GET /（对位 SysIndexController.index 纯文本欢迎语；具体文案与 Java 差异已登记 deviations）。
 func (h *LoginHandler) Index(c *gin.Context) {
 	c.String(http.StatusOK, "欢迎使用RuoYi后台管理框架，当前版本：v1.0，请通过前端地址访问。")
+}
+
+// GetPlatformInfo GET /getPlatformInfo（对位 SysPlatformController，登录即可）。
+// 返回语言/框架版本与功能开关，前端据此对 Druid 数据监控等 Java 特有功能做降级提示。
+func (h *LoginHandler) GetPlatformInfo(c *gin.Context) {
+	if middleware.GetLoginUser(c) == nil {
+		response.Unauthorized(c).JSON()
+		return
+	}
+	goVer := strings.TrimPrefix(runtime.Version(), "go")
+	response.Ok(c).
+		Put("framework", "RuoYi-Vue-GO").
+		Put("version", "1.0.0").
+		Put("language", "go").
+		Put("languageVersion", goVer).
+		Put("features", gin.H{"druidMonitor": false, "serverMonitor": false}).
+		JSON()
 }
 
 // userPermissions 登录时计算角色集合与菜单权限集合（对位 getRolePermission + getMenuPermission）。

@@ -3,7 +3,9 @@
   "configurations": [
     {
       "name": "frontend",
-      "url": "http://localhost:80",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "RuoYi-Vue3",
       "port": 80
     }
   ]
