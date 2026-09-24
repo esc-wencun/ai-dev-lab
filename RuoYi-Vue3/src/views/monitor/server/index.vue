@@ -1,5 +1,11 @@
 <template>
-  <div class="app-container">
+  <el-result v-if="!features.serverMonitor" icon="info" title="该功能仅 Java 版提供"
+    sub-title="服务监控在当前后端运行时未实现，暂不可用。">
+    <template #extra>
+      <el-button type="primary" @click="getPlatform">重新检测</el-button>
+    </template>
+  </el-result>
+  <div v-else class="app-container">
     <el-row :gutter="10">
       <el-col :span="12" class="card-box">
         <el-card>
@@ -171,8 +177,10 @@
 
 <script setup>
 import { getServer } from '@/api/monitor/server'
+import { getPlatformInfo } from '@/api/platform'
 
 const server = ref([])
+const features = ref({ serverMonitor: true })
 const { proxy } = getCurrentInstance()
 
 function getList() {
@@ -183,5 +191,12 @@ function getList() {
   })
 }
 
-getList()
+function getPlatform() {
+  getPlatformInfo().then(response => {
+    features.value = response.features || {}
+    if (features.value.serverMonitor !== false) getList()
+  })
+}
+
+getPlatform()
 </script>

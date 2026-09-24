@@ -60,6 +60,7 @@ func New(d Deps) *gin.Engine {
 	// 受保护端点（Auth 中间件解析会话；无会话由 handler 返回 401 信封）
 	r.GET("/getInfo", loginH.GetInfo)
 	r.GET("/getRouters", loginH.GetRouters)
+	r.GET("/getPlatformInfo", loginH.GetPlatformInfo) // 平台标识（登录即可；前端监控页降级依据）
 	r.POST("/logout", loginH.Logout)
 	r.POST("/unlockscreen", loginH.Unlockscreen)
 

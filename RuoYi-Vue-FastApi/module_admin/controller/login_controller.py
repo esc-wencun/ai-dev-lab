@@ -148,3 +148,31 @@ async def index():
     """
     from config.env import AppConfig
     return ResponseUtil.success(msg=f'欢迎使用{AppConfig.app_name}后台管理框架，当前版本：v{AppConfig.app_version}，请通过前端地址访问。')
+
+
+@loginController.get('/getPlatformInfo')
+async def get_platform_info(request: Request, query_db: AsyncSession = Depends(get_db)):
+    """
+    平台标识（与java版SysPlatformController一致；登录即可访问）
+    返回语言/框架版本与功能开关，前端据此对Druid数据监控等Java特有功能做降级提示
+    """
+    try:
+        import platform
+        from exceptions.exception import AuthException
+        from module_admin.service.login_service import LoginService
+        await LoginService.get_current_user(request, query_db)
+        from config.env import AppConfig
+        return ResponseUtil.success(dict_content={
+            'framework': AppConfig.app_name,
+            'version': AppConfig.app_version,
+            'language': 'python',
+            'languageVersion': platform.python_version(),
+            # druidMonitor：Druid是Java连接池，无对应物；serverMonitor：服务监控已实现（spec-08）
+            'features': {'druidMonitor': False, 'serverMonitor': True},
+        })
+    except Exception as e:
+        logger.exception(e)
+        from exceptions.exception import AuthException
+        if isinstance(e, AuthException):
+            return ResponseUtil.unauthorized(msg=e.message)
+        return ResponseUtil.error(msg=str(e))
