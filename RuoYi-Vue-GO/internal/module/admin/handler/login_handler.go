@@ -185,7 +185,7 @@ func (h *LoginHandler) GetPlatformInfo(c *gin.Context) {
 		Put("version", "1.0.0").
 		Put("language", "go").
 		Put("languageVersion", goVer).
-		Put("features", gin.H{"druidMonitor": false, "serverMonitor": false}).
+		Put("features", gin.H{"druidMonitor": false, "serverMonitor": false, "swaggerDocs": false}).
 		JSON()
 }
 

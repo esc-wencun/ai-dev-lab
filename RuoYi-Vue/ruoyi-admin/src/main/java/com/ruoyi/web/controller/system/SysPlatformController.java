@@ -37,6 +37,7 @@ public class SysPlatformController
         Map<String, Boolean> features = new HashMap<>();
         features.put("druidMonitor", true);
         features.put("serverMonitor", true);
+        features.put("swaggerDocs", true);
         ajax.put("features", features);
         return ajax;
     }

@@ -21,9 +21,10 @@
 | 14 | 部门排序端点（GO 4.0.0） | `PUT /system/dept/updateSort`（本 Java 版定制，保存拖拽排序） | 未实现 | 前端 dept 页面无该调用（grep 核实）；若前端实际调用再补 |
 | 15 | 岗位导出（GO 4.0.0） | `POST /system/post/export`（@Excel 注解列定义） | 暂未实现，与 5.0.0 用户导出共用 Excel 设施一并补 | 前端导出按钮在权限 `system:post:export` 之后，不影响主流程 |
 | 16 | 角色修改的在线权限刷新（GO 6.0.0） | `refreshPermissionByRoleId`：SCAN 全部 login_tokens，角色变更即时生效于在线用户 | 未实现——用户重新登录后生效 | Java 本版定制能力；重新登录语义对前端无感（会话键不变），高频场景（改权限）低频 |
-| 17 | 服务监控（GO 9.0.0） | `/monitor/server` 返回 OSHI CPU/内存/JVM 信息 | 未实现（gopsutil 方案待设计） | 只读信息展示页，无 CRUD 契约影响；JVM 数据无 Go 对应物 |
+| 17 | 服务监控（GO 9.0.0） | `/monitor/server` 返回 OSHI CPU/内存/JVM 信息 | 未实现。**2026-09-25 定版**：经 12.0.0 平台标识模块，前端服务监控页对 Go/Python 后端显示「该功能仅 Java 版提供」降级提示（Python 版已实现不受影响）；如需补齐走 gopsutil 对位 OSHI | JVM 数据无 Go 对应物；平台降级提示方案见 12.0.0-平台标识/spec.md |
 | 18 | 任务并发/misfire 策略（GO 10.0.0） | Quartz concurrent 禁止并发 + misfire 补跑策略 | cron v3 无策略位：并发不限制、misfire 忽略 | 预置任务均为轻量日志型；策略语义对前端展示无影响（字段照常存储） |
 | 19 | 代码生成器模板端点（GO 11.0.0） | preview/genCode/download/batchGenCode/createTable/synchDb/edit 全套 Velocity 模板生成 | 有意排除，仅实现数据层 5 端点（spec 建议降级方案） | 生成器产出 Java/Vue 代码对 Go 项目无产出价值；前端 gen 列表页可用，预览/生成按钮点击 404 属有意行为 |
+| 20 | 平台标识端点（GO 12.0.0，Java 基准新增） | 无（新增 `GET /getPlatformInfo`，登录即可，返回 framework/version/language/languageVersion/features） | GO/Python 按同一契约实现，features 如实声明（GO 全 false；Python serverMonitor=true 因服务监控已实现、swaggerDocs=false 因无 `/swagger-ui/index.html` 路由） | 多语言复刻的降级提示依据；Java/前端自此纳入可修改范围（工作区纪律 2026-09-25 起），Go/Python 评估契约同步 |
 
 ## 登记规则
 
