@@ -1,0 +1,42 @@
+# ===== AI 忽略清单（唯一权威源）=====
+# 本工作区各 AI 编码工具（Claude Code / Cursor / Windsurf / Gemini CLI 等）共用的文件忽略清单。
+# 语法与 .gitignore 相同；本文件是权威源，不要直接改下面各工具的文件——
+# 改完后在仓库根目录运行：bash scripts/sync-aiignore.sh
+#   → 原样同步到 .cursorignore / .windsurfignore / .geminiignore
+#   → 转换生成 .claude/settings.json 的 permissions.deny Read 规则
+# 注意：取反（! 行）不被同步脚本支持，保持本清单为纯忽略语义。
+# 与 .gitignore 的关系：两份清单职责不同，.gitignore 管 git，本清单管 AI 读取，各自独立维护。
+
+# ---- 依赖与构建产物（大体积，读源码用不到）----
+**/node_modules/
+RuoYi-Vue3/dist/
+**/target/
+RuoYi-Vue-GO/docs/
+
+# ---- Python 运行时产物 ----
+**/__pycache__/
+**/.pytest_cache/
+**/.ruff_cache/
+**/.venv/
+**/venv/
+
+# ---- 日志 / 上传下载 / 数据卷（运行时数据，不属于代码）----
+**/logs/
+**/*.log
+**/upload_path/
+**/download_path/
+docker/data/
+
+# ---- IDE 配置 ----
+.idea/
+.vscode/
+
+# ---- 含真实凭据的配置（与 .gitignore 同口径：绝不提交，AI 也不读）----
+**/.env.prod
+**/.env.local
+docker/.env
+
+# 刻意不屏蔽（勿添加）：
+#   .env.dev —— 三版后端配置同步依赖它，且仅含本地 Docker 默认凭据（见根 .gitignore 注释）
+#   AGENTS.local.md —— 刻意入库的本机配置参考
+#   github-io-homepage.md —— 本地话术稿，由 AI 协助维护，需可读
