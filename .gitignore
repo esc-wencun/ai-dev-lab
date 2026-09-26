@@ -16,6 +16,9 @@ docker/.env
 **/download_path/
 **/upload_path/
 
+# ---- 打包产物（/package 命令输出，按日期版本分目录）----
+package/
+
 # ---- Python ----
 __pycache__/
 *.py[cod]
