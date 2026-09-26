@@ -103,18 +103,19 @@ token:
 
 # MyBatis配置
 mybatis:
-  # 搜索指定包别名
+  # 搜索指定包别名（自定义 MyBatisConfig 从本节读取；同时保留 mybatis-plus 同值键供 IDEA 插件识别别名）
   typeAliasesPackage: com.ruoyi.**.domain
   # 配置mapper的扫描，找到所有的mapper.xml映射文件
   mapperLocations: classpath*:mapper/**/*Mapper.xml
   # 加载全局的配置文件
   configLocation: classpath:mybatis/mybatis-config.xml
 
-# PageHelper分页插件
-pagehelper:
-  helperDialect: mysql
-  supportMethodsArguments: true
-  params: count=countSql
+# MyBatis-Plus 配置镜像（运行时以自定义 MyBatisConfig 手工装配为准，本节仅供 IDEA MyBatis 插件
+# 解析 XML 里的短别名（resultMap type/parameterType 等），消除 "ResultMap type is null" 告警）
+mybatis-plus:
+  typeAliasesPackage: com.ruoyi.**.domain
+  mapperLocations: classpath*:mapper/**/*Mapper.xml
+  configLocation: classpath:mybatis/mybatis-config.xml
 
 # Springdoc配置
 springdoc:

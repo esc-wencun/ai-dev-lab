@@ -17,27 +17,33 @@ import java.lang.annotation.Target;
 public @interface DataScope
 {
     /**
+     * 数据权限开关（false 时本次调用不注入任何数据范围过滤，用于豁免场景）。
+     * 默认 true，既有用法零改动。
+     */
+    boolean enable() default true;
+
+    /**
      * 用户表的别名
      */
-    public String userAlias() default "";
+    String userAlias() default "";
 
     /**
      * 部门表的别名
      */
-    public String deptAlias() default "";
+    String deptAlias() default "";
 
     /**
      * 用户字段名
      */
-    public String userField() default "user_id";
+    String userField() default "user_id";
 
     /**
      * 部门字段名
      */
-    public String deptField() default "dept_id";
+    String deptField() default "dept_id";
 
     /**
      * 权限字符（用于多个角色匹配符合要求的权限）默认根据权限注解@ss获取，多个权限用逗号分隔开来
      */
-    public String permission() default "";
+    String permission() default "";
 }

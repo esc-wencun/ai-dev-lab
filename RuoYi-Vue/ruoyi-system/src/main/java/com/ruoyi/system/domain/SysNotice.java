@@ -7,17 +7,23 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ruoyi.common.core.domain.BaseEntity;
 import com.ruoyi.common.xss.Xss;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 
 /**
  * 通知公告表 sys_notice
  * 
  * @author ruoyi
  */
+@TableName("sys_notice")
 public class SysNotice extends BaseEntity
 {
     private static final long serialVersionUID = 1L;
 
     /** 公告ID */
+    @TableId(type = IdType.AUTO)
     private Long noticeId;
 
     /** 公告标题 */
@@ -34,6 +40,7 @@ public class SysNotice extends BaseEntity
 
     /** 是否已读 */
     @JsonProperty("isRead")
+    @com.baomidou.mybatisplus.annotation.TableField(exist = false)
     private boolean isRead;
 
     public Long getNoticeId()

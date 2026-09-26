@@ -1,18 +1,27 @@
 package com.ruoyi.system.service;
 
 import java.util.List;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ruoyi.system.domain.SysPost;
 
 /**
  * 岗位信息 服务层
- * 
+ *
  * @author ruoyi
  */
 public interface ISysPostService
 {
     /**
-     * 查询岗位信息集合
-     * 
+     * 分页查询岗位信息集合（列表接口用）
+     *
+     * @param post 岗位信息
+     * @return 分页结果
+     */
+    public Page<SysPost> selectPostPage(SysPost post);
+
+    /**
+     * 查询岗位信息集合（非分页：导出等）
+     *
      * @param post 岗位信息
      * @return 岗位列表
      */

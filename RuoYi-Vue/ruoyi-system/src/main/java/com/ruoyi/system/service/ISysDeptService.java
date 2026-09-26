@@ -52,8 +52,16 @@ public interface ISysDeptService
     public List<Long> selectDeptListByRoleId(Long roleId);
 
     /**
+     * 根据部门ID查询其全部子部门（含各级子孙，不含自己）
+     *
+     * @param deptId 部门ID
+     * @return 子部门列表
+     */
+    public List<SysDept> selectChildrenDeptById(Long deptId);
+
+    /**
      * 根据部门ID查询信息
-     * 
+     *
      * @param deptId 部门ID
      * @return 部门信息
      */

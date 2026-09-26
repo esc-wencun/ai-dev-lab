@@ -27,17 +27,33 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         where notice_id = #{noticeId}
     </select>
     
-    <select id="selectNoticeList" parameterType="SysNotice" resultMap="SysNoticeResult">
+    <select id="selectNoticeList" resultMap="SysNoticeResult">
         <include refid="selectNoticeVo"/>
         <where>
-			<if test="noticeTitle != null and noticeTitle != ''">
-				AND notice_title like concat('%', #{noticeTitle}, '%')
+			<if test="notice.noticeTitle != null and notice.noticeTitle != ''">
+				AND notice_title like concat('%', #{notice.noticeTitle}, '%')
 			</if>
-			<if test="noticeType != null and noticeType != ''">
-				AND notice_type = #{noticeType}
+			<if test="notice.noticeType != null and notice.noticeType != ''">
+				AND notice_type = #{notice.noticeType}
 			</if>
-			<if test="createBy != null and createBy != ''">
-				AND create_by like concat('%', #{createBy}, '%')
+			<if test="notice.createBy != null and notice.createBy != ''">
+				AND create_by like concat('%', #{notice.createBy}, '%')
+			</if>
+		</where>
+		order by notice_id desc
+    </select>
+
+    <select id="selectNoticePage" resultMap="SysNoticeResult">
+        <include refid="selectNoticeVo"/>
+        <where>
+			<if test="notice.noticeTitle != null and notice.noticeTitle != ''">
+				AND notice_title like concat('%', #{notice.noticeTitle}, '%')
+			</if>
+			<if test="notice.noticeType != null and notice.noticeType != ''">
+				AND notice_type = #{notice.noticeType}
+			</if>
+			<if test="notice.createBy != null and notice.createBy != ''">
+				AND create_by like concat('%', #{notice.createBy}, '%')
 			</if>
 		</where>
 		order by notice_id desc

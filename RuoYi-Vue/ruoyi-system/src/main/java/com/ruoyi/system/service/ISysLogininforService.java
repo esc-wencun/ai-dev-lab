@@ -1,6 +1,7 @@
 package com.ruoyi.system.service;
 
 import java.util.List;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.ruoyi.system.domain.SysLogininfor;
 
 /**
@@ -16,6 +17,14 @@ public interface ISysLogininforService
      * @param logininfor 访问日志对象
      */
     public void insertLogininfor(SysLogininfor logininfor);
+
+    /**
+     * 分页查询（列表接口用）
+     *
+     * @param sysLogininfor sysLogininfor信息
+     * @return 分页结果
+     */
+    public IPage<SysLogininfor> selectLogininforPage(SysLogininfor sysLogininfor);
 
     /**
      * 查询系统登录日志集合

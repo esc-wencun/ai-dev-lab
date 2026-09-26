@@ -41,7 +41,7 @@
 
 ```
 ai-dev-lab（原 ruoyi 工作区）
-├── RuoYi-Vue/          Java 版服务端（Spring Boot + MyBatis）—— 接口契约的唯一基准，2026-09-25 起可按学习需要增量演进
+├── RuoYi-Vue/          Java 版服务端（Spring Boot + MyBatis-Plus）—— 接口契约的唯一基准，2026-09-25 起可按学习需要增量演进
 ├── RuoYi-Vue3/         前端（Vue 3 + Element Plus + Vite）—— 三个后端共用，同样可增量演进
 ├── RuoYi-Vue-FastApi/  Python 版服务端（FastAPI + SQLAlchemy 2.0 async）
 ├── RuoYi-Vue-GO/       Go 版服务端（Gin + GORM）
@@ -74,7 +74,7 @@ Go / Python 版每模块的 API 契约、任务分解与验收记录见各自 sp
 | 组件 | Java 版 | Go 版 | Python 版 |
 |------|---------|-------|-----------|
 | Web 框架 | Spring Boot | Gin | FastAPI + uvicorn |
-| ORM | MyBatis + Druid | GORM | SQLAlchemy 2.0 (async) |
+| ORM | MyBatis-Plus + Druid | GORM | SQLAlchemy 2.0 (async) |
 | 缓存/会话 | Spring Data Redis | go-redis v9 | redis-py (asyncio) |
 | JWT | jjwt (HS512) | golang-jwt v5 | python-jose |
 | 密码加密 | BCryptPasswordEncoder | x/crypto/bcrypt | passlib（三版哈希互相可验） |

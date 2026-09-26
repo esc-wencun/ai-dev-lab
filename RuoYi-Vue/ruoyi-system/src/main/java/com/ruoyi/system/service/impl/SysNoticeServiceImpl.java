@@ -1,5 +1,6 @@
 package com.ruoyi.system.service.impl;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,17 @@ public class SysNoticeServiceImpl implements ISysNoticeService
     public SysNotice selectNoticeById(Long noticeId)
     {
         return noticeMapper.selectNoticeById(noticeId);
+    }
+
+    /**
+     * 分页查询（列表接口用）
+     *
+     * @return 分页结果
+     */
+    @Override
+    public IPage<SysNotice> selectNoticePage(SysNotice notice)
+    {
+        return noticeMapper.selectNoticePage(com.ruoyi.common.utils.PageUtils.buildPage(), notice);
     }
 
     /**

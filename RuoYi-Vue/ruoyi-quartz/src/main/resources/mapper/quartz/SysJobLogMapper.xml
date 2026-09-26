@@ -22,26 +22,51 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		from sys_job_log
     </sql>
 	
-	<select id="selectJobLogList" parameterType="SysJobLog" resultMap="SysJobLogResult">
+	<select id="selectJobLogList" resultMap="SysJobLogResult">
 		<include refid="selectJobLogVo"/>
 		<where>
-			<if test="jobName != null and jobName != ''">
-				AND job_name like concat('%', #{jobName}, '%')
+			<if test="jobLog.jobName != null and jobLog.jobName != ''">
+				AND job_name like concat('%', #{jobLog.jobName}, '%')
 			</if>
-			<if test="jobGroup != null and jobGroup != ''">
-				AND job_group = #{jobGroup}
+			<if test="jobLog.jobGroup != null and jobLog.jobGroup != ''">
+				AND job_group = #{jobLog.jobGroup}
 			</if>
-			<if test="status != null and status != ''">
-				AND status = #{status}
+			<if test="jobLog.status != null and jobLog.status != ''">
+				AND status = #{jobLog.status}
 			</if>
-			<if test="invokeTarget != null and invokeTarget != ''">
-				AND invoke_target like concat('%', #{invokeTarget}, '%')
+			<if test="jobLog.invokeTarget != null and jobLog.invokeTarget != ''">
+				AND invoke_target like concat('%', #{jobLog.invokeTarget}, '%')
 			</if>
-			<if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
-				and date_format(create_time,'%Y%m%d') &gt;= date_format(#{params.beginTime},'%Y%m%d')
+			<if test="jobLog.params.beginTime != null and jobLog.params.beginTime != ''"><!-- 开始时间检索 -->
+				and date_format(create_time,'%Y%m%d') &gt;= date_format(#{jobLog.params.beginTime},'%Y%m%d')
 			</if>
-			<if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
-				and date_format(create_time,'%Y%m%d') &lt;= date_format(#{params.endTime},'%Y%m%d')
+			<if test="jobLog.params.endTime != null and jobLog.params.endTime != ''"><!-- 结束时间检索 -->
+				and date_format(create_time,'%Y%m%d') &lt;= date_format(#{jobLog.params.endTime},'%Y%m%d')
+			</if>
+		</where>
+		order by create_time desc
+	</select>
+
+	<select id="selectJobLogPage" resultMap="SysJobLogResult">
+		<include refid="selectJobLogVo"/>
+		<where>
+			<if test="jobLog.jobName != null and jobLog.jobName != ''">
+				AND job_name like concat('%', #{jobLog.jobName}, '%')
+			</if>
+			<if test="jobLog.jobGroup != null and jobLog.jobGroup != ''">
+				AND job_group = #{jobLog.jobGroup}
+			</if>
+			<if test="jobLog.status != null and jobLog.status != ''">
+				AND status = #{jobLog.status}
+			</if>
+			<if test="jobLog.invokeTarget != null and jobLog.invokeTarget != ''">
+				AND invoke_target like concat('%', #{jobLog.invokeTarget}, '%')
+			</if>
+			<if test="jobLog.params.beginTime != null and jobLog.params.beginTime != ''"><!-- 开始时间检索 -->
+				and date_format(create_time,'%Y%m%d') &gt;= date_format(#{jobLog.params.beginTime},'%Y%m%d')
+			</if>
+			<if test="jobLog.params.endTime != null and jobLog.params.endTime != ''"><!-- 结束时间检索 -->
+				and date_format(create_time,'%Y%m%d') &lt;= date_format(#{jobLog.params.endTime},'%Y%m%d')
 			</if>
 		</where>
 		order by create_time desc

@@ -2,94 +2,101 @@ package com.ruoyi.system.mapper;
 
 import java.util.List;
 import org.apache.ibatis.annotations.Param;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ruoyi.common.core.domain.entity.SysDictData;
+import com.ruoyi.common.core.mybatis.LambdaQueryWrapperX;
+import com.ruoyi.common.utils.PageUtils;
 
 /**
  * 字典表 数据层
- * 
+ *
  * @author ruoyi
  */
-public interface SysDictDataMapper
+public interface SysDictDataMapper extends BaseMapper<SysDictData>
 {
     /**
-     * 根据条件分页查询字典数据
-     * 
+     * 分页查询字典数据（动态条件 Wrapper 组装，固定 dict_sort 升序）
+     *
+     * @param dictData 字典数据信息
+     * @return 分页结果
+     */
+    default Page<SysDictData> selectDictDataPage(SysDictData dictData)
+    {
+        return selectPage(PageUtils.buildPage(), new LambdaQueryWrapperX<SysDictData>()
+                .eqIfPresent(SysDictData::getDictType, dictData.getDictType())
+                .likeIfPresent(SysDictData::getDictLabel, dictData.getDictLabel())
+                .eqIfPresent(SysDictData::getStatus, dictData.getStatus())
+                .orderByAsc(SysDictData::getDictSort));
+    }
+
+    /**
+     * 根据条件查询字典数据列表（非分页：缓存加载/导出）
+     *
      * @param dictData 字典数据信息
      * @return 字典数据集合信息
      */
-    public List<SysDictData> selectDictDataList(SysDictData dictData);
+    default List<SysDictData> selectDictDataList(SysDictData dictData)
+    {
+        return selectList(new LambdaQueryWrapperX<SysDictData>()
+                .eqIfPresent(SysDictData::getDictType, dictData.getDictType())
+                .likeIfPresent(SysDictData::getDictLabel, dictData.getDictLabel())
+                .eqIfPresent(SysDictData::getStatus, dictData.getStatus())
+                .orderByAsc(SysDictData::getDictSort));
+    }
 
     /**
-     * 根据字典类型查询字典数据
-     * 
+     * 根据字典类型查询字典数据（status=0，固定 dict_sort 升序）
+     *
      * @param dictType 字典类型
      * @return 字典数据集合信息
      */
-    public List<SysDictData> selectDictDataByType(String dictType);
+    default List<SysDictData> selectDictDataByType(String dictType)
+    {
+        return selectList(new LambdaQueryWrapperX<SysDictData>()
+                .eq(SysDictData::getStatus, "0")
+                .eq(SysDictData::getDictType, dictType)
+                .orderByAsc(SysDictData::getDictSort));
+    }
 
     /**
-     * 根据字典类型和字典键值查询字典数据信息
-     * 
+     * 根据字典类型和字典键值查询字典标签
+     *
      * @param dictType 字典类型
      * @param dictValue 字典键值
      * @return 字典标签
      */
-    public String selectDictLabel(@Param("dictType") String dictType, @Param("dictValue") String dictValue);
+    default String selectDictLabel(@Param("dictType") String dictType, @Param("dictValue") String dictValue)
+    {
+        SysDictData data = selectOne(new LambdaQueryWrapperX<SysDictData>()
+                .eq(SysDictData::getDictType, dictType)
+                .eq(SysDictData::getDictValue, dictValue)
+                .last("limit 1"));
+        return data != null ? data.getDictLabel() : null;
+    }
 
     /**
-     * 根据字典数据ID查询信息
-     * 
-     * @param dictCode 字典数据ID
-     * @return 字典数据
-     */
-    public SysDictData selectDictDataById(Long dictCode);
-
-    /**
-     * 查询字典数据
-     * 
+     * 查询字典数据个数
+     *
      * @param dictType 字典类型
-     * @return 字典数据
+     * @return 个数
      */
-    public int countDictDataByType(String dictType);
-
-    /**
-     * 通过字典ID删除字典数据信息
-     * 
-     * @param dictCode 字典数据ID
-     * @return 结果
-     */
-    public int deleteDictDataById(Long dictCode);
-
-    /**
-     * 批量删除字典数据信息
-     * 
-     * @param dictCodes 需要删除的字典数据ID
-     * @return 结果
-     */
-    public int deleteDictDataByIds(Long[] dictCodes);
-
-    /**
-     * 新增字典数据信息
-     * 
-     * @param dictData 字典数据信息
-     * @return 结果
-     */
-    public int insertDictData(SysDictData dictData);
-
-    /**
-     * 修改字典数据信息
-     * 
-     * @param dictData 字典数据信息
-     * @return 结果
-     */
-    public int updateDictData(SysDictData dictData);
+    default int countDictDataByType(String dictType)
+    {
+        return Math.toIntExact(selectCount(new LambdaQueryWrapperX<SysDictData>().eq(SysDictData::getDictType, dictType)));
+    }
 
     /**
      * 同步修改字典类型
-     * 
+     *
      * @param oldDictType 旧字典类型
      * @param newDictType 新旧字典类型
      * @return 结果
      */
-    public int updateDictDataType(@Param("oldDictType") String oldDictType, @Param("newDictType") String newDictType);
+    default int updateDictDataType(@Param("oldDictType") String oldDictType, @Param("newDictType") String newDictType)
+    {
+        SysDictData data = new SysDictData();
+        data.setDictType(newDictType);
+        return update(data, new LambdaQueryWrapperX<SysDictData>().eq(SysDictData::getDictType, oldDictType));
+    }
 }

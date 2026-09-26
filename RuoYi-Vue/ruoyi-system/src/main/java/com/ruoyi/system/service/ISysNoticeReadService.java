@@ -1,6 +1,7 @@
 package com.ruoyi.system.service;
 
 import java.util.List;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import java.util.Map;
 import com.ruoyi.system.domain.SysNotice;
 
@@ -43,6 +44,11 @@ public interface ISysNoticeReadService
      * @param noticeIds 公告ID数组
      */
     public void markReadBatch(Long userId, Long[] noticeIds);
+
+    /**
+     * 分页查询已阅读某公告的用户列表
+     */
+    public IPage<Map<String, Object>> selectReadUsersPage(Long noticeId, String searchValue);
 
     /**
      * 查询已阅读某公告的用户列表

@@ -7,17 +7,23 @@ import org.apache.commons.lang3.ArrayUtils;
 import com.ruoyi.common.constant.GenConstants;
 import com.ruoyi.common.core.domain.BaseEntity;
 import com.ruoyi.common.utils.StringUtils;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 
 /**
  * 业务表 gen_table
  * 
  * @author ruoyi
  */
+@TableName("gen_table")
 public class GenTable extends BaseEntity
 {
     private static final long serialVersionUID = 1L;
 
     /** 编号 */
+    @TableId(type = IdType.AUTO)
     private Long tableId;
 
     /** 表名称 */
@@ -81,9 +87,11 @@ public class GenTable extends BaseEntity
 
     /** 表列信息 */
     @Valid
+    @com.baomidou.mybatisplus.annotation.TableField(exist = false)
     private List<GenTableColumn> columns;
 
     /** 其它生成选项 */
+    @com.baomidou.mybatisplus.annotation.TableField(exist = false)
     private String options;
 
     /** 树编码字段 */

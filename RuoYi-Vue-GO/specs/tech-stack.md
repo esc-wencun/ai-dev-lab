@@ -12,6 +12,8 @@
 |---|---|---|---|---|
 | Web 框架 | Spring Boot / Spring MVC | FastAPI | **Gin**（89.3k★） | GoFrame（13.3k★） |
 | ORM | MyBatis / MyBatis-Plus | SQLAlchemy 2.0 async | **GORM**（40k★） | Ent（17.2k★）、sqlx |
+
+> 注：Java 基准 2026-09-26 已引入 MyBatis-Plus 3.5.17 并删除 PageHelper（见 Java 版 specs/0.0.0）；本表 ORM 对位行为历史调研记录，Go 版 GORM 选型不受影响。
 | Redis | Spring Data Redis | redis-py + RedisCache 门面 | **go-redis v9**（22.2k★） | redigo |
 | JWT | jjwt（HS512） | PyJWT | **golang-jwt/jwt v5**（9.2k★） | — |
 | 密码 BCrypt | spring-security-crypto | passlib[bcrypt] | **golang.org/x/crypto/bcrypt** | — |

@@ -4,6 +4,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.common.core.domain.entity.SysDictData;
+import com.ruoyi.common.core.service.BaseService;
 import com.ruoyi.common.utils.DictUtils;
 import com.ruoyi.system.mapper.SysDictDataMapper;
 import com.ruoyi.system.service.ISysDictDataService;
@@ -14,10 +15,19 @@ import com.ruoyi.system.service.ISysDictDataService;
  * @author ruoyi
  */
 @Service
-public class SysDictDataServiceImpl implements ISysDictDataService
+public class SysDictDataServiceImpl extends BaseService<SysDictDataMapper, SysDictData> implements ISysDictDataService
 {
-    @Autowired
-    private SysDictDataMapper dictDataMapper;
+
+    /**
+     * 分页查询（列表接口用）
+     *
+     * @return 分页结果
+     */
+    @Override
+    public com.baomidou.mybatisplus.extension.plugins.pagination.Page<SysDictData> selectDictDataPage(SysDictData dictData)
+    {
+        return baseMapper.selectDictDataPage(dictData);
+    }
 
     /**
      * 根据条件分页查询字典数据
@@ -28,7 +38,7 @@ public class SysDictDataServiceImpl implements ISysDictDataService
     @Override
     public List<SysDictData> selectDictDataList(SysDictData dictData)
     {
-        return dictDataMapper.selectDictDataList(dictData);
+        return baseMapper.selectDictDataList(dictData);
     }
 
     /**
@@ -41,7 +51,7 @@ public class SysDictDataServiceImpl implements ISysDictDataService
     @Override
     public String selectDictLabel(String dictType, String dictValue)
     {
-        return dictDataMapper.selectDictLabel(dictType, dictValue);
+        return baseMapper.selectDictLabel(dictType, dictValue);
     }
 
     /**
@@ -53,7 +63,7 @@ public class SysDictDataServiceImpl implements ISysDictDataService
     @Override
     public SysDictData selectDictDataById(Long dictCode)
     {
-        return dictDataMapper.selectDictDataById(dictCode);
+        return baseMapper.selectById(dictCode);
     }
 
     /**
@@ -67,8 +77,8 @@ public class SysDictDataServiceImpl implements ISysDictDataService
         for (Long dictCode : dictCodes)
         {
             SysDictData data = selectDictDataById(dictCode);
-            dictDataMapper.deleteDictDataById(dictCode);
-            List<SysDictData> dictDatas = dictDataMapper.selectDictDataByType(data.getDictType());
+            baseMapper.deleteById(dictCode);
+            List<SysDictData> dictDatas = baseMapper.selectDictDataByType(data.getDictType());
             DictUtils.setDictCache(data.getDictType(), dictDatas);
         }
     }
@@ -82,10 +92,14 @@ public class SysDictDataServiceImpl implements ISysDictDataService
     @Override
     public int insertDictData(SysDictData data)
     {
-        int row = dictDataMapper.insertDictData(data);
+        if (data.getCreateTime() == null)
+        {
+            data.setCreateTime(new java.util.Date());
+        }
+        int row = baseMapper.insert(data);
         if (row > 0)
         {
-            List<SysDictData> dictDatas = dictDataMapper.selectDictDataByType(data.getDictType());
+            List<SysDictData> dictDatas = baseMapper.selectDictDataByType(data.getDictType());
             DictUtils.setDictCache(data.getDictType(), dictDatas);
         }
         return row;
@@ -100,10 +114,14 @@ public class SysDictDataServiceImpl implements ISysDictDataService
     @Override
     public int updateDictData(SysDictData data)
     {
-        int row = dictDataMapper.updateDictData(data);
+        if (data.getUpdateTime() == null)
+        {
+            data.setUpdateTime(new java.util.Date());
+        }
+        int row = baseMapper.updateById(data);
         if (row > 0)
         {
-            List<SysDictData> dictDatas = dictDataMapper.selectDictDataByType(data.getDictType());
+            List<SysDictData> dictDatas = baseMapper.selectDictDataByType(data.getDictType());
             DictUtils.setDictCache(data.getDictType(), dictDatas);
         }
         return row;

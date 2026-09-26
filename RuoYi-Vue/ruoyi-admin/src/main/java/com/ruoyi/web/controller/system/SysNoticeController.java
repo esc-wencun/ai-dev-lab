@@ -45,9 +45,7 @@ public class SysNoticeController extends BaseController
     @GetMapping("/list")
     public TableDataInfo list(SysNotice notice)
     {
-        startPage();
-        List<SysNotice> list = noticeService.selectNoticeList(notice);
-        return getDataTable(list);
+        return getDataTable(noticeService.selectNoticePage(notice));
     }
 
     /**
@@ -131,9 +129,7 @@ public class SysNoticeController extends BaseController
     @ResponseBody
     public TableDataInfo readUsersList(Long noticeId, String searchValue)
     {
-        startPage();
-        List<?> list = noticeReadService.selectReadUsersByNoticeId(noticeId, searchValue);
-        return getDataTable(list);
+        return getDataTable(noticeReadService.selectReadUsersPage(noticeId, searchValue));
     }
 
     /**
