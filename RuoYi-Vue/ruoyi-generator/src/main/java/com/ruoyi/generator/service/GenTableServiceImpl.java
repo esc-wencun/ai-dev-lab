@@ -7,6 +7,7 @@ import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -69,6 +70,17 @@ public class GenTableServiceImpl implements IGenTableService
     }
 
     /**
+     * 分页查询业务表（列表接口用）
+     *
+     * @return 分页结果
+     */
+    @Override
+    public IPage<GenTable> selectGenTablePage(GenTable genTable)
+    {
+        return genTableMapper.selectGenTablePage(com.ruoyi.common.utils.PageUtils.buildPage(), genTable);
+    }
+
+    /**
      * 查询业务列表
      * 
      * @param genTable 业务信息
@@ -78,6 +90,17 @@ public class GenTableServiceImpl implements IGenTableService
     public List<GenTable> selectGenTableList(GenTable genTable)
     {
         return genTableMapper.selectGenTableList(genTable);
+    }
+
+    /**
+     * 分页查询数据库表（列表接口用）
+     *
+     * @return 分页结果
+     */
+    @Override
+    public IPage<GenTable> selectDbTablePage(GenTable genTable)
+    {
+        return genTableMapper.selectDbTablePage(com.ruoyi.common.utils.PageUtils.buildPage(), genTable);
     }
 
     /**

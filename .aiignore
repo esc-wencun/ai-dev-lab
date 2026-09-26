@@ -1,10 +1,9 @@
-# ===== AI 忽略清单（唯一权威源）=====
-# 本工作区各 AI 编码工具（Claude Code / Cursor / Windsurf / Gemini CLI 等）共用的文件忽略清单。
-# 语法与 .gitignore 相同；本文件是权威源，不要直接改下面各工具的文件——
-# 改完后在仓库根目录运行：bash scripts/sync-aiignore.sh
-#   → 原样同步到 .cursorignore / .windsurfignore / .geminiignore
-#   → 转换生成 .claude/settings.json 的 permissions.deny Read 规则
-# 注意：取反（! 行）不被同步脚本支持，保持本清单为纯忽略语义。
+# ===== AI 忽略清单 =====
+# 本工作区 AI 编码工具共用的文件忽略清单（唯一一份，勿再派生副本），语法与 .gitignore 相同。
+# 原生支持 gitignore 风格忽略文件的工具（Cursor .cursorignore / Windsurf .windsurfignore /
+# Gemini CLI .geminiignore 等）若未自动识别本文件名，可各自指认或链接到本文件。
+# Claude Code 不读取本文件——如需硬性拦截，在 .claude/settings.local.json（个人配置，不入库）
+# 手工添加 permissions.deny 的 Read(...) 规则。
 # 与 .gitignore 的关系：两份清单职责不同，.gitignore 管 git，本清单管 AI 读取，各自独立维护。
 
 # ---- 依赖与构建产物（大体积，读源码用不到）----
@@ -33,7 +32,7 @@ docker/data/
 
 # ---- 含真实凭据的配置（与 .gitignore 同口径：绝不提交，AI 也不读）----
 **/.env.prod
-**/.env.local
+**/.env.test
 docker/.env
 
 # 刻意不屏蔽（勿添加）：

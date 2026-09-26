@@ -22,7 +22,7 @@
         <druid.version>1.2.28</druid.version>
         <yauaa.version>8.2.0</yauaa.version>
         <kaptcha.version>2.3.3</kaptcha.version>
-        <pagehelper.boot.version>4.1.1</pagehelper.boot.version>
+        <mybatis-plus.version>3.5.17</mybatis-plus.version>
         <fastjson.version>2.0.64</fastjson.version>
         <oshi.version>7.4.4</oshi.version>
         <commons.io.version>2.22.0</commons.io.version>
@@ -60,17 +60,23 @@
                 <version>${yauaa.version}</version>
             </dependency>
 
-            <!-- pagehelper 分页插件 -->
-            <dependency>
-                <groupId>com.github.pagehelper</groupId>
-                <artifactId>pagehelper-spring-boot-starter</artifactId>
-                <version>${pagehelper.boot.version}</version>
-            </dependency>
-
             <dependency>
                 <groupId>org.mybatis.spring.boot</groupId>
                 <artifactId>mybatis-spring-boot-starter</artifactId>
                 <version>${mybatis-spring-boot.version}</version>
+            </dependency>
+
+            <!-- MyBatis-Plus（Spring Boot 4 专用 starter；3.5.9+ 分页插件需单独引 jsqlparser） -->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-spring-boot4-starter</artifactId>
+                <version>${mybatis-plus.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-jsqlparser</artifactId>
+                <version>${mybatis-plus.version}</version>
             </dependency>
 
             <dependency>
@@ -195,6 +201,11 @@
                     <target>${java.version}</target>
                     <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.3</version>
             </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

@@ -1,6 +1,7 @@
 package com.ruoyi.system.service;
 
 import java.util.List;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.ruoyi.system.domain.SysOperLog;
 
 /**
@@ -16,6 +17,14 @@ public interface ISysOperLogService
      * @param operLog 操作日志对象
      */
     public void insertOperlog(SysOperLog operLog);
+
+    /**
+     * 分页查询（列表接口用）
+     *
+     * @param sysOperLog sysOperLog信息
+     * @return 分页结果
+     */
+    public IPage<SysOperLog> selectOperLogPage(SysOperLog sysOperLog);
 
     /**
      * 查询系统操作日志集合

@@ -1,5 +1,6 @@
 package com.ruoyi.quartz.service.impl;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import java.util.List;
 import jakarta.annotation.PostConstruct;
 import org.quartz.JobDataMap;
@@ -43,6 +44,17 @@ public class SysJobServiceImpl implements ISysJobService
         {
             ScheduleUtils.createScheduleJob(scheduler, job);
         }
+    }
+
+    /**
+     * 分页查询（列表接口用）
+     *
+     * @return 分页结果
+     */
+    @Override
+    public IPage<SysJob> selectJobPage(SysJob job)
+    {
+        return jobMapper.selectJobPage(com.ruoyi.common.utils.PageUtils.buildPage(), job);
     }
 
     /**

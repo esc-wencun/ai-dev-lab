@@ -5,11 +5,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
+import com.baomidou.mybatisplus.annotation.DbType;
+import com.baomidou.mybatisplus.autoconfigure.SpringBootVFS;
+import com.baomidou.mybatisplus.core.config.GlobalConfig;
+import com.baomidou.mybatisplus.extension.parser.JsqlParserGlobal;
+import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
+import com.baomidou.mybatisplus.extension.plugins.inner.DataPermissionInterceptor;
+import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
+import com.baomidou.mybatisplus.extension.parser.cache.JdkSerialCaffeineJsqlParseCache;
+import com.ruoyi.framework.mybatis.DataPermissionRule;
+import com.ruoyi.framework.mybatis.RuoYiDataPermissionHandler;
 import org.apache.ibatis.io.VFS;
 import org.apache.ibatis.session.SqlSessionFactory;
-import org.mybatis.spring.SqlSessionFactoryBean;
-import org.mybatis.spring.boot.autoconfigure.SpringBootVFS;
+import com.baomidou.mybatisplus.spring.MybatisSqlSessionFactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -114,7 +124,7 @@ public class MyBatisConfig
     }
 
     @Bean
-    public SqlSessionFactory sqlSessionFactory(DataSource dataSource) throws Exception
+    public SqlSessionFactory sqlSessionFactory(DataSource dataSource, org.springframework.beans.factory.ObjectProvider<List<DataPermissionRule>> dataPermissionRulesProvider) throws Exception
     {
         String typeAliasesPackage = env.getProperty("mybatis.typeAliasesPackage");
         String mapperLocations = env.getProperty("mybatis.mapperLocations");
@@ -122,11 +132,32 @@ public class MyBatisConfig
         typeAliasesPackage = setTypeAliasesPackage(typeAliasesPackage);
         VFS.addImplClass(SpringBootVFS.class);
 
-        final SqlSessionFactoryBean sessionFactory = new SqlSessionFactoryBean();
+        // JSqlParser 解析缓存：数据权限/分页拦截器每条 SQL 都要 parse，必须缓存兜底
+        JsqlParserGlobal.setJsqlParseCache(new JdkSerialCaffeineJsqlParseCache(
+                cache -> cache.maximumSize(1024).expireAfterWrite(5, TimeUnit.SECONDS)));
+
+        // MyBatis-Plus 工厂（替代原生 SqlSessionFactoryBean，向 BaseMapper 注入 CRUD SQL；
+        // 保留 ** 通配别名扫描与 mybatis-config.xml，逻辑删除全局值对齐 RuoYi del_flag 语义 0 正常 / 2 删除）
+        final MybatisSqlSessionFactoryBean sessionFactory = new MybatisSqlSessionFactoryBean();
         sessionFactory.setDataSource(dataSource);
         sessionFactory.setTypeAliasesPackage(typeAliasesPackage);
         sessionFactory.setMapperLocations(resolveMapperLocations(StringUtils.split(mapperLocations, ",")));
         sessionFactory.setConfigLocation(new DefaultResourceLoader().getResource(configLocation));
+
+        // 拦截器链（顺序关键）：数据权限在最前（MP 官方要求先于分页，保证 count 语句带条件）→ 分页
+        MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
+        List<DataPermissionRule> dataPermissionRules = dataPermissionRulesProvider.getIfAvailable(java.util.Collections::emptyList);
+        interceptor.addInnerInterceptor(new DataPermissionInterceptor(new RuoYiDataPermissionHandler(dataPermissionRules)));
+        interceptor.addInnerInterceptor(new PaginationInnerInterceptor(DbType.MYSQL));
+        sessionFactory.setPlugins(interceptor);
+
+        GlobalConfig globalConfig = new GlobalConfig();
+        GlobalConfig.DbConfig dbConfig = new GlobalConfig.DbConfig();
+        dbConfig.setLogicDeleteValue("2");
+        dbConfig.setLogicNotDeleteValue("0");
+        globalConfig.setDbConfig(dbConfig);
+        sessionFactory.setGlobalConfig(globalConfig);
+
         return sessionFactory.getObject();
     }
 }

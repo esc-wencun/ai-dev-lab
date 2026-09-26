@@ -1,6 +1,7 @@
 package com.ruoyi.system.service;
 
 import java.util.List;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ruoyi.system.domain.SysConfig;
 
 /**
@@ -32,6 +33,14 @@ public interface ISysConfigService
      * @return true开启，false关闭
      */
     public boolean selectCaptchaEnabled();
+
+    /**
+     * 分页查询（列表接口用）
+     *
+     * @param sysConfig sysConfig信息
+     * @return 分页结果
+     */
+    public Page<SysConfig> selectConfigPage(SysConfig sysConfig);
 
     /**
      * 查询参数配置列表

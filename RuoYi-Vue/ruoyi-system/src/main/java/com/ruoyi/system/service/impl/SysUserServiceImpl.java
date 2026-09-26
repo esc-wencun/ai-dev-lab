@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.ruoyi.common.utils.PageUtils;
 import jakarta.validation.Validator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,6 +79,36 @@ public class SysUserServiceImpl implements ISysUserService
     public List<SysUser> selectUserList(SysUser user)
     {
         return userMapper.selectUserList(user);
+    }
+
+    /**
+     * 分页查询用户列表（列表接口用）
+     */
+    @Override
+    @DataScope(deptAlias = "d", userAlias = "u")
+    public IPage<SysUser> selectUserPage(SysUser user)
+    {
+        return userMapper.selectUserPage(PageUtils.buildPage(), user);
+    }
+
+    /**
+     * 分页查询已分配用户角色列表
+     */
+    @Override
+    @DataScope(deptAlias = "d", userAlias = "u")
+    public IPage<SysUser> selectAllocatedPage(SysUser user)
+    {
+        return userMapper.selectAllocatedPage(PageUtils.buildPage(), user);
+    }
+
+    /**
+     * 分页查询未分配用户角色列表
+     */
+    @Override
+    @DataScope(deptAlias = "d", userAlias = "u")
+    public IPage<SysUser> selectUnallocatedPage(SysUser user)
+    {
+        return userMapper.selectUnallocatedPage(PageUtils.buildPage(), user);
     }
 
     /**

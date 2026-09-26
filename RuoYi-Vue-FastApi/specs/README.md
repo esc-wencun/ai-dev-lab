@@ -17,7 +17,7 @@
 | Java 生态 | Python 对位 | 说明 |
 |-----------|-------------|------|
 | Spring Boot | FastAPI + uvicorn | Web 框架 |
-| MyBatis（XML 映射） | SQLAlchemy 2.0 async（已在用） | 不引入 SQL 映射框架，也**不采用 SQLModel**（alpha 状态、与 DO/VO 分层冲突，理由见 spec-00 决策记录）；MyBatis-Plus 对位为自建薄 DAO 工具，模块数≥4 后评估 sqlalchemy-crud-plus |
+| MyBatis（XML 映射） | SQLAlchemy 2.0 async（已在用） | 不引入 SQL 映射框架，也**不采用 SQLModel**（alpha 状态、与 DO/VO 分层冲突，理由见 spec-00 决策记录）；MyBatis-Plus 对位为自建薄 DAO 工具，模块数≥4 后评估 sqlalchemy-crud-plus。**Java 基准 2026-09-26 已引入 MyBatis-Plus 3.5.17 并删除 PageHelper**（见 Java 版 specs/0.0.0），SQLAlchemy 的 ORM+查询构建器一体路线与 MP 能力面更加对齐 |
 | Spring Data Redis / Lettuce | redis-py asyncio + 自建 RedisCache 门面（spec-00 Task 3） | 驱动已对位，补上层封装 |
 | Java enum | 标准库 enum（spec-00 Task 2） | 带字段枚举一比一复刻 |
 | SLF4J + Logback | loguru（已完成对齐） | 三文件滚动 + sys-user 命名 logger |

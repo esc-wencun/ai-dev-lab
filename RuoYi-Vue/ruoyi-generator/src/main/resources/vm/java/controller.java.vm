@@ -45,9 +45,7 @@ public class ${ClassName}Controller extends BaseController
 #if($table.crud || $table.sub)
     public TableDataInfo list(${ClassName} ${className})
     {
-        startPage();
-        List<${ClassName}> list = ${className}Service.select${ClassName}List(${className});
-        return getDataTable(list);
+        return getDataTable(${className}Service.select${ClassName}Page(${className}));
     }
 #elseif($table.tree)
     public AjaxResult list(${ClassName} ${className})

@@ -1,6 +1,7 @@
 package com.ruoyi.system.service;
 
 import java.util.Date;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import java.util.List;
 import com.ruoyi.common.core.domain.entity.SysUser;
 
@@ -11,6 +12,24 @@ import com.ruoyi.common.core.domain.entity.SysUser;
  */
 public interface ISysUserService
 {
+    /**
+     * 分页查询用户列表（列表接口用）
+     *
+     * @param user 用户信息
+     * @return 分页结果
+     */
+    public IPage<SysUser> selectUserPage(SysUser user);
+
+    /**
+     * 分页查询已分配用户角色列表
+     */
+    public IPage<SysUser> selectAllocatedPage(SysUser user);
+
+    /**
+     * 分页查询未分配用户角色列表
+     */
+    public IPage<SysUser> selectUnallocatedPage(SysUser user);
+
     /**
      * 根据条件分页查询用户列表
      * 

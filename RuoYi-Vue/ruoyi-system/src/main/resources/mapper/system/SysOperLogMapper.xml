@@ -34,35 +34,69 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         values (#{title}, #{businessType}, #{method}, #{requestMethod}, #{operatorType}, #{operName}, #{deptName}, #{operUrl}, #{operIp}, #{operLocation}, #{operParam}, #{jsonResult}, #{status}, #{errorMsg}, #{costTime}, sysdate())
 	</insert>
 	
-	<select id="selectOperLogList" parameterType="SysOperLog" resultMap="SysOperLogResult">
+	<select id="selectOperLogList" resultMap="SysOperLogResult">
 		<include refid="selectOperLogVo"/>
 		<where>
-			<if test="operIp != null and operIp != ''">
-				AND oper_ip like concat('%', #{operIp}, '%')
+			<if test="operLog.operIp != null and operLog.operIp != ''">
+				AND oper_ip like concat('%', #{operLog.operIp}, '%')
 			</if>
-			<if test="title != null and title != ''">
-				AND title like concat('%', #{title}, '%')
+			<if test="operLog.title != null and operLog.title != ''">
+				AND title like concat('%', #{operLog.title}, '%')
 			</if>
-			<if test="businessType != null">
-				AND business_type = #{businessType}
+			<if test="operLog.businessType != null">
+				AND business_type = #{operLog.businessType}
 			</if>
-			<if test="businessTypes != null and businessTypes.length > 0">
+			<if test="operLog.businessTypes != null and operLog.businessTypes.length > 0">
 			    AND business_type in
-			    <foreach collection="businessTypes" item="businessType" open="(" separator="," close=")">
-		 			#{businessType}
-		        </foreach> 
+			    <foreach collection="operLog.businessTypes" item="businessType" open="(" separator="," close=")">
+			 		#{businessType}
+		        </foreach>
 			</if>
-			<if test="status != null">
-				AND status = #{status}
+			<if test="operLog.status != null">
+				AND status = #{operLog.status}
 			</if>
-			<if test="operName != null and operName != ''">
-				AND oper_name like concat('%', #{operName}, '%')
+			<if test="operLog.operName != null and operLog.operName != ''">
+				AND oper_name like concat('%', #{operLog.operName}, '%')
 			</if>
-			<if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
-				AND oper_time &gt;= #{params.beginTime}
+			<if test="operLog.params.beginTime != null and operLog.params.beginTime != ''"><!-- 开始时间检索 -->
+				AND oper_time &gt;= #{operLog.params.beginTime}
 			</if>
-			<if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
-				AND oper_time &lt;= #{params.endTime}
+			<if test="operLog.params.endTime != null and operLog.params.endTime != ''"><!-- 结束时间检索 -->
+				AND oper_time &lt;= #{operLog.params.endTime}
+			</if>
+		</where>
+		order by oper_id desc
+	</select>
+
+	<select id="selectOperLogPage" resultMap="SysOperLogResult">
+		<include refid="selectOperLogVo"/>
+		<where>
+			<if test="operLog.operIp != null and operLog.operIp != ''">
+				AND oper_ip like concat('%', #{operLog.operIp}, '%')
+			</if>
+			<if test="operLog.title != null and operLog.title != ''">
+				AND title like concat('%', #{operLog.title}, '%')
+			</if>
+			<if test="operLog.businessType != null">
+				AND business_type = #{operLog.businessType}
+			</if>
+			<if test="operLog.businessTypes != null and operLog.businessTypes.length > 0">
+			    AND business_type in
+			    <foreach collection="operLog.businessTypes" item="businessType" open="(" separator="," close=")">
+			 		#{businessType}
+		        </foreach>
+			</if>
+			<if test="operLog.status != null">
+				AND status = #{operLog.status}
+			</if>
+			<if test="operLog.operName != null and operLog.operName != ''">
+				AND oper_name like concat('%', #{operLog.operName}, '%')
+			</if>
+			<if test="operLog.params.beginTime != null and operLog.params.beginTime != ''"><!-- 开始时间检索 -->
+				AND oper_time &gt;= #{operLog.params.beginTime}
+			</if>
+			<if test="operLog.params.endTime != null and operLog.params.endTime != ''"><!-- 结束时间检索 -->
+				AND oper_time &lt;= #{operLog.params.endTime}
 			</if>
 		</where>
 		order by oper_id desc

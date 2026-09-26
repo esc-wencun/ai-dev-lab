@@ -3,16 +3,20 @@ package com.ruoyi.framework.aspectj;
 import java.util.ArrayList;
 import java.util.List;
 import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import com.ruoyi.common.annotation.DataScope;
 import com.ruoyi.common.constant.Constants;
 import com.ruoyi.common.constant.UserConstants;
 import com.ruoyi.common.core.domain.BaseEntity;
+import com.ruoyi.common.core.domain.dto.RuoYiDeptDataPermissionDTO;
 import com.ruoyi.common.core.domain.entity.SysRole;
 import com.ruoyi.common.core.domain.entity.SysUser;
 import com.ruoyi.common.core.domain.model.LoginUser;
+import com.ruoyi.common.core.mybatis.DataScopeContextHolder;
 import com.ruoyi.common.core.text.Convert;
 import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.common.utils.StringUtils;
@@ -32,11 +36,40 @@ public class DataScopeAspect
      */
     public static final String DATA_SCOPE = "dataScope";
 
+    @Autowired
+    private DeptDataScopeResolver deptDataScopeResolver;
+
     @Before("@annotation(controllerDataScope)")
     public void doBefore(JoinPoint point, DataScope controllerDataScope) throws Throwable
     {
-        clearDataScope(point);
-        handleDataScope(point, controllerDataScope);
+        // 无参方法（纯 MP 查询场景）无 params.dataScope 注入点，跳过 XML 路径仅走拦截器桥接
+        if (point.getArgs() != null && point.getArgs().length > 0)
+        {
+            clearDataScope(point);
+            handleDataScope(point, controllerDataScope);
+        }
+        // 桥接 MP 拦截器路径（1.0.0）：把结构化范围 DTO 入栈，供 DataPermissionInterceptor 逐表读取。
+        // XML 路径的 params.dataScope 行为不变（上面 handleDataScope 照旧写入）。
+        if (controllerDataScope.enable())
+        {
+            RuoYiDeptDataPermissionDTO dto = deptDataScopeResolver.resolve(controllerDataScope.permission());
+            if (dto != null)
+            {
+                DataScopeContextHolder.add(new DataScopeContextHolder.Scope(true, dto));
+            }
+        }
+        else
+        {
+            // 显式豁免：入栈 enable=false 占位，保证嵌套语义正确（内层不继承外层范围）
+            DataScopeContextHolder.add(new DataScopeContextHolder.Scope(false, null));
+        }
+    }
+
+    @After("@annotation(controllerDataScope)")
+    public void doAfter(JoinPoint point, DataScope controllerDataScope)
+    {
+        // 与 doBefore 的入栈配对出栈（含异常路径：@After 在方法正常/异常返回均执行）
+        DataScopeContextHolder.remove();
     }
 
     protected void handleDataScope(final JoinPoint joinPoint, DataScope controllerDataScope)
@@ -150,7 +183,12 @@ public class DataScopeAspect
      */
     private void clearDataScope(final JoinPoint joinPoint)
     {
-        Object params = joinPoint.getArgs()[0];
+        Object[] args = joinPoint.getArgs();
+        if (args == null || args.length == 0)
+        {
+            return;   // 无参方法无注入点（1.0.0 补：切面防御无参方法越界）
+        }
+        Object params = args[0];
         if (StringUtils.isNotNull(params) && params instanceof BaseEntity)
         {
             BaseEntity baseEntity = (BaseEntity) params;

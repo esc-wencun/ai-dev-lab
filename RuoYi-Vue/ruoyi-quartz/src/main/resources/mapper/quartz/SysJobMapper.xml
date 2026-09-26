@@ -25,20 +25,38 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		from sys_job
     </sql>
 	
-	<select id="selectJobList" parameterType="SysJob" resultMap="SysJobResult">
+	<select id="selectJobList" resultMap="SysJobResult">
 		<include refid="selectJobVo"/>
 		<where>
-			<if test="jobName != null and jobName != ''">
-				AND job_name like concat('%', #{jobName}, '%')
+			<if test="job.jobName != null and job.jobName != ''">
+				AND job_name like concat('%', #{job.jobName}, '%')
 			</if>
-			<if test="jobGroup != null and jobGroup != ''">
-				AND job_group = #{jobGroup}
+			<if test="job.jobGroup != null and job.jobGroup != ''">
+				AND job_group = #{job.jobGroup}
 			</if>
-			<if test="status != null and status != ''">
-				AND status = #{status}
+			<if test="job.status != null and job.status != ''">
+				AND status = #{job.status}
 			</if>
-			<if test="invokeTarget != null and invokeTarget != ''">
-				AND invoke_target like concat('%', #{invokeTarget}, '%')
+			<if test="job.invokeTarget != null and job.invokeTarget != ''">
+				AND invoke_target like concat('%', #{job.invokeTarget}, '%')
+			</if>
+		</where>
+	</select>
+
+	<select id="selectJobPage" resultMap="SysJobResult">
+		<include refid="selectJobVo"/>
+		<where>
+			<if test="job.jobName != null and job.jobName != ''">
+				AND job_name like concat('%', #{job.jobName}, '%')
+			</if>
+			<if test="job.jobGroup != null and job.jobGroup != ''">
+				AND job_group = #{job.jobGroup}
+			</if>
+			<if test="job.status != null and job.status != ''">
+				AND status = #{job.status}
+			</if>
+			<if test="job.invokeTarget != null and job.invokeTarget != ''">
+				AND invoke_target like concat('%', #{job.invokeTarget}, '%')
 			</if>
 		</where>
 	</select>

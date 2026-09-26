@@ -57,68 +57,132 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		    left join sys_role r on r.role_id = ur.role_id
     </sql>
     
-    <select id="selectUserList" parameterType="SysUser" resultMap="SysUserResult">
+    <select id="selectUserList" resultMap="SysUserResult">
 		select u.user_id, u.dept_id, u.nick_name, u.user_name, u.email, u.avatar, u.phonenumber, u.sex, u.status, u.del_flag, u.login_ip, u.login_date, u.create_by, u.create_time, u.remark, d.dept_name, d.leader from sys_user u
 		left join sys_dept d on u.dept_id = d.dept_id
 		where u.del_flag = '0'
-		<if test="userId != null and userId != 0">
-			AND u.user_id = #{userId}
+		<if test="user.userId != null and user.userId != 0">
+			AND u.user_id = #{user.userId}
 		</if>
-		<if test="userName != null and userName != ''">
-			AND u.user_name like concat('%', #{userName}, '%')
+		<if test="user.userName != null and user.userName != ''">
+			AND u.user_name like concat('%', #{user.userName}, '%')
 		</if>
-		<if test="status != null and status != ''">
-			AND u.status = #{status}
+		<if test="user.status != null and user.status != ''">
+			AND u.status = #{user.status}
 		</if>
-		<if test="phonenumber != null and phonenumber != ''">
-			AND u.phonenumber like concat('%', #{phonenumber}, '%')
+		<if test="user.phonenumber != null and user.phonenumber != ''">
+			AND u.phonenumber like concat('%', #{user.phonenumber}, '%')
 		</if>
-		<if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
-			AND date_format(u.create_time,'%Y%m%d') &gt;= date_format(#{params.beginTime},'%Y%m%d')
+		<if test="user.params.beginTime != null and user.params.beginTime != ''"><!-- 开始时间检索 -->
+			AND date_format(u.create_time,'%Y%m%d') &gt;= date_format(#{user.params.beginTime},'%Y%m%d')
 		</if>
-		<if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
-			AND date_format(u.create_time,'%Y%m%d') &lt;= date_format(#{params.endTime},'%Y%m%d')
+		<if test="user.params.endTime != null and user.params.endTime != ''"><!-- 结束时间检索 -->
+			AND date_format(u.create_time,'%Y%m%d') &lt;= date_format(#{user.params.endTime},'%Y%m%d')
 		</if>
-		<if test="deptId != null and deptId != 0">
-			AND (u.dept_id = #{deptId} OR u.dept_id IN ( SELECT t.dept_id FROM sys_dept t WHERE find_in_set(#{deptId}, ancestors) ))
+		<if test="user.deptId != null and user.deptId != 0">
+			AND (u.dept_id = #{user.deptId} OR u.dept_id IN ( SELECT t.dept_id FROM sys_dept t WHERE find_in_set(#{user.deptId}, ancestors) ))
 		</if>
 		<!-- 数据范围过滤 -->
-		${params.dataScope}
+		${user.params.dataScope}
 	</select>
 	
-	<select id="selectAllocatedList" parameterType="SysUser" resultMap="SysUserResult">
+<select id="selectUserPage" resultMap="SysUserResult">
+		select u.user_id, u.dept_id, u.nick_name, u.user_name, u.email, u.avatar, u.phonenumber, u.sex, u.status, u.del_flag, u.login_ip, u.login_date, u.create_by, u.create_time, u.remark, d.dept_name, d.leader from sys_user u
+		left join sys_dept d on u.dept_id = d.dept_id
+		where u.del_flag = '0'
+		<if test="user.userId != null and user.userId != 0">
+			AND u.user_id = #{user.userId}
+		</if>
+		<if test="user.userName != null and user.userName != ''">
+			AND u.user_name like concat('%', #{user.userName}, '%')
+		</if>
+		<if test="user.status != null and user.status != ''">
+			AND u.status = #{user.status}
+		</if>
+		<if test="user.phonenumber != null and user.phonenumber != ''">
+			AND u.phonenumber like concat('%', #{user.phonenumber}, '%')
+		</if>
+		<if test="user.params.beginTime != null and user.params.beginTime != ''"><!-- 开始时间检索 -->
+			AND date_format(u.create_time,'%Y%m%d') &gt;= date_format(#{user.params.beginTime},'%Y%m%d')
+		</if>
+		<if test="user.params.endTime != null and user.params.endTime != ''"><!-- 结束时间检索 -->
+			AND date_format(u.create_time,'%Y%m%d') &lt;= date_format(#{user.params.endTime},'%Y%m%d')
+		</if>
+		<if test="user.deptId != null and user.deptId != 0">
+			AND (u.dept_id = #{user.deptId} OR u.dept_id IN ( SELECT t.dept_id FROM sys_dept t WHERE find_in_set(#{user.deptId}, ancestors) ))
+		</if>
+		<!-- 数据范围过滤 -->
+		${user.params.dataScope}
+	</select>
+	
+	<select id="selectAllocatedList" resultMap="SysUserResult">
 	    select distinct u.user_id, u.dept_id, u.user_name, u.nick_name, u.email, u.phonenumber, u.status, u.create_time
 	    from sys_user u
 			 left join sys_dept d on u.dept_id = d.dept_id
 			 left join sys_user_role ur on u.user_id = ur.user_id
 			 left join sys_role r on r.role_id = ur.role_id
-	    where u.del_flag = '0' and r.role_id = #{roleId}
-	    <if test="userName != null and userName != ''">
-			AND u.user_name like concat('%', #{userName}, '%')
+	    where u.del_flag = '0' and r.role_id = #{user.roleId}
+	    <if test="user.userName != null and user.userName != ''">
+			AND u.user_name like concat('%', #{user.userName}, '%')
 		</if>
-		<if test="phonenumber != null and phonenumber != ''">
-			AND u.phonenumber like concat('%', #{phonenumber}, '%')
+		<if test="user.phonenumber != null and user.phonenumber != ''">
+			AND u.phonenumber like concat('%', #{user.phonenumber}, '%')
 		</if>
 		<!-- 数据范围过滤 -->
-		${params.dataScope}
+		${user.params.dataScope}
 	</select>
 	
-	<select id="selectUnallocatedList" parameterType="SysUser" resultMap="SysUserResult">
+<select id="selectAllocatedPage" resultMap="SysUserResult">
 	    select distinct u.user_id, u.dept_id, u.user_name, u.nick_name, u.email, u.phonenumber, u.status, u.create_time
 	    from sys_user u
 			 left join sys_dept d on u.dept_id = d.dept_id
 			 left join sys_user_role ur on u.user_id = ur.user_id
 			 left join sys_role r on r.role_id = ur.role_id
-	    where u.del_flag = '0' and (r.role_id != #{roleId} or r.role_id IS NULL)
-	    and u.user_id not in (select u.user_id from sys_user u inner join sys_user_role ur on u.user_id = ur.user_id and ur.role_id = #{roleId})
-	    <if test="userName != null and userName != ''">
-			AND u.user_name like concat('%', #{userName}, '%')
+	    where u.del_flag = '0' and r.role_id = #{user.roleId}
+	    <if test="user.userName != null and user.userName != ''">
+			AND u.user_name like concat('%', #{user.userName}, '%')
 		</if>
-		<if test="phonenumber != null and phonenumber != ''">
-			AND u.phonenumber like concat('%', #{phonenumber}, '%')
+		<if test="user.phonenumber != null and user.phonenumber != ''">
+			AND u.phonenumber like concat('%', #{user.phonenumber}, '%')
 		</if>
 		<!-- 数据范围过滤 -->
-		${params.dataScope}
+		${user.params.dataScope}
+	</select>
+	
+	<select id="selectUnallocatedList" resultMap="SysUserResult">
+	    select distinct u.user_id, u.dept_id, u.user_name, u.nick_name, u.email, u.phonenumber, u.status, u.create_time
+	    from sys_user u
+			 left join sys_dept d on u.dept_id = d.dept_id
+			 left join sys_user_role ur on u.user_id = ur.user_id
+			 left join sys_role r on r.role_id = ur.role_id
+	    where u.del_flag = '0' and (r.role_id != #{user.roleId} or r.role_id IS NULL)
+	    and u.user_id not in (select u.user_id from sys_user u inner join sys_user_role ur on u.user_id = ur.user_id and ur.role_id = #{user.roleId})
+	    <if test="user.userName != null and user.userName != ''">
+			AND u.user_name like concat('%', #{user.userName}, '%')
+		</if>
+		<if test="user.phonenumber != null and user.phonenumber != ''">
+			AND u.phonenumber like concat('%', #{user.phonenumber}, '%')
+		</if>
+		<!-- 数据范围过滤 -->
+		${user.params.dataScope}
+	</select>
+	
+<select id="selectUnallocatedPage" resultMap="SysUserResult">
+	    select distinct u.user_id, u.dept_id, u.user_name, u.nick_name, u.email, u.phonenumber, u.status, u.create_time
+	    from sys_user u
+			 left join sys_dept d on u.dept_id = d.dept_id
+			 left join sys_user_role ur on u.user_id = ur.user_id
+			 left join sys_role r on r.role_id = ur.role_id
+	    where u.del_flag = '0' and (r.role_id != #{user.roleId} or r.role_id IS NULL)
+	    and u.user_id not in (select u.user_id from sys_user u inner join sys_user_role ur on u.user_id = ur.user_id and ur.role_id = #{user.roleId})
+	    <if test="user.userName != null and user.userName != ''">
+			AND u.user_name like concat('%', #{user.userName}, '%')
+		</if>
+		<if test="user.phonenumber != null and user.phonenumber != ''">
+			AND u.phonenumber like concat('%', #{user.phonenumber}, '%')
+		</if>
+		<!-- 数据范围过滤 -->
+		${user.params.dataScope}
 	</select>
 	
 	<select id="selectUserByUserName" parameterType="String" resultMap="SysUserResult">
@@ -182,8 +246,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
  		<set>
  			<if test="deptId != 0">dept_id = #{deptId},</if>
  			<if test="nickName != null and nickName != ''">nick_name = #{nickName},</if>
- 			<if test="email != null ">email = #{email},</if>
- 			<if test="phonenumber != null ">phonenumber = #{phonenumber},</if>
+ 			<if test="email != null">email = #{email},</if>
+ 			<if test="phonenumber != null">phonenumber = #{phonenumber},</if>
  			<if test="sex != null and sex != ''">sex = #{sex},</if>
  			<if test="avatar != null and avatar != ''">avatar = #{avatar},</if>
  			<if test="password != null and password != ''">password = #{password},</if>

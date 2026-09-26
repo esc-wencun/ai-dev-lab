@@ -17,14 +17,14 @@ public interface SysMenuMapper
      * @param menu 菜单信息
      * @return 菜单列表
      */
-    public List<SysMenu> selectMenuList(SysMenu menu);
+    List<SysMenu> selectMenuList(SysMenu menu);
 
     /**
      * 根据用户所有权限
      *
      * @return 权限列表
      */
-    public List<String> selectMenuPerms();
+    List<String> selectMenuPerms();
 
     /**
      * 根据用户查询系统菜单列表
@@ -32,7 +32,7 @@ public interface SysMenuMapper
      * @param menu 菜单信息
      * @return 菜单列表
      */
-    public List<SysMenu> selectMenuListByUserId(SysMenu menu);
+    List<SysMenu> selectMenuListByUserId(SysMenu menu);
 
     /**
      * 根据角色ID查询权限
@@ -40,7 +40,7 @@ public interface SysMenuMapper
      * @param roleId 角色ID
      * @return 权限列表
      */
-    public List<String> selectMenuPermsByRoleId(Long roleId);
+    List<String> selectMenuPermsByRoleId(Long roleId);
 
     /**
      * 根据用户ID查询权限
@@ -48,14 +48,14 @@ public interface SysMenuMapper
      * @param userId 用户ID
      * @return 权限列表
      */
-    public List<String> selectMenuPermsByUserId(Long userId);
+    List<String> selectMenuPermsByUserId(Long userId);
 
     /**
      * 根据用户ID查询菜单
      *
      * @return 菜单列表
      */
-    public List<SysMenu> selectMenuTreeAll();
+    List<SysMenu> selectMenuTreeAll();
 
     /**
      * 根据用户ID查询菜单
@@ -63,7 +63,7 @@ public interface SysMenuMapper
      * @param userId 用户ID
      * @return 菜单列表
      */
-    public List<SysMenu> selectMenuTreeByUserId(Long userId);
+    List<SysMenu> selectMenuTreeByUserId(Long userId);
 
     /**
      * 根据角色ID查询菜单树信息
@@ -72,7 +72,7 @@ public interface SysMenuMapper
      * @param menuCheckStrictly 菜单树选择项是否关联显示
      * @return 选中菜单列表
      */
-    public List<Long> selectMenuListByRoleId(@Param("roleId") Long roleId, @Param("menuCheckStrictly") boolean menuCheckStrictly);
+    List<Long> selectMenuListByRoleId(@Param("roleId") Long roleId, @Param("menuCheckStrictly") boolean menuCheckStrictly);
 
     /**
      * 根据菜单ID查询信息
@@ -80,7 +80,7 @@ public interface SysMenuMapper
      * @param menuId 菜单ID
      * @return 菜单信息
      */
-    public SysMenu selectMenuById(Long menuId);
+    SysMenu selectMenuById(Long menuId);
 
     /**
      * 是否存在菜单子节点
@@ -88,7 +88,7 @@ public interface SysMenuMapper
      * @param menuId 菜单ID
      * @return 结果
      */
-    public int hasChildByMenuId(Long menuId);
+    int hasChildByMenuId(Long menuId);
 
     /**
      * 新增菜单信息
@@ -96,7 +96,7 @@ public interface SysMenuMapper
      * @param menu 菜单信息
      * @return 结果
      */
-    public int insertMenu(SysMenu menu);
+    int insertMenu(SysMenu menu);
 
     /**
      * 修改菜单信息
@@ -104,14 +104,14 @@ public interface SysMenuMapper
      * @param menu 菜单信息
      * @return 结果
      */
-    public int updateMenu(SysMenu menu);
+    int updateMenu(SysMenu menu);
 
     /**
      * 保存菜单排序
      * 
      * @param menu 菜单信息
      */
-    public void updateMenuSort(SysMenu menu);
+    void updateMenuSort(SysMenu menu);
 
     /**
      * 删除菜单管理信息
@@ -119,7 +119,7 @@ public interface SysMenuMapper
      * @param menuId 菜单ID
      * @return 结果
      */
-    public int deleteMenuById(Long menuId);
+    int deleteMenuById(Long menuId);
 
     /**
      * 校验菜单名称是否唯一
@@ -128,7 +128,7 @@ public interface SysMenuMapper
      * @param parentId 父菜单ID
      * @return 结果
      */
-    public SysMenu checkMenuNameUnique(@Param("menuName") String menuName, @Param("parentId") Long parentId);
+    SysMenu checkMenuNameUnique(@Param("menuName") String menuName, @Param("parentId") Long parentId);
 
     /**
      * 根据路由路径或名称查询菜单信息（用于唯一性校验）
@@ -137,5 +137,5 @@ public interface SysMenuMapper
      * @param routeName 路由名称
      * @return 匹配的菜单列表
      */
-    public List<SysMenu> selectMenusByPathOrRouteName(@Param("path") String path, @Param("routeName") String routeName);
+    List<SysMenu> selectMenusByPathOrRouteName(@Param("path") String path, @Param("routeName") String routeName);
 }

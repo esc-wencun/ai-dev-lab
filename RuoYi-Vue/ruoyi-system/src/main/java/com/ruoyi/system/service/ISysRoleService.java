@@ -1,5 +1,6 @@
 package com.ruoyi.system.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import java.util.List;
 import java.util.Set;
 import com.ruoyi.common.core.domain.entity.SysRole;
@@ -12,6 +13,14 @@ import com.ruoyi.system.domain.SysUserRole;
  */
 public interface ISysRoleService
 {
+    /**
+     * 分页查询角色列表（列表接口用）
+     *
+     * @param role 角色信息
+     * @return 分页结果
+     */
+    public IPage<SysRole> selectRolePage(SysRole role);
+
     /**
      * 根据条件分页查询角色数据
      * 

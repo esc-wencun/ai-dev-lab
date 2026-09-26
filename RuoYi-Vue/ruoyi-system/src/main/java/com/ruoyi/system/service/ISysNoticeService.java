@@ -1,5 +1,6 @@
 package com.ruoyi.system.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import java.util.List;
 import com.ruoyi.system.domain.SysNotice;
 
@@ -17,6 +18,14 @@ public interface ISysNoticeService
      * @return 公告信息
      */
     public SysNotice selectNoticeById(Long noticeId);
+
+    /**
+     * 分页查询（列表接口用）
+     *
+     * @param sysNotice sysNotice 信息
+     * @return 分页结果
+     */
+    public IPage<SysNotice> selectNoticePage(SysNotice sysNotice);
 
     /**
      * 查询公告列表

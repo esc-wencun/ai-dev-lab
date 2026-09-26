@@ -5,21 +5,26 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.ruoyi.common.annotation.Excel;
 import com.ruoyi.common.annotation.Excel.ColumnType;
 import com.ruoyi.common.core.domain.BaseEntity;
 
 /**
  * 岗位表 sys_post
- * 
+ *
  * @author ruoyi
  */
+@TableName("sys_post")
 public class SysPost extends BaseEntity
 {
     private static final long serialVersionUID = 1L;
 
     /** 岗位序号 */
     @Excel(name = "岗位序号", cellType = ColumnType.NUMERIC)
+    @TableId(type = IdType.AUTO)
     private Long postId;
 
     /** 岗位编码 */
@@ -39,6 +44,7 @@ public class SysPost extends BaseEntity
     private String status;
 
     /** 用户是否存在此岗位标识 默认不存在 */
+    @com.baomidou.mybatisplus.annotation.TableField(exist = false)
     private boolean flag = false;
 
     public Long getPostId()

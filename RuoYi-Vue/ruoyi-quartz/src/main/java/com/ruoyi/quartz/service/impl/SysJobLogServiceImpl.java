@@ -1,5 +1,6 @@
 package com.ruoyi.quartz.service.impl;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,17 @@ public class SysJobLogServiceImpl implements ISysJobLogService
 {
     @Autowired
     private SysJobLogMapper jobLogMapper;
+
+    /**
+     * 分页查询（列表接口用）
+     *
+     * @return 分页结果
+     */
+    @Override
+    public IPage<SysJobLog> selectJobLogPage(SysJobLog jobLog)
+    {
+        return jobLogMapper.selectJobLogPage(com.ruoyi.common.utils.PageUtils.buildPage(), jobLog);
+    }
 
     /**
      * 获取quartz调度器日志的计划任务

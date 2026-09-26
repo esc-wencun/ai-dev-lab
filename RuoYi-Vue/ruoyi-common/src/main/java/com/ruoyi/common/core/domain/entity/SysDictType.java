@@ -5,6 +5,9 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.ruoyi.common.annotation.Excel;
 import com.ruoyi.common.annotation.Excel.ColumnType;
 import com.ruoyi.common.core.domain.BaseEntity;
@@ -14,13 +17,15 @@ import com.ruoyi.common.core.domain.BaseEntity;
  * 
  * @author ruoyi
  */
+@TableName("sys_dict_type")
 public class SysDictType extends BaseEntity
 {
     private static final long serialVersionUID = 1L;
 
     /** 字典主键 */
     @Excel(name = "字典主键", cellType = ColumnType.NUMERIC)
-    private Long dictId;
+@TableId(type = IdType.AUTO)
+private Long dictId;
 
     /** 字典名称 */
     @Excel(name = "字典名称")
