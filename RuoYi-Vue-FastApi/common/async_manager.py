@@ -14,6 +14,9 @@ class AsyncManager:
     异步任务执行器
     """
 
+    def __init__(self):
+        pass
+
     @classmethod
     def submit(cls, coro):
         """

@@ -17,6 +17,40 @@ RuoYi-Vue 的 Python (FastAPI) 版服务端，用于学习 AI + Python 开发。
 | loguru | 日志 | slf4j + logback |
 | pydantic-settings + dotenv | 配置 | application.yml |
 
+## 项目结构
+
+```
+RuoYi-Vue-FastApi/
+├── app.py                  # 启动入口（uvicorn，--env 指定环境配置）
+├── server.py               # FastAPI 应用：生命周期事件、controller_list 路由注册、全局组件挂载
+├── requirements.txt        # 依赖清单
+├── .env.docker / .env.dev  # 环境配置（pydantic-settings 读取，随仓库提交；.env.prod 不入库）
+├── common/                 # 通用层（对位 ruoyi-common）：常量、枚举、提示文案、异步后台任务
+├── config/                 # 配置层：env 环境加载、database、get_db（事务兜底回滚）、redis_cache 门面
+├── exceptions/             # 自定义异常 + 全局异常处理（对位 GlobalExceptionHandler）
+├── middlewares/            # 中间件：CORS 等
+├── module_admin/           # 系统管理业务模块（对位 ruoyi-system + admin 层）
+│   ├── annotation/         # log_decorator 操作日志、防重提交/限流
+│   ├── aspect/             # require_perm 接口鉴权、data_scope 数据权限
+│   ├── controller/         # 控制器：路由与参数接收，ResponseUtil 组响应
+│   ├── service/            # 业务逻辑（登录/验证码/用户/代码生成等）+ gen_templates 生成模板
+│   ├── dao/                # 数据访问层：仅查询与写库
+│   └── entity/
+│       ├── do/             # SQLAlchemy 2.0 表模型（对位 Java domain）
+│       └── vo/             # pydantic 请求/响应模型（与 do 刻意分离，见 spec-00）
+├── module_task/            # 定时任务（对位 ruoyi-quartz）：APScheduler 调度、任务注册表、RyTask
+├── sub_applications/       # 子应用挂载：/profile 静态文件
+├── utils/                  # 工具：分页/Excel 导出/驼峰序列化/响应封装/密码/上传/XSS 过滤等
+├── tests/                  # pytest 单元测试（纯逻辑）
+├── specs/                  # spec 任务书：总清单 README + spec-00~11 + final-acceptance 总验收
+├── assets/font/            # 验证码字体（未入库时自动回退系统字体）
+├── logs/                   # 运行时日志：sys-info/sys-error/sys-user 按天滚动（git 忽略）
+├── upload_path/            # 上传文件存储（git 忽略）
+└── download_path/          # 导出/下载临时目录（git 忽略）
+```
+
+分层规范（controller → service → dao 的职责边界、Redis 访问纪律等）见根目录 [AGENTS.md](../AGENTS.md)，各模块开发契约见 [specs/README.md](specs/README.md)。
+
 ## 当前进度
 
 - [x] 验证码 `/captchaImage`
@@ -24,10 +58,13 @@ RuoYi-Vue 的 Python (FastAPI) 版服务端，用于学习 AI + Python 开发。
 - [x] 用户信息 `/getInfo`（user / roles / permissions）
 - [x] 动态路由 `/getRouters`（完整复刻 Java 版 buildMenus：目录/菜单/外链/内链/ParentView）
 - [x] 退出登录 `/logout`、解锁屏幕 `/unlockscreen`
-- [ ] 用户/角色/菜单/部门/岗位管理
-- [ ] 字典/参数/通知/日志管理
-- [ ] 在线用户/服务监控/缓存监控
-- [ ] 定时任务/代码生成
+- [x] 用户/角色/菜单/部门/岗位管理（spec-03~05，2026-09-24）
+- [x] 字典/参数/通知/日志管理（spec-06~08，2026-09-24）
+- [x] 在线用户/服务监控/缓存监控（spec-08，2026-09-24）
+- [x] 定时任务/代码生成（spec-09~10，2026-09-24）
+- [x] 平台标识 `/getPlatformInfo`（spec-11，跨端模块，2026-09-25）
+
+> 各模块完成状态以 [specs/README.md](specs/README.md) 总清单为准；整体回归验收（[final-acceptance.md](specs/final-acceptance.md)）尚未执行。
 
 ## 快速开始
 
@@ -45,7 +82,7 @@ RuoYi-Vue 的 Python (FastAPI) 版服务端，用于学习 AI + Python 开发。
 python app.py --env=docker
 ```
 
-**方式 B（自备 MySQL/Redis）**：复制 `.env.docker` 为 `.env.dev` 并填入自己的数据库和 Redis 信息（`.env.dev` 已被 git 忽略，不会提交）：
+**方式 B（自备 MySQL/Redis）**：复制 `.env.docker` 为 `.env.dev` 并填入自己的数据库和 Redis 信息（注意：`.env.dev` 随本仓库提交，请勿写入真实凭据；含真实凭据的配置请放 `.env.prod`——已被 git 忽略，不会提交）：
 
 ```properties
 DB_HOST=127.0.0.1
