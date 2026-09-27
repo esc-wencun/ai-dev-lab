@@ -29,9 +29,6 @@ public class DataPermissionConfiguration
     public List<DataPermissionRule> dataPermissionRules()
     {
         DeptDataPermissionRule rule = new DeptDataPermissionRule();
-        // 【1.0.0 端到端专测临时注册，测完删除此行——checklist 清理项】
-        rule.addDeptColumn("biz_order", "dept_id");
-        rule.addUserColumn("biz_order", "create_by_id");
         return java.util.Collections.singletonList(rule);
     }
 }

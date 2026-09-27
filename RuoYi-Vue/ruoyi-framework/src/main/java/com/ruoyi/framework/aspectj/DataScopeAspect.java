@@ -57,6 +57,12 @@ public class DataScopeAspect
             {
                 DataScopeContextHolder.add(new DataScopeContextHolder.Scope(true, dto));
             }
+            else
+            {
+                // 非 Web 上下文（resolver 返回 null）：整体放行占位，保证与 doAfter 出栈严格配对，
+                // 防止误弹外层作用域（栈失衡）或外层范围泄漏进本方法
+                DataScopeContextHolder.add(new DataScopeContextHolder.Scope(false, null));
+            }
         }
         else
         {

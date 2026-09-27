@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.ruoyi.common.utils.StringUtils;
 
+import java.util.regex.Pattern;
+
 /**
  * LambdaQueryWrapper 增强：条件值为空/null 自动跳过（IfPresent 方法族），
  * 替代 XML &lt;if test="xxx != null and xxx != ''"&gt; 动态条件的 Java 侧写法。
@@ -85,14 +87,19 @@ public class LambdaQueryWrapperX<T> extends LambdaQueryWrapper<T>
         return this;
     }
 
+    /** 日粒度日期串（前端日期选择器默认格式 yyyy-MM-dd） */
+    private static final Pattern DAY_PATTERN = Pattern.compile("\\d{4}-\\d{2}-\\d{2}");
+
     /**
-     * between：两端都非空 → between；只传一端 → 半开区间退化为 ge/le；两端空 → 跳过
+     * between：两端都非空 → between；只传一端 → 半开区间退化为 ge/le；两端空 → 跳过。
+     * 结束值若为 yyyy-MM-dd 日粒度字符串，补全为当天 23:59:59，
+     * 对齐迁移前 XML date_format(col,'%Y%m%d') &lt;= date_format(#{endTime},'%Y%m%d') 的按日包含语义
      */
     public LambdaQueryWrapperX<T> betweenIfPresent(SFunction<T, ?> column, Object val1, Object val2)
     {
         if (val1 != null && val2 != null)
         {
-            return (LambdaQueryWrapperX<T>) super.between(column, val1, val2);
+            return (LambdaQueryWrapperX<T>) super.between(column, val1, dayEndIfDayPrecision(val2));
         }
         if (val1 != null)
         {
@@ -100,9 +107,19 @@ public class LambdaQueryWrapperX<T> extends LambdaQueryWrapper<T>
         }
         if (val2 != null)
         {
-            return (LambdaQueryWrapperX<T>) super.le(column, val2);
+            return (LambdaQueryWrapperX<T>) super.le(column, dayEndIfDayPrecision(val2));
         }
         return this;
+    }
+
+    /** yyyy-MM-dd 日粒度结束值补全天（23:59:59），其余值原样返回 */
+    private static Object dayEndIfDayPrecision(Object val)
+    {
+        if (val instanceof String && DAY_PATTERN.matcher((String) val).matches())
+        {
+            return val + " 23:59:59";
+        }
+        return val;
     }
 
     // ===== 链式返回类型重写（防止 eq()/like() 后返回父类类型导致 IfPresent 接不上） =====
