@@ -15,6 +15,12 @@
   `"C:\Program Files\Java\jdk-17.0.12\bin\java.exe" -jar ruoyi-admin/target/ruoyi-admin.jar`
 - 本机 PATH 上的 java.exe 是 JDK 1.6，直接 `java -jar` 会失败。
 
+## Claude Code 会话配置（.claude/settings.json）
+
+- `autoCompactEnabled: true`——上下文将满时自动压缩会话（生成摘要后续接，无需手动 /compact）。
+- `autoCompactWindow: 750000`——触发自动压缩的窗口大小（token）。750000 ≈ 1M 上下文的 75%（当前模型 GLM-5.3-Flash[1M]）；切换 200K 窗口模型时需改为 150000。
+- settings.json 是严格 schema 校验的 JSON，不支持注释（连 `_comment` 键都会校验失败），配置含义统一记录在本节。
+
 ## MySQL / Redis 当前指向（2026-09-25 起）
 
 三版后端共用的数据库与缓存指向 `docker/` 提供的本地 Docker 环境（详见 [docker/README.md](docker/README.md)），各版 `.env.dev` 与 Java 版 `application.yml` / `application-druid.yml` 已同步为此配置：
