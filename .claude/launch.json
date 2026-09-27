@@ -7,6 +7,14 @@
       "runtimeArgs": ["run", "dev"],
       "cwd": "RuoYi-Vue3",
       "port": 80
+    },
+    {
+      "name": "react-frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "RuoYi-React",
+      "port": 8090,
+      "autoPort": true
     }
   ]
 }

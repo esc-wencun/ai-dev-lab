@@ -7,6 +7,7 @@
 - Vue 3 + Element Plus + Vite 前端，**三个后端（Java / Python / Go）共用同一份前端代码**。
 - 2026-09-25 起纳入可修改范围（按学习需要演进），前提是**不破坏三版后端通用性**：后端能力差异用接口下发的能力开关表达，不用语言/环境硬编码（见〈功能开关〉）。
 - 基线为上游 RuoYi-Vue3 v3.9.2；相对上游的本地改动目前只有「平台标识降级提示」一组（`src/api/platform.js` + 三个监控/工具页）。
+- **RuoYi-React**（`../RuoYi-React/`）是本前端的 React + antd 学习性等价复刻工程（2026-09-27 起）；本前端仍是**基准前端与行为参照**，RuoYi-React 的行为契约以其源码为准（差异登记在 `RuoYi-React/specs/deviations.md`）。
 
 ## 常用命令
 
