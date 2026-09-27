@@ -4,12 +4,13 @@
 
 ## 工作区结构
 
-本目录是 RuoYi 管理系统的四项目工作区：
+本目录是 RuoYi 管理系统的五项目工作区：
 
 - **RuoYi-Vue/** — Java 版服务端（Spring Boot / Java 17 / MyBatis-Plus），功能与接口契约的**唯一基准**。2026-09-25 起纳入可修改范围（按学习需要增量演进，如 12.0.0 SysPlatformController、0.0.0 MyBatis-Plus 功能增加）；改契约时同步评估 Go/Python。
-- **RuoYi-Vue3/** — Vue 3 + Element Plus + Vite 前端，三个后端共用。2026-09-25 起纳入可修改范围（按学习需要演进）；改动需以不破坏三版后端通用性为前提（优先用 `features` 能力开关而非硬编码语言判断，见 12.0.0）。
+- **RuoYi-Vue3/** — Vue 3 + Element Plus + Vite 前端，三个后端共用。2026-09-25 起纳入可修改范围（按学习需要演进）；改动需以不破坏三版后端通用性为前提（优先用 `features` 能力开关而非硬编码语言判断，见 12.0.0）。仍是 RuoYi-React 的**基准前端**（行为参照）。
 - **RuoYi-Vue-FastApi/** — Python (FastAPI) 版服务端，当前开发重点（学习 AI + Python 项目）。目标是与 Java 版接口完全兼容，前端零改动即可切换后端。
 - **RuoYi-Vue-GO/** — Go 版服务端（Gin + GORM）。定位与 Python 版相同：复刻 Java 版接口、前端零改动切换。规范入口 `RuoYi-Vue-GO/AGENTS.md`，任务清单 `RuoYi-Vue-GO/specs/README.md`，技术选型 `RuoYi-Vue-GO/specs/tech-stack.md`。同监听 8080，与 Java/Python 版互斥。
+- **RuoYi-React/** — React 19 + TypeScript + Ant Design 5 + Redux Toolkit 前端，2026-09-27 起新增（学习 React + 求职导向）。功能等价复刻 RuoYi-Vue3（界面不强求一致），服务三版后端；规范入口 `RuoYi-React/AGENTS.md`，任务清单 `RuoYi-React/specs/README.md`，选型 `RuoYi-React/specs/tech-stack.md`，与基准的有意差异 `RuoYi-React/specs/deviations.md`。dev 端口 **8090**，与 RuoYi-Vue3（80）并行。
 
 > 「前端零改动」指三版后端切换时前端无需适配（兼容契约的目标），不是禁止改前端——2026-09-25 起前端与 Java 版均可按学习需要修改，改完注意评估对另外两个后端的影响。
 
@@ -31,6 +32,15 @@ python -m pytest tests/test_login_logic.py -k bcrypt -v  # 按名过滤
 npm install
 npm run dev           # 开发服务器，端口 80，/dev-api 代理到 localhost:8080
 npm run build:prod    # 生产构建
+```
+
+React 前端（在 `RuoYi-React/` 下；与 RuoYi-Vue3 可并行运行）：
+
+```bash
+npm install
+npm run dev           # 开发服务器，端口 8090，/dev-api 代理到 localhost:8080
+npm run build:prod    # 生产构建
+npm test              # Vitest 纯逻辑单测
 ```
 
 Java 版（对照或增量演进时）：`RuoYi-Vue/` 下 `mvn clean package -Dmaven.test.skip=true`，然后运行 `ruoyi-admin/target/ruoyi-admin.jar`（需 JDK 17，本机 java 全路径见 [AGENTS.local.md](AGENTS.local.md)）。
@@ -66,6 +76,7 @@ Python 版存在的意义就是复刻 Java 版接口，以下兼容点是所有�
 - **契约先行**：动手前先读 Java 版对应 Controller + ServiceImpl + Mapper XML，把端点路径、方法、参数、返回 JSON 结构写进 spec 的 API 清单，不凭记忆。
 - **验收以前端为准**：接口完成的标准是 RuoYi-Vue3 对应页面能正常操作，且响应字段名、状态码约定与 Java 版一致。
 - 测试分层：纯逻辑（树构建、格式转换等）写 pytest 单元测试；涉及数据库/Redis 的用真实环境端到端验证。
+- **CHANGELOG 维护规则**：完成一个功能里程碑（新功能、既有能力的重大改造如框架替换/架构级重构）时，在根目录 [CHANGELOG.md](CHANGELOG.md) 追加一条——日期倒序、一条 = 日期 + 标题 + 2~3 行要点、PR 附链接。**只记功能**：文档调整、叙事修改、配置说明、规范补齐等非功能性操作一律不记。逐 commit 细节以 git log 为准，不在此重复。
 
 ## spec checklist 纪律（2026-09 核对事故后新增，必须遵守）
 

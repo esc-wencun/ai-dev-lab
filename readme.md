@@ -1,8 +1,13 @@
-# ai-dev-lab：用工程纪律驱动 AI，跨四个技术栈交付一套系统
+# ai-dev-lab：学习与实践 AI coding——用工程纪律驱动 AI 跨技术栈交付一套系统
 
-这个仓库的主角不是"复刻了一个若依"——复刻只是载体。它展示的是一件事：**如何用 spec 任务书、checklist 验收纪律和数据实证，驱动 AI（Claude Code）在四个技术栈之间保持一致性，包括 AI 在哪跌倒、靠什么机制抓住的**。全部代码由 AI 编写，人工负责需求界定、纪律制定与最终验收。
+这个仓库是**本人学习与实践 AI coding 的项目**：通过真实工程练习 spec 驱动开发、checklist 验收纪律与人机协作方法，并按由浅入深的顺序学习以下技术栈：
 
-载体本身：以 [RuoYi-Vue](https://github.com/yangzongzhuan/RuoYi-Vue)（若依官方 Java 版，Spring Boot）为接口契约基准，用 **Go（Gin + GORM）** 和 **Python（FastAPI + SQLAlchemy 2.0 async）** 从零复刻出接口完全兼容的服务端，共用同一个 [RuoYi-Vue3](https://github.com/yangzongzhuan/RuoYi-Vue3) 前端（Vue 3 + Element Plus），**切换后端前端零适配**。`RuoYi-Vue/`、`RuoYi-Vue3/` 为若依官方仓库的本地副本，充当契约基准与共用前端，2026-09-25 起也纳入增量演进（如平台标识模块对 Java 版的新增）。
+1. **Python（FastAPI + SQLAlchemy 2.0 async）**——服务端入门：异步 ORM 与分层工程化（spec-00~11 已完成）；
+2. **Go（Gin + GORM）**——第二服务端语言：同一契约的跨语言复刻（已全部完成）；
+3. **React（React 19 + TypeScript + Ant Design 5 + Redux Toolkit）**——前端栈：功能等价复刻共用前端（2026-09-27 起新增，进行中）；
+4. **AI 应用技能**（陆续补充）：**Function Calling / Tool Use** → **RAG（检索增强生成）** → **Agent / 智能体（企业智能体工程化）** → **LangChain4j / Spring AI**（Java 生态 AI 集成）。
+
+项目源于开源项目 [RuoYi](https://gitee.com/y_project/RuoYi)（若依）：`RuoYi-Vue/`（Java 版）与 `RuoYi-Vue3/`（前端）为其官方仓库的本地副本。
 
 ## AI 开发工作流：spec 驱动，验收以数据为准
 
@@ -13,38 +18,15 @@
 3. **验收以数据为准，不凭 AI 自述**：AI 说"做完了"不算数——要扫数据库实际数据（如 sys_job 预置任务是否覆盖）、抓前端实际调用（api/*.js + 页面内调用）、跑单元测试、浏览器端到端操作。
 4. **checklist 纪律**：做完即勾、没做不勾并在行尾注明原因、**宁可留白不可虚勾**。两版 specs 目录现有 **491 项已勾验收记录**，44 项如实留白。
 
-## AI 在哪跌倒，我怎么抓住的
-
-以下案例全部有第一手记录，链接可点开验证。每个案例的完整链条：AI 的错误行为 → 被哪个环节抓住 → 纪律如何演进。
-
-**1. 凭记忆写错数据库列名** —— AI 按 Java 实体类的记忆写 gen_table 的列定义，两处列名是错的（如 `author`，实际是 `function_author`），端到端验证时才暴露。修正后该模块 spec 里留了一句记录："**凭 Java 实体记忆写的列名有两处错，端到端暴露后修正**"。"契约先行、表结构以数据库为准、不凭记忆"由此成为动工前检查单的固定条款。见 [11.0.0-代码生成器/spec.md](RuoYi-Vue-GO/specs/11.0.0-代码生成器/spec.md)。
-
-**2. "状态头写了已完成，勾选框全空"** —— 开发中期人工核对时发现，AI 产出的 checklist 存在"状态头标 ✅ 但验收项全空""勾选与实际实现不符"的虚勾。处置不是返工了事，而是把它变成制度：AGENTS.md 新增 **spec checklist 纪律五条**（宁可留白不可虚勾 / 宣称完成前逐条自查 / 功能核对以数据为准）。按新纪律做扫库二次核查，随即抓出两处此前漏实现的校验（checkUserDataScope、菜单名称唯一），并顺藤摸出一个真 bug：暂停态定时任务启用后 `resume_job` 静默空操作——表现为"暂停的任务永远无法启用"，已修复。见根 [AGENTS.md](AGENTS.md) 纪律节、[spec-09-job.md](RuoYi-Vue-FastApi/specs/spec-09-job.md)。
-
-**3. 解析失败就删缓存键——差点砸掉共享会话** —— 三版后端共用同一个 Redis。AI 初版方案是"Java 写的 FastJson 缓存（带 `@type` 类型头）解析失败就删除回源"——在共享 Redis 下这会直接**杀掉 Java 侧的登录会话**。复审发现后改为保守策略：无法解析就原样返回文本、永不删除键。这条后来写进了 AGENTS.md 的踩坑清单（"严禁解析失败就删除缓存键"）。见 [spec-08-monitor-log.md](RuoYi-Vue-FastApi/specs/spec-08-monitor-log.md)、[redis_cache.py](RuoYi-Vue-FastApi/config/redis_cache.py)。
-
-**4. 异步日志静默丢失，接口却返回 200** —— 退出登录的操作日志落库报 `Data too long`，但 HTTP 响应仍是 200，页面无任何异常——curl 层的端到端完全看不出问题，**浏览器级验收**才抓到。修复之外留了一条排查方法论："同类'异步日志静默丢失'问题先查落库行，别只看接口响应"。见 [2.0.0-登录闭环/spec.md](RuoYi-Vue-GO/specs/2.0.0-登录闭环/spec.md)。
-
-**5. 验证码答案带引号** —— Go 版向 Redis 写值用 `json.Marshal`，验证码答案成了带引号的 JSON 字符串，而 Java/Python 是裸文本——同一份数据三种语言三种形态。端到端脚本第一次登录失败暴露，修正脚本后通过，差异记入 spec。这类"序列化形态差异"正是多语言复刻里最容易漏的坑，见 [12.0.0-平台标识/tasks.md](RuoYi-Vue-GO/specs/12.0.0-平台标识/tasks.md)。
-
-其余踩坑（uvicorn --reload 残留 worker、路由遮蔽 `/{param}` 吞固定路径、日志装饰器预读 body 杀死 multipart 上传等）集中登记在根 [AGENTS.md](AGENTS.md)"已踩过的坑"一节——每条都是复现成本高的坑，修一处、记一条、下一版预埋规避。
-
-## 跨四端一致性怎么维持
-
-- **兼容契约**：三版严守同一套契约——统一 `{code, msg, ...}` 响应信封（全部 HTTP 200，前端按 body code 判断）、返回 JSON 一律驼峰、日期统一 `yyyy-MM-dd HH:mm:ss`、同库同 Redis、Redis 键前缀与 Java `CacheConstants` 逐字一致、BCrypt 存量哈希三版互相可验、JWT HS512。权威定义见 [AGENTS.md](AGENTS.md)。
-- **差异必须有意且可查**：无法逐字节对齐 Java 的行为，全部登记进 [deviations.md](RuoYi-Vue-GO/specs/deviations.md)（现有 **20 条**），规则是"**影响前端契约的差异一律不允许**——那说明实现错了，不是差异"。例如：会话 value 序列化格式不同（已知设计，切换后端需重新登录）、代码生成器模板端点有意排除（产出对 Go 项目无价值，前端 404 属有意行为）。
-- **能力声明替代语言硬编码**：跨四端增量模块（[12.0.0 平台标识](RuoYi-Vue-GO/specs/12.0.0-平台标识/spec.md)）新增 `GET /getPlatformInfo` 返回 `features` 能力开关，前端数据监控 / 服务监控 / 系统接口页按能力降级提示"该功能仅 Java 版提供"，而不是 if-else 判断后端语言——新增语言或开关只需一行改动。三版端到端逐字段 curl 断言记录在 [checklist](RuoYi-Vue-GO/specs/12.0.0-平台标识/checklist.md)。
-- **量化证据**：Python 版 142 个路由端点、Go 版 127 条路由注册，接口行为与 Java 版逐条对齐；单元测试 **178 个全绿**（Python 55 + Go 123）；checklist 已勾验收记录 491 项。
-- **诚实留白也是纪律的一部分**：Go 版 10 个模块的浏览器级页面验收因开发环境限制尚未逐项确认（curl 层全部通过），checklist 里如实注明"待用户确认"而非默默勾掉；Python 版 ruff 接入标记"遗留未做"。验收记录里看到的每个 ✅ 都对应一次真实执行。
-
 ## 项目结构
 
 ```
 ai-dev-lab（原 ruoyi 工作区）
 ├── RuoYi-Vue/          Java 版服务端（Spring Boot + MyBatis-Plus）—— 接口契约的唯一基准，2026-09-25 起可按学习需要增量演进
-├── RuoYi-Vue3/         前端（Vue 3 + Element Plus + Vite）—— 三个后端共用，同样可增量演进
+├── RuoYi-Vue3/         前端（Vue 3 + Element Plus + Vite）—— 三个后端共用，同样可增量演进，仍是 React 版的行为基准
 ├── RuoYi-Vue-FastApi/  Python 版服务端（FastAPI + SQLAlchemy 2.0 async）
 ├── RuoYi-Vue-GO/       Go 版服务端（Gin + GORM）
+├── RuoYi-React/        React 前端（React 19 + TS + Ant Design 5 + Redux Toolkit）—— 功能等价复刻 RuoYi-Vue3，2026-09-27 起新增
 └── docker/             本地开发环境（MySQL 8.0 + Redis 7.0，开箱即用）
 ```
 
@@ -148,6 +130,7 @@ npm run dev                                # 监听 80，/dev-api 代理到 loca
 |------|------|
 | [AGENTS.md](AGENTS.md) | 工作区唯一 AI 编码规范源（契约 / checklist 纪律 / 踩坑清单） |
 | [AGENTS.local.md](AGENTS.local.md) | 本机环境配置参考（解释器路径、数据库/Redis 当前指向） |
+| [CHANGELOG.md](CHANGELOG.md) | 里程碑级更新日志（按日期倒序；逐 commit 细节以 git log 为准） |
 | [RuoYi-Vue-GO/specs/README.md](RuoYi-Vue-GO/specs/README.md) | Go 版模块总表、动工检查单与遗留待办 |
 | [RuoYi-Vue-GO/specs/deviations.md](RuoYi-Vue-GO/specs/deviations.md) | 与 Java 版的全部有意差异（20 条） |
 | [RuoYi-Vue-GO/AGENTS.md](RuoYi-Vue-GO/AGENTS.md) | Go 版 AI 编码规范（契约先行/勾选纪律等） |
