@@ -1,6 +1,8 @@
 package ${packageName}.mapper;
 
 import java.util.List;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import org.apache.ibatis.annotations.Param;
 import ${packageName}.domain.${ClassName};
 #if($table.sub)
 import ${packageName}.domain.${subClassName};
@@ -29,6 +31,15 @@ public interface ${ClassName}Mapper
      * @return ${functionName}集合
      */
     public List<${ClassName}> select${ClassName}List(${ClassName} ${className});
+
+    /**
+     * 分页查询${functionName}列表（IPage 首参）
+     *
+     * @param page 分页对象
+     * @param ${className} ${functionName}
+     * @return 分页结果
+     */
+    public IPage<${ClassName}> select${ClassName}Page(IPage<${ClassName}> page, @Param("${className}") ${ClassName} ${className});
 
     /**
      * 新增${functionName}

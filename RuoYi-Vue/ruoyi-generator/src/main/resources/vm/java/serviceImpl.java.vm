@@ -1,6 +1,7 @@
 package ${packageName}.service.impl;
 
 import java.util.List;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 #foreach ($column in $columns)
 #if($column.javaField == 'createTime' || $column.javaField == 'updateTime')
 import com.ruoyi.common.utils.DateUtils;
@@ -53,6 +54,18 @@ public class ${ClassName}ServiceImpl implements I${ClassName}Service
     public List<${ClassName}> select${ClassName}List(${ClassName} ${className})
     {
         return ${className}Mapper.select${ClassName}List(${className});
+    }
+
+    /**
+     * 分页查询${functionName}列表（列表接口用）
+     * 
+     * @param ${className} ${functionName}
+     * @return ${functionName}分页集合
+     */
+    @Override
+    public IPage<${ClassName}> select${ClassName}Page(${ClassName} ${className})
+    {
+        return ${className}Mapper.select${ClassName}Page(com.ruoyi.common.utils.PageUtils.buildPage(), ${className});
     }
 
     /**
