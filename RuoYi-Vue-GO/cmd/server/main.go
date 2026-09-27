@@ -24,6 +24,9 @@ import (
 	"syscall"
 	"time"
 
+	// 内嵌时区数据库: DSN 的 loc=Asia/Shanghai 依赖它, 打包产物(-trimpath/无 GOROOT 环境)必须自包含
+	_ "time/tzdata"
+
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/mysql"
