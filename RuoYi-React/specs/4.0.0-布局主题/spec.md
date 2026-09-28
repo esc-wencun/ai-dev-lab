@@ -1,7 +1,7 @@
 # Spec 4.0.0 布局主题
 
 >
-> **状态：🔶 核心完成（2026-09-27）**。布局壳 + Sidebar（递归菜单/唯一可见子级/外链 `<a>`/图标精灵/collapsed）+ Navbar（面包屑/搜索/全屏/尺寸/明暗/锁屏/头像下拉/退出确认）落地并浏览器验证：admin 登录后侧边栏渲染后端菜单（系统管理/监控/工具/若依官网外链），点击跳转动态路由页面成功（/system/config 真实数据表格）。**未完结项**（随后续任务）：TagsView 页签栏、Settings 设置抽屉、TopNav/TopBar（navType 2/3）、暗色主题完整 CSS 变量、锁屏页视觉完整版、footer。
+> **状态：✅ 完成（2026-09-28）**。布局壳 + Sidebar + Navbar（三导航模式）+ TagsView 页签栏 + Settings 抽屉 + HeaderNotice + 暗色主题 + 响应式 + footer + 锁屏视觉全部落地；核心链路（页签操作族/设置抽屉保存/navType 3 切换/暗色切换/持久化恢复/HeaderNotice 联动）浏览器实操验证。navType 2 单独实操、锁屏解锁回跳、重置配置按钮等次级路径代码就位未逐一实操（任务表已注明）。实现期间修复三处集成 bug：store 循环导入（dynamicRoutes 抽纯数据模块）、useMatches 需 data router（自制 useRouteMatches + matchRoutes）、react-router v7 路由语法（splat `*` 替代 `:path(.*)`；五条 dynamicRoutes 因 hidden 过滤被吞 → buildRouteObjects 加 keepHidden）。
 > **背景**：布局壳是全部页面的容器；功能开关与数据流等价，视觉糖可简化（逐项登记 deviations）。
 > **契约侦察**：[../reference/02-infra-contract.md](../reference/02-infra-contract.md) §7.2（$tab）/§9（布局与设置）；组件行为 reference/03 §1。
 > **依赖**：02（store/路由）、03 批次 A。

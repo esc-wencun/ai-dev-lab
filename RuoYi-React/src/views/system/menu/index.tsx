@@ -1,12 +1,14 @@
 // 菜单管理 —— 对位基准 views/system/menu/index.vue
 // 树表 + IconSelect 图标选择 + 三种菜单类型 + 批量排序(updateMenuSort)
+// 3.0.0 批次 C：工具行接入 RightToolbar（搜索折叠 + 刷新；树表无分页不接 Pagination）
 
-import { useCallback, useEffect, useState } from 'react'
-import { Button, Card, Form, Input, InputNumber, Modal, Radio, Space, Table, Popover, TreeSelect } from 'antd'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Button, Card, Form, Input, InputNumber, Modal, Radio, Space, Table, Popover, TreeSelect, message } from 'antd'
 import { PlusOutlined, SearchOutlined, ReloadOutlined, OrderedListOutlined } from '@ant-design/icons'
 import { listMenu, getMenu, addMenu, updateMenu, delMenu, updateMenuSort } from '@/api/system/menu'
 import Auth from '@/components/Auth'
 import IconSelect from '@/components/IconSelect'
+import RightToolbar from '@/components/RightToolbar'
 import { handleTree } from '@/utils/ruoyi'
 
 interface MenuRow {
@@ -29,12 +31,13 @@ export default function MenuPage() {
   const [rows, setRows] = useState<MenuRow[]>([])
   const [loading, setLoading] = useState(false)
   const [keyword, setKeyword] = useState('')
-  const [checkedKeys, setCheckedKeys] = useState<React.Key[]>([])
   const [form] = Form.useForm()
   const [open, setOpen] = useState(false)
   const [editId, setEditId] = useState<number | null>(null)
   const [menuType, setMenuType] = useState('M')
   const [treeData, setTreeData] = useState<{ title: string; value: number; children?: unknown[] }[]>([])
+  // 搜索表单显隐（对位基准 showSearch ref，配合 RightToolbar 折叠）
+  const [showSearch, setShowSearch] = useState(true)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -45,6 +48,12 @@ export default function MenuPage() {
         ? flat.filter((m) => m.menuName.includes(keyword))
         : flat
       setRows(handleTree(filtered, 'menuId', 'parentId', 'children'))
+      // 记录原始排序（保存时对比找改动行）
+      const orders: Record<number, number> = {}
+      ;(function record(list: MenuRow[]) {
+        list.forEach((i) => { orders[i.menuId] = i.orderNum; if (i.children) record(i.children) })
+      })(handleTree(filtered, 'menuId', 'parentId', 'children'))
+      originalOrdersRef.current = orders
     } finally {
       setLoading(false)
     }
@@ -92,29 +101,52 @@ export default function MenuPage() {
     })
   }
 
-  // 批量排序（menuIds + orderNums）
-  const handleSort = () => {
-    if (checkedKeys.length === 0) return
-    const flat = collectFlat(rows)
-    const chosen = checkedKeys.map((k) => flat.find((d) => d.menuId === k)).filter(Boolean) as MenuRow[]
-    Modal.confirm({
-      title: '系统提示', content: `已选择 ${chosen.length} 行，将按当前显示顺序保存排序，是否继续？`, okText: '确定', cancelText: '取消',
-      onOk: async () => { await updateMenuSort({ menuIds: chosen.map((d) => d.menuId), orderNums: chosen.map((d) => d.orderNum) }) },
-    })
-  }
+  // 行内排序编辑（对位基准：排序列 InputNumber 可编辑 + 原始值记录）
+  const [editOrders, setEditOrders] = useState<Record<number, number>>({})
+  const originalOrdersRef = useRef<Record<number, number>>({})
 
-  function collectFlat(items: MenuRow[]): MenuRow[] {
-    const out: MenuRow[] = []
-    const walk = (list: MenuRow[]) => list.forEach((i) => { out.push(i); if (i.children) walk(i.children) })
-    walk(items)
-    return out
+  // 保存排序（对位基准 handleSaveSort：只提交有改动的行；Java 端 Map<String,String> 收逗号拼接串）
+  const handleSaveSort = () => {
+    const menuIds: number[] = []
+    const orderNums: number[] = []
+    const collectChanged = (list: MenuRow[]) => {
+      list.forEach((item) => {
+        const edited = editOrders[item.menuId]
+        if (edited !== undefined && String(originalOrdersRef.current[item.menuId]) !== String(edited)) {
+          menuIds.push(item.menuId)
+          orderNums.push(edited)
+        }
+        if (item.children) collectChanged(item.children)
+      })
+    }
+    collectChanged(rows)
+    if (menuIds.length === 0) {
+      message.warning('未检测到排序修改')
+      return
+    }
+    Modal.confirm({
+      title: '系统提示', okText: '确定', cancelText: '取消',
+      onOk: async () => {
+        await updateMenuSort({ menuIds: menuIds.join(','), orderNums: orderNums.join(',') })
+        message.success('排序保存成功')
+        setEditOrders({})
+        void load()
+      },
+    })
   }
 
   const columns = [
     { title: '菜单名称', dataIndex: 'menuName' },
     { title: '图标', dataIndex: 'icon', width: 70,
       render: (v: string) => (v ? <span className={'icon-' + v} /> : null) },
-    { title: '排序', dataIndex: 'orderNum', width: 70 },
+    { title: '排序', dataIndex: 'orderNum', width: 120,
+      render: (_: unknown, row: MenuRow) => (
+        <InputNumber
+          size="small" min={0} style={{ width: 88 }}
+          value={editOrders[row.menuId] ?? row.orderNum}
+          onChange={(v) => setEditOrders((prev) => ({ ...prev, [row.menuId]: Number(v) }))}
+        />
+      ) },
     { title: '权限标识', dataIndex: 'perms' },
     { title: '组件路径', dataIndex: 'component' },
     {
@@ -138,7 +170,7 @@ export default function MenuPage() {
   return (
     <div style={{ padding: 16 }}>
       <Card>
-        <Form layout="inline" style={{ marginBottom: 16 }}>
+        <Form layout="inline" style={{ marginBottom: 16, display: showSearch ? undefined : 'none' }}>
           <Form.Item label="菜单名称">
             <Input allowClear onChange={(e) => setKeyword(e.target.value)} />
           </Form.Item>
@@ -150,13 +182,15 @@ export default function MenuPage() {
           </Form.Item>
         </Form>
 
-        <Space style={{ marginBottom: 16 }}>
+        {/* 工具行：操作按钮 + RightToolbar（搜索折叠 + 刷新；列显隐未用不传 columns） */}
+        <Space style={{ marginBottom: 16, display: 'flex' }}>
           <Auth permissions={['system:menu:add']}>
             <Button type="primary" icon={<PlusOutlined />} onClick={() => void openAdd()}>新增</Button>
           </Auth>
           <Auth permissions={['system:menu:edit']}>
-            <Button icon={<OrderedListOutlined />} disabled={checkedKeys.length === 0} onClick={handleSort}>批量排序</Button>
+            <Button type="primary" ghost icon={<OrderedListOutlined />} onClick={handleSaveSort}>保存排序</Button>
           </Auth>
+          <RightToolbar showSearch={showSearch} onShowSearchChange={setShowSearch} onRefresh={() => void load()} />
         </Space>
 
         <Table
@@ -164,7 +198,6 @@ export default function MenuPage() {
           columns={columns}
           dataSource={rows}
           loading={loading}
-          rowSelection={{ checkStrictly: false, onChange: (keys) => setCheckedKeys([...keys]) }}
           expandable={{ defaultExpandAllRows: true }}
           pagination={false}
           scroll={{ x: 'max-content' }}

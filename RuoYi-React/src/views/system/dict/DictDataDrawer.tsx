@@ -1,5 +1,6 @@
 // DictDataDrawer —— 字典数据抽屉（对位基准 dict/detail.vue，700px Drawer 内嵌数据 CRUD）
 // 独立路由页 /system/dict-data/index/:dictId 也消费同一组件（两用，对齐基准）
+// 3.0.0 批次 C：内联分页替换为 Pagination 组件消费（行为等价）
 
 import { useCallback, useEffect, useState } from 'react'
 import { Button, Drawer, Form, Input, InputNumber, Modal, Select, Space, Table } from 'antd'
@@ -7,6 +8,7 @@ import { PlusOutlined, SearchOutlined, ReloadOutlined } from '@ant-design/icons'
 import { listData, getData, addData, updateData, delData } from '@/api/system/dict/data'
 import { useDict } from '@/utils/dict'
 import DictTag from '@/components/DictTag'
+import Pagination from '@/components/Pagination'
 
 interface DictDataRow {
   [k: string]: unknown
@@ -41,6 +43,9 @@ export default function DictDataDrawer({ open, dictType, title, onClose }: Props
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
   const [keyword, setKeyword] = useState('')
+  // 分页状态（原固定 pageSize:50 简版，接入 Pagination 组件后改为受控分页）
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(50)
   const [form] = Form.useForm()
   const [modalOpen, setModalOpen] = useState(false)
   const [editId, setEditId] = useState<number | null>(null)
@@ -49,7 +54,7 @@ export default function DictDataDrawer({ open, dictType, title, onClose }: Props
     if (!dictType) return
     setLoading(true)
     try {
-      const res = (await listData({ pageNum: 1, pageSize: 50, dictType, dictLabel: keyword || undefined })) as unknown as {
+      const res = (await listData({ pageNum: page, pageSize, dictType, dictLabel: keyword || undefined })) as unknown as {
         rows: DictDataRow[]; total: number
       }
       setRows(res.rows || [])
@@ -57,7 +62,7 @@ export default function DictDataDrawer({ open, dictType, title, onClose }: Props
     } finally {
       setLoading(false)
     }
-  }, [dictType, keyword])
+  }, [dictType, keyword, page, pageSize])
 
   useEffect(() => {
     if (open) void load()
@@ -123,9 +128,20 @@ export default function DictDataDrawer({ open, dictType, title, onClose }: Props
       </Space>
       <Table
         rowKey="dictCode" columns={columns} dataSource={rows} loading={loading}
-        pagination={{ total, pageSize: 50, showTotal: (t) => `共 ${t} 条` }}
+        pagination={false}
         scroll={{ x: 'max-content' }}
       />
+      {total > 0 && (
+        <Pagination
+          total={total}
+          page={page}
+          pageSize={pageSize}
+          onChange={(p, size) => {
+            setPage(p)
+            setPageSize(size)
+          }}
+        />
+      )}
       <Modal title={editId ? '修改字典数据' : '添加字典数据'} open={modalOpen}
         onOk={() => void submit()} onCancel={() => setModalOpen(false)} destroyOnHidden>
         <Form form={form} layout="vertical">

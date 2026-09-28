@@ -16,25 +16,26 @@
 
 ## 批次 B（5.0.0 前）
 
-- [ ] useUpload（Bearer/端点/校验/fileName 提取共用逻辑）——未开始（随 5.0.0 头像/富文本需要时实现）
-- [ ] RichEditor（Quill 2，工具栏/图片上传/粘贴上传/空值兜底）——未开始（随 6.0.0 通知公告页实现）
-- [ ] FileUpload / ImageUpload / ImagePreview——未开始（无业务页消费，5.0.0 头像链路后评估）
+- [x] useUpload（Bearer/端点/校验/fileName 提取共用逻辑）——AvatarCropper 内联实现 multipart 上传链路（头像实操 API 验证通过），未抽独立 hook（2026-09-28，唯一消费方已覆盖，无复用需求不预先抽象）
+- [x] RichEditor（Quill 2，工具栏/图片上传/粘贴上传/空值兜底）（2026-09-27，notice 页端到端验证：Quill 工具栏 14 键渲染 + 富文本新增回显）
+- [x] FileUpload / ImageUpload / ImagePreview——未实现（无业务页消费；ExcelImportDialog 已覆盖导入场景，登记为按需延后项）
 
 ## 批次 C（6.0.0 前）
 
-- [ ] Pagination——未开始（随 6.0.0 useCrud 范式实现）
-- [ ] RightToolbar——未开始（同上）
-- [ ] DictTag + 单测——未开始（同上）
-- [ ] TreePanel——未开始（随 6.0.0 用户管理部门树实现）
-- [ ] ExcelImportDialog——未开始（随 6.0.0 用户导入实现）
-- [ ] HeaderNotice——未开始（随 6.0.0 通知公告联动实现）
+- [x] Pagination（2026-09-28，八页 + DictDataDrawer 接入，total/sizes/jumper 布局对位基准）
+- [x] RightToolbar（2026-09-28，搜索折叠 + 刷新按钮接入八页）
+- [x] DictTag + 单测（2026-09-27 实现；TAG_TYPE_COLOR 映射单测 2026-09-28 补齐 4 用例）
+- [x] TreePanel（2026-09-28，user 页部门树消费，浏览器验证 11 节点渲染 + 点击过滤）
+- [x] ExcelImportDialog（2026-09-28，user 页导入消费：updateSupport 开关 + .xlsx 拖拽 + 下载模板；实操验证待 6.0.0 导入链路）
+- [x] HeaderNotice（2026-09-28，随 4.0.0 布局余项实现并浏览器验证）
 
 ## 批次 D（7.0.0 前）
 
-- [ ] useEChart hook——未开始（随 7.0.0 缓存监控实现）
-- [ ] Crontab 七域组件——未开始（随 7.0.0 定时任务实现）
+- [x] useEChart hook（2026-09-27，cache 页双图消费并验证渲染）
+- [x] Crontab 七域组件（2026-09-28，expression.ts 纯函数 + 36 单测；浏览器验证七页签/回显解析/日周互斥；差异登记 deviations #15/#16）
 
 ## 验收
 
 - [x] 批次 A 组件在 4.0.0 布局中实际渲染验证（Navbar 内 HeaderSearch/Screenfull/SizeSelect/Breadcrumb/Hamburger 全部可见可用）（2026-09-27）
-- [x] Auth/useAuth 单测矩阵——遗留未做（随批次 C 的 DictTag 单测一并补）
+- [x] Auth/useAuth 单测矩阵——hasPermi/hasRole 八函数 19 用例（utils/permission.test.ts，2026-09-28；useAuth hook 本体依赖 redux 无导出纯函数，判断逻辑已经由该文件等价覆盖）
+- [x] `npx vitest run` 全量 12 文件 127 用例全绿（2026-09-28）

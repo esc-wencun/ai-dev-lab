@@ -3,32 +3,16 @@
 
 import { useRoutes } from 'react-router'
 import AuthGuard from './router/AuthGuard'
-import { constantRoutes, layoutRoute, error401Route, notFoundRoute } from './router/routes'
-import { getResolvedRoutes } from '@/store/modules/permission'
 import { useAppSelector } from './store/hooks'
-import type { RouteObjectLite } from './router/gates'
+import { buildFullRouteObjects } from '@/hooks/useRouteMatches'
 
 export default function App() {
   const generated = useAppSelector((s) => s.permission.generated)
   const menuVersion = useAppSelector((s) => s.permission.topbarRoutes.length)
 
   // 挂载版路由表：generated 翻转 / 菜单变化时重新求值——等价 addRoute 后的重渲染
-  const resolved = generated ? getResolvedRoutes() : { objects: [], allowed: [] }
-  const mergedLayout: RouteObjectLite = {
-    path: '/',
-    element: layoutRoute.element,
-    children: [
-      ...(layoutRoute.children || []),
-      ...resolved.objects,
-      ...resolved.allowed,
-    ],
-  }
-  const routeObjects: RouteObjectLite[] = [
-    ...constantRoutes,
-    mergedLayout,
-    error401Route,
-    notFoundRoute,
-  ]
+  // 组装逻辑在 buildFullRouteObjects(useRouteMatches 的 matchRoutes 用同一份,保证两处一致)
+  const routeObjects = buildFullRouteObjects(generated)
   void menuVersion
 
   return (
@@ -39,6 +23,6 @@ export default function App() {
 }
 
 // useRoutes 包装组件
-function RoutesElement({ routes }: { routes: RouteObjectLite[] }) {
-  return useRoutes(routes as never)
+function RoutesElement({ routes }: { routes: Parameters<typeof useRoutes>[0] }) {
+  return useRoutes(routes)
 }

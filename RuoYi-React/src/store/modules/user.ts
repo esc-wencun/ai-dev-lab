@@ -68,6 +68,22 @@ export const getInfo = createAsyncThunk('user/getInfo', async () => {
     // 基准键名即如此拼写（pwr 非 pwd）
     cache.session.set('pwrChrtype', String(res.pwdChrtype))
   }
+  // 初始密码/过期密码提醒（与基准 user.js getInfo action 内 ElMessageBox 同位同语义：
+  // 初始优先，过期仅在不提醒初始时弹；确定 → 跳 /user/profile/resetPwd）
+  if (res.isDefaultModifyPwd || res.isPasswordExpired) {
+    void import('antd').then(({ Modal }) => {
+      const content = res.isDefaultModifyPwd
+        ? '您的密码还是初始密码，请修改密码！'
+        : '您的密码已过期，请尽快修改密码！'
+      Modal.confirm({
+        title: '安全提示',
+        content,
+        okText: '确定',
+        cancelText: '取消',
+        onOk: () => { window.location.href = '/user/profile/resetPwd' },
+      })
+    })
+  }
   return {
     id: user.userId,
     name: user.userName,

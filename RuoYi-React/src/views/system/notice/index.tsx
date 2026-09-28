@@ -1,5 +1,6 @@
 // 通知公告 —— 对位基准 views/system/notice/index.vue
 // CRUD + RichEditor 富文本（HTML 存储）+ 详情弹窗 + ReadUsers 已读用户
+// 3.0.0 批次 C：内联分页/工具行替换为 Pagination / RightToolbar 组件消费（行为等价）
 
 import { useEffect, useState } from 'react'
 import { Button, Card, Form, Input, Modal, Radio, Select, Space, Table, Typography } from 'antd'
@@ -10,6 +11,8 @@ import { useDict } from '@/utils/dict'
 import DictTag from '@/components/DictTag'
 import Auth from '@/components/Auth'
 import RichEditor from '@/components/RichEditor'
+import Pagination from '@/components/Pagination'
+import RightToolbar from '@/components/RightToolbar'
 import ReadUsersDialog from './ReadUsers'
 import { parseTime } from '@/utils/ruoyi'
 
@@ -38,6 +41,8 @@ export default function Notice() {
   const [detail, setDetail] = useState<NoticeRow | null>(null)
   // 已读用户弹窗
   const [readUsers, setReadUsers] = useState<{ open: boolean; noticeId?: number }>({ open: false })
+  // 搜索表单显隐（对位基准 showSearch ref，配合 RightToolbar 折叠）
+  const [showSearch, setShowSearch] = useState(true)
 
   useEffect(() => {
     void crud.getList()
@@ -102,7 +107,7 @@ export default function Notice() {
   return (
     <div style={{ padding: 16 }}>
       <Card>
-        <Form layout="inline" onFinish={() => crud.handleQuery()} style={{ marginBottom: 16 }}>
+        <Form layout="inline" onFinish={() => crud.handleQuery()} style={{ marginBottom: 16, display: showSearch ? undefined : 'none' }}>
           <Form.Item label="公告标题">
             <Input allowClear onChange={(e) => crud.setQuery((q) => ({ ...q, noticeTitle: e.target.value }))} />
           </Form.Item>
@@ -122,7 +127,8 @@ export default function Notice() {
           </Form.Item>
         </Form>
 
-        <Space style={{ marginBottom: 16 }}>
+        {/* 工具行：操作按钮 + RightToolbar（搜索折叠 + 刷新；列显隐未用不传 columns） */}
+        <Space style={{ marginBottom: 16, display: 'flex' }}>
           <Auth permissions={['system:notice:add']}>
             <Button type="primary" icon={<PlusOutlined />} onClick={openAdd}>新增</Button>
           </Auth>
@@ -130,15 +136,22 @@ export default function Notice() {
             <Button type="primary" danger icon={<DeleteOutlined />} disabled={!crud.multiple}
               onClick={() => crud.handleDelete(crud.ids.join(','))}>删除</Button>
           </Auth>
+          <RightToolbar showSearch={showSearch} onShowSearchChange={setShowSearch} onRefresh={() => void crud.getList()} />
         </Space>
 
         <Table
           rowKey="noticeId" columns={columns} dataSource={crud.rows} loading={crud.loading}
-          pagination={{ total: crud.total, pageSize: crud.query.pageSize, current: crud.query.pageNum,
-            showSizeChanger: true, showTotal: (t) => `共 ${t} 条`,
-            onChange: (p, size) => void crud.getList({ pageNum: p, pageSize: size }) }}
+          pagination={false}
           scroll={{ x: 'max-content' }}
         />
+        {crud.total > 0 && (
+          <Pagination
+            total={crud.total}
+            page={crud.query.pageNum}
+            pageSize={crud.query.pageSize}
+            onChange={(p, size) => void crud.getList({ pageNum: p, pageSize: size })}
+          />
+        )}
       </Card>
 
       {/* 新增/修改弹窗（含富文本） */}

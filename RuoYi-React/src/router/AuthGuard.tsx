@@ -42,11 +42,10 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     let cancelled = false
     ;(async () => {
       try {
-        await dispatch(getInfo()).unwrap()
-        const user = await import('@/store/modules/user')
-        void user
+        const info = await dispatch(getInfo()).unwrap()
         const perms = (await import('@/store')).store.getState().user
         await dispatch(generateRoutes({ permissions: perms.permissions, roles: perms.roles })).unwrap()
+        void info
       } catch {
         // getInfo 失败（401 等）→ 清除本地会话再回登录（对位基准 err 分支的 await logOut()）；
         // 不清 token 的话 GuardInner 会在 /login 重定向回 / → 再次 getInfo → 死循环
@@ -92,9 +91,11 @@ function GuardInner({ children }: { children: React.ReactNode }) {
   if (pathname === '/login' || pathname === '/register') {
     return <Navigate to="/" replace />
   }
-  // 锁屏硬劫持（对位基准 L33-40）
+  // 锁屏硬劫持（对位基准 L33-40 前半：锁定时访问任何非 /lock 页弹回 /lock）
   if (isLock && pathname !== '/lock') return <Navigate to="/lock" replace />
-  if (!isLock && pathname === '/lock') return <Navigate to="/" replace />
+  // 基准的「!isLock 且在 /lock → '/'」分支不搬进守卫：解锁页 dispatch(unlockScreen)
+  // 与 navigate(lockPath) 之间守卫会重渲染一次，此分支会把目标导航顶掉（Vue 的
+  // router.replace 同步入队无此竞态）。未锁访问 /lock 的兜底改由锁屏页自检处理。
   // 初始化中：全屏 Loading（等价基准 {...to, replace:true} 重导航的等待期）
   if (roles.length === 0 && !generated) return <FullScreenLoading />
   return <>{children}</>

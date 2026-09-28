@@ -6,7 +6,27 @@ import type { RouteObjectLite, RouteHandle } from './gates'
 import { makeViewElement } from './gates'
 import Layout from '@/layout'
 import { createElement } from 'react'
-import type { RouteItem } from '@/store/modules/permission'
+// 五条前端自有动态路由的纯数据定义在 ./dynamicRoutes（独立模块切断 permission→routes→layout
+// 的循环导入），此处 re-export 保持既有导入路径兼容
+import {
+  dynamicRoutes,
+  dynamicRoutesRest,
+  dynamicRoutesPart3,
+  dynamicRoutesPart4,
+  dynamicRoutesPart5,
+  allDynamicRoutes,
+} from './dynamicRoutes'
+import type { DynamicRouteDef } from './dynamicRoutes'
+
+export {
+  dynamicRoutes,
+  dynamicRoutesRest,
+  dynamicRoutesPart3,
+  dynamicRoutesPart4,
+  dynamicRoutesPart5,
+  allDynamicRoutes,
+}
+export type { DynamicRouteDef }
 
 export const constantRoutes: RouteObjectLite[] = [
   { path: '/login', element: makeViewElement('login') },
@@ -44,7 +64,9 @@ function indexChild(): RouteObjectLite {
 
 function redirectChild(): RouteObjectLite {
   return {
-    path: '/redirect/:path(.*)',
+    // react-router v7 通配段语法是 `*`（v6 的 `:path(.*)` regex 写法在 v7 已移除，
+    // 会导致 /redirect/xxx 匹配 404，页签刷新机制失效）
+    path: '/redirect/*',
     element: makeViewElement('redirect/index'),
   }
 }
@@ -60,112 +82,6 @@ function profileChild(): RouteObjectLite {
     } as RouteHandle,
   }
 }
-
-// 五条前端自有动态路由（对位 dynamicRoutes，全部 hidden + 权限过滤）
-export interface DynamicRouteDef extends RouteItem {
-  permissions?: string[]
-  roles?: string[]
-}
-
-export const dynamicRoutes: DynamicRouteDef[] = [
-  {
-    path: '/system/user-auth',
-    component: 'Layout',
-    hidden: true,
-    permissions: ['system:user:edit'],
-    meta: {},
-    children: [
-      {
-        path: 'role/:userId(\d+)',
-        component: 'system/user/authRole',
-        name: 'AuthRole',
-        meta: { title: '分配角色', activeMenu: '/system/user' },
-      },
-    ],
-  },
-]
-
-// 五条中其余四条（与基准一一对应）
-export const dynamicRoutesRest: DynamicRouteDef[] = [
-  {
-    path: '/system/role-auth',
-    component: 'Layout',
-    hidden: true,
-    permissions: ['system:role:edit'],
-    meta: {},
-    children: [
-      {
-        path: 'user/:roleId(\d+)',
-        component: 'system/role/authUser',
-        name: 'AuthUser',
-        meta: { title: '分配用户', activeMenu: '/system/role' },
-      },
-    ],
-  },
-]
-
-export const dynamicRoutesPart3: DynamicRouteDef[] = [
-  {
-    path: '/system/dict-data',
-    component: 'Layout',
-    hidden: true,
-    permissions: ['system:dict:list'],
-    meta: {},
-    children: [
-      {
-        path: 'index/:dictId(\d+)',
-        component: 'system/dict/data',
-        name: 'Data',
-        meta: { title: '字典数据', activeMenu: '/system/dict' },
-      },
-    ],
-  },
-]
-
-export const dynamicRoutesPart4: DynamicRouteDef[] = [
-  {
-    path: '/monitor/job-log',
-    component: 'Layout',
-    hidden: true,
-    permissions: ['monitor:job:list'],
-    meta: {},
-    children: [
-      {
-        path: 'index/:jobId(\d+)',
-        component: 'monitor/job/log',
-        name: 'JobLog',
-        meta: { title: '调度日志', activeMenu: '/monitor/job' },
-      },
-    ],
-  },
-]
-
-export const dynamicRoutesPart5: DynamicRouteDef[] = [
-  {
-    path: '/tool/gen-edit',
-    component: 'Layout',
-    hidden: true,
-    permissions: ['tool:gen:edit'],
-    meta: {},
-    children: [
-      {
-        path: 'index/:tableId(\d+)',
-        component: 'tool/gen/editTable',
-        name: 'GenEdit',
-        meta: { title: '修改生成配置', activeMenu: '/tool/gen' },
-      },
-    ],
-  },
-]
-
-// 合并导出：五条 = 首条 + 其余四条分片（分片写法规避超长写入）
-export const allDynamicRoutes: DynamicRouteDef[] = [
-  ...dynamicRoutes,
-  ...dynamicRoutesRest,
-  ...dynamicRoutesPart3,
-  ...dynamicRoutesPart4,
-  ...dynamicRoutesPart5,
-]
 
 // 404 置底（Gate 组装时放最后，防动态路由未就绪误伤深层链接）
 export const notFoundRoute: RouteObjectLite = {

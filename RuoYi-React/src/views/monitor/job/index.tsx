@@ -1,14 +1,15 @@
 // 定时任务 —— 对位基准 monitor/job（CRUD + Crontab 生成器 + 立即执行 + 状态切换 + 详情）
-// Crontab 七域组件为 3.0.0 批次 D 大件，此处先提供表达式输入 + 简易常用表达式下拉，完整生成器随后补
+// cron 表达式经 Crontab 七域生成器生成（对位基准 el-dialog + Crontab：点击「生成表达式」弹窗，确定回写表单）
 
 import { useEffect, useState } from 'react'
 import { Button, Card, Form, Input, Modal, Radio, Select, Space, Table } from 'antd'
-import { PlusOutlined, SearchOutlined, ReloadOutlined, CaretRightOutlined } from '@ant-design/icons'
+import { PlusOutlined, SearchOutlined, ReloadOutlined, CaretRightOutlined, ClockCircleOutlined } from '@ant-design/icons'
 import { listJob, getJob, addJob, updateJob, delJob, changeJobStatus, runJob } from '@/api/monitor/job'
 import { useCrud } from '@/hooks/useCrud'
 import { useDict } from '@/utils/dict'
 import DictTag from '@/components/DictTag'
 import Auth from '@/components/Auth'
+import Crontab from '@/components/Crontab'
 import { parseTime } from '@/utils/ruoyi'
 
 interface JobRow {
@@ -24,13 +25,6 @@ interface JobRow {
   remark?: string
 }
 
-const COMMON_CRONS = [
-  { label: '每分钟（0 * * * * ?）', value: '0 * * * * ?' },
-  { label: '每小时（0 0 * * * ?）', value: '0 0 * * * ?' },
-  { label: '每天 0 点（0 0 0 * * ?）', value: '0 0 0 * * ?' },
-  { label: '每天 8 点（0 0 8 * * ?）', value: '0 0 8 * * ?' },
-]
-
 export default function Job() {
   const dicts = useDict('sys_job_group', 'sys_job_status')
   const crud = useCrud<JobRow, { pageNum: number; pageSize: number; jobName?: string; jobGroup?: string; status?: string }>({
@@ -42,6 +36,9 @@ export default function Job() {
   const [open, setOpen] = useState(false)
   const [editId, setEditId] = useState<number | null>(null)
   const [detail, setDetail] = useState<JobRow | null>(null)
+  // Crontab 弹窗（对位基准 openCron / expression）
+  const [openCron, setOpenCron] = useState(false)
+  const [cronExpression, setCronExpression] = useState('')
 
   useEffect(() => { void crud.getList() /* eslint-disable-line react-hooks/exhaustive-deps */ }, [])
 
@@ -80,6 +77,18 @@ export default function Job() {
       title: '系统提示', content: `是否确认立即执行一次"${row.jobName}"任务?`, okText: '确定', cancelText: '取消',
       onOk: async () => { await runJob(row.jobId, row.jobGroup) },
     })
+  }
+
+  /** cron表达式按钮操作（对位基准 handleShowCron：带当前值进生成器） */
+  const handleShowCron = () => {
+    setCronExpression(form.getFieldValue('cronExpression') ?? '')
+    setOpenCron(true)
+  }
+
+  /** 生成器确定后回写表单字段（对位基准 crontabFill） */
+  const crontabFill = (value: string) => {
+    form.setFieldValue('cronExpression', value)
+    setOpenCron(false)
   }
 
   const columns = [
@@ -164,11 +173,11 @@ export default function Job() {
             <Input placeholder="如 ryTask.ryParams('ry')" />
           </Form.Item>
           <Form.Item name="cronExpression" label="cron执行表达式" rules={[{ required: true, message: 'cron执行表达式不能为空' }]}>
-            <Input placeholder="如 0 0 8 * * ?" />
-          </Form.Item>
-          <Form.Item name="cronPick" label="常用表达式">
-            <Select allowClear options={COMMON_CRONS}
-              onChange={(v) => { if (v) form.setFieldValue('cronExpression', v) }} />
+            {/* 对位基准：输入框 append「生成表达式」按钮，点击弹出 Crontab 生成器 */}
+            <Input placeholder="如 0 0 8 * * ?" addonAfter={
+              <Button type="link" size="small" icon={<ClockCircleOutlined />} style={{ padding: 0 }}
+                onClick={handleShowCron}>生成表达式</Button>
+            } />
           </Form.Item>
           <Form.Item name="misfirePolicy" label="执行策略" initialValue="1">
             <Radio.Group options={[
@@ -185,6 +194,12 @@ export default function Job() {
           </Form.Item>
           <Form.Item name="remark" label="备注"><Input.TextArea /></Form.Item>
         </Form>
+      </Modal>
+
+      {/* Cron 表达式生成器（对位基准 el-dialog「Cron表达式生成器」+ Crontab，destroyOnHidden 重挂载保证回显时序） */}
+      <Modal title="Cron表达式生成器" open={openCron} footer={null} width={720}
+        onCancel={() => setOpenCron(false)} destroyOnHidden>
+        <Crontab expression={cronExpression} onFill={crontabFill} onHide={() => setOpenCron(false)} />
       </Modal>
 
       <Modal title="任务详情" open={!!detail} footer={null} onCancel={() => setDetail(null)} width={680}>
