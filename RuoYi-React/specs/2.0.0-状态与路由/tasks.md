@@ -11,12 +11,12 @@
 - [x] settings slice（AppSettings 14 字段 + isDark + layout-setting 覆盖 + setTitle/dynamicTitle）（2026-09-27）
 - [x] tagsView slice（visited/cached/iframe 三视图 + noCache/affix 规则 + del 族语义；持久化 UI 联动随 4.0.0）（2026-09-27）
 - [x] lock slice（screen-lock/screen-lock-path 两键 + lockScreen/unlockScreen）（2026-09-27）
-- [ ] 单测：filterAsyncRouter 拍平 / cachedViews 规则 / filterDynamicRoutes / settings 合并 / name 派生——**遗留未做（deriveRouteName/buildRouteObjects/filterDynamicRoutes 均为纯函数，单测随 3.0.0 批次 A 前补齐；当前以端到端链路验证覆盖）**
+- [x] 单测：filterAsyncRouter 拍平 / cachedViews 规则 / filterDynamicRoutes / settings 合并 / name 派生（2026-09-28，gates.test.ts 6 用例 + permission.test.ts 8 用例 + tagsView.test.ts 16 用例 + settings 两文件 8 用例，全绿）
 - [x] 静态路由表（constantRoutes + 五条 dynamicRoutes 分片写法 + 404 置底）（2026-09-27）
 - [x] DynamicRoutesGate（App.tsx 按 generated 标志全量重渲染 useRoutes；未就绪渲染 constantRoutes 子集）（2026-09-27）
 - [x] AuthGuard 守卫（白名单/锁屏劫持/初始化 Loading/NProgress/getInfo→generateRoutes 时序）（2026-09-27）
 - [x] 验证：登录 → login/getInfo/getRouters 时序正确 → /index 首页渲染（2026-09-27，浏览器端到端，Network 面板确认；getInfo/getRouters 双次为 StrictMode 开发行为）
-- [ ] 验证：三级菜单挂载访问/外链/无权限 404——遗留未做（依赖 3.0.0 侧边栏组件渲染菜单后的可视化验证）
-- [ ] 验证：锁屏硬劫持——遗留未做（锁屏页已实现，劫持逻辑在守卫内；入口按钮随 4.0.0 Navbar 落地后验证）
-- [ ] 验证：刷新页面权限重建——已部分验证（F5 后守卫重跑 getInfo+generateRoutes 停留 /index 成功），完整对照随 4.0.0
-- [ ] KeepAlive 演示（待 6.0.0 列表页完成后执行，specs/README 遗留待办 #1）
+- [x] 验证：三级菜单挂载访问/外链/无权限 404（2026-09-28：/system/user-auth/role/1 分配角色子页挂载成功——期间修复 buildRouteObjects hidden 过滤吞掉五条 dynamicRoutes 的 bug；外链若依官网侧栏渲染 `<a>`；404 兜底在 /redirect 修复中验证）+ 路由语法 v6→v7 迁移（`:path(.*)`→`*`、`:id(\d+)`→`:id`）
+- [x] 验证：锁屏硬劫持（2026-09-29 实操：UI 锁定 → isLock=true + 跳 /lock；锁屏态访问他页被守卫弹回；错误密码拒绝仍锁；正确密码解锁回锁屏前路径。期间修复解锁回跳竞态：守卫「!isLock 且在 /lock → '/'」分支会把解锁导航顶掉，移出守卫改为锁屏页自检 + 渲染期 Navigate（unlockFlow 标志），isLock 硬劫持分支保留）
+- [x] 验证：刷新页面权限重建——F5 后守卫重跑 getInfo+generateRoutes 停留原页面成功（2026-09-28 页签持久化验证时再次确认：刷新后 /system/user 直接可用）
+- [ ] KeepAlive 演示（2026-09-28 已执行：user 页查询条件切页签后丢失，符合 deviations #1 预期；决策待用户）

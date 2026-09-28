@@ -8,7 +8,8 @@ import type { PayloadAction } from '@reduxjs/toolkit'
 import { getRouters } from '@/api/menu'
 import { hasPermiOr, hasRoleOr } from '@/utils/permission'
 import { buildRouteObjects, setBackendMenus, type RouteObjectLite } from '@/router/gates'
-import { dynamicRoutes } from '@/router/routes'
+// 从纯数据模块导入（routes.tsx 含 Layout element，会形成 permission→routes→layout→store 循环）
+import { dynamicRoutes } from '@/router/dynamicRoutes'
 
 // 后端菜单原始树（component 为字符串三占位/视图路径）——侧边栏/面包屑/搜索消费
 export interface MetaItem {
@@ -35,6 +36,7 @@ export interface PermissionState {
   routes: RouteItem[] // constantRoutes + 动态（面包屑/affix 提取用）
   sidebarRoutes: RouteItem[] // 侧边栏菜单树（navType 1/2 消费）
   topbarRoutes: RouteItem[] // 顶部菜单树（navType 2/3 消费）
+  defaultRoutes: RouteItem[] // 默认菜单备份（navType 1/3 切换时复位 sidebarRoutes，对位基准 defaultRoutes）
   generated: boolean // 动态路由是否已生成（Gate 依据）
 }
 
@@ -42,6 +44,7 @@ const initialState: PermissionState = {
   routes: [],
   sidebarRoutes: [],
   topbarRoutes: [],
+  defaultRoutes: [],
   generated: false,
 }
 
@@ -80,7 +83,8 @@ export const generateRoutes = createAsyncThunk(
     // 前端自有动态路由（五条 hidden 子页）按权限过滤后一并向后追加
     const allowedDynamic = filterDynamicRoutes(dynamicRoutes as never, permissions, roles)
     // element 只进模块级变量（非序列化值不能进 action payload / Redux store）
-    setResolvedRoutes(routeObjects, buildRouteObjects(allowedDynamic as never))
+    // allowedDynamic 的 hidden 是「不进侧边栏」而非「不挂载」，keepHidden 保留挂载
+    setResolvedRoutes(routeObjects, buildRouteObjects(allowedDynamic as never, true))
     return {
       sidebarRoutes: sidebarData,
       topbarRoutes: topbarData,
@@ -101,6 +105,8 @@ const permissionSlice = createSlice({
     builder.addCase(generateRoutes.fulfilled, (state, action) => {
       state.sidebarRoutes = action.payload.sidebarRoutes
       state.topbarRoutes = action.payload.topbarRoutes
+      // 备份一份默认菜单（对位基准 setDefaultRoutes(sidebarRoutes)），navType 1/3 复位用
+      state.defaultRoutes = deepClone(action.payload.sidebarRoutes)
       state.generated = true
       // routes = 静态 + 动态（对位 setRoutes；静态表由消费方拼接）
     })

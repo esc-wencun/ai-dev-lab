@@ -130,6 +130,14 @@ export const tagsViewSlice = createSlice({
       const view = toTagView(action.payload)
       state.iframeViews = state.iframeViews.filter((v) => v.path !== view.path)
     },
+    // 恢复持久化页签（对位基准 loadPersistedViews：按 path 判重逐条追加，affix 由调用方随后 unshift）
+    loadPersistedViews(state, action: PayloadAction<TagView[]>) {
+      for (const view of action.payload) {
+        if (!findView(state.visitedViews, view.path)) {
+          state.visitedViews.push(toTagView(view))
+        }
+      }
+    },
   },
 })
 
@@ -152,6 +160,7 @@ export const {
   delRightViews,
   updateVisitedView,
   delIframeView,
+  loadPersistedViews,
 } = tagsViewSlice.actions
 
 export default tagsViewSlice.reducer

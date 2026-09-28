@@ -1,5 +1,6 @@
 // Sidebar —— 对位基准 layout/components/Sidebar + SidebarItem
 // 菜单数据来自 permission store（后端菜单树）；唯一可见子路由直接渲染子级；外链 <a>
+// 暗色：isDark 时背景走 --sidebar-bg 变量（html.dark 覆写）；theme-dark/light 语义保持基准一致
 
 import { Menu } from 'antd'
 import type { ItemType } from 'antd/es/menu/interface'
@@ -23,7 +24,8 @@ function buildItems(items: RouteItem[], parentPath: string): ItemType[] {
       const fullPath = /^https?:\/\//.test(r.path)
         ? r.path
         : ('/' + (parentPath + '/' + r.path).replace(/^\/+|\/+/g, '/').replace(/^\//, ''))
-      const icon = meta.icon ? <SvgIcon iconClass={meta.icon} size={16} /> : undefined
+      // 图标对位基准 svg-icon（1em + vertical-align:-2px,随菜单字号缩放,间距由 CSS .menu-item-icon 补）
+      const icon = meta.icon ? <SvgIcon iconClass={meta.icon} size="1em" className="menu-item-icon" /> : undefined
       const label = meta.title || r.path
       const visibleChildren = (r.children || []).filter((c) => !c.hidden)
       const onlyOne = visibleChildren.length === 1 && !visibleChildren[0].children
@@ -85,15 +87,17 @@ export default function Sidebar({ collapsed, currentPath }: SidebarProps) {
 
   return (
     <div
+      className="sidebar-container"
       style={{
         width: collapsed ? 54 : 200,
         transition: 'width 0.2s',
-        background: sideTheme === 'theme-dark' || isDark ? '#001529' : '#fff',
+        background: isDark ? 'var(--sidebar-bg)' : sideTheme === 'theme-dark' ? '#001529' : '#fff',
         minHeight: '100vh',
         position: 'sticky',
         top: 0,
         height: '100vh',
         overflowY: 'auto',
+        flexShrink: 0,
       }}
     >
       {sidebarLogo && (

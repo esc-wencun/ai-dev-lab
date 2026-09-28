@@ -1,5 +1,6 @@
 // 参数设置 —— 完整 CRUD（对位基准 views/system/config/index.vue）
 // 查询/新增/修改/删除/批量删除/刷新缓存 + Auth 按钮权限 + useCrud 范式
+// 3.0.0 批次 C：内联分页/工具行替换为 Pagination / RightToolbar 组件消费（行为等价）
 
 import { useEffect, useState } from 'react'
 import { Button, Card, Form, Input, Modal, Space, Table } from 'antd'
@@ -7,6 +8,8 @@ import { PlusOutlined, DeleteOutlined, ReloadOutlined, SearchOutlined, RedoOutli
 import { listConfig, getConfig, addConfig, updateConfig, delConfig, refreshCache } from '@/api/system/config'
 import { useCrud } from '@/hooks/useCrud'
 import Auth from '@/components/Auth'
+import Pagination from '@/components/Pagination'
+import RightToolbar from '@/components/RightToolbar'
 
 interface ConfigRow {
   [k: string]: unknown
@@ -33,6 +36,8 @@ export default function Config() {
     exportUrl: '/system/config/export',
     defaultQuery: { pageNum: 1, pageSize: 10 },
   })
+  // 搜索表单显隐（对位基准 showSearch ref，配合 RightToolbar 折叠）
+  const [showSearch, setShowSearch] = useState(true)
   const [form] = Form.useForm()
   const [open, setOpen] = useState(false)
   const [editId, setEditId] = useState<number | null>(null)
@@ -102,7 +107,7 @@ export default function Config() {
   return (
     <div style={{ padding: 16 }}>
       <Card>
-        <Form layout="inline" onFinish={() => crud.handleQuery()} style={{ marginBottom: 16 }}>
+        <Form layout="inline" onFinish={() => crud.handleQuery()} style={{ marginBottom: 16, display: showSearch ? undefined : 'none' }}>
           <Form.Item name="configName" label="参数名称">
             <Input placeholder="请输入参数名称" allowClear onChange={(e) => crud.setQuery((q) => ({ ...q, configName: e.target.value }))} />
           </Form.Item>
@@ -117,7 +122,8 @@ export default function Config() {
           </Form.Item>
         </Form>
 
-        <Space style={{ marginBottom: 16 }}>
+        {/* 工具行：操作按钮 + RightToolbar（搜索折叠 + 刷新；列显隐未用不传 columns） */}
+        <Space style={{ marginBottom: 16, display: 'flex' }}>
           <Auth permissions={['system:config:add']}>
             <Button type="primary" icon={<PlusOutlined />} onClick={openAdd}>新增</Button>
           </Auth>
@@ -128,6 +134,7 @@ export default function Config() {
           <Auth permissions={['system:config:remove']}>
             <Button icon={<RedoOutlined />} onClick={handleRefreshCache}>刷新缓存</Button>
           </Auth>
+          <RightToolbar showSearch={showSearch} onShowSearchChange={setShowSearch} onRefresh={() => void crud.getList()} />
         </Space>
 
         <Table
@@ -135,16 +142,17 @@ export default function Config() {
           columns={columns}
           dataSource={crud.rows}
           loading={crud.loading}
-          pagination={{
-            total: crud.total,
-            pageSize: crud.query.pageSize,
-            current: crud.query.pageNum,
-            showSizeChanger: true,
-            showTotal: (t) => `共 ${t} 条`,
-            onChange: (p, size) => void crud.getList({ pageNum: p, pageSize: size } as ConfigQuery),
-          }}
+          pagination={false}
           scroll={{ x: 'max-content' }}
         />
+        {crud.total > 0 && (
+          <Pagination
+            total={crud.total}
+            page={crud.query.pageNum}
+            pageSize={crud.query.pageSize}
+            onChange={(p, size) => void crud.getList({ pageNum: p, pageSize: size } as ConfigQuery)}
+          />
+        )}
       </Card>
 
       <Modal

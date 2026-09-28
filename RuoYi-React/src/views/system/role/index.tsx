@@ -1,5 +1,6 @@
 // 角色管理 —— 对位基准 views/system/role/index.vue
 // 树表 CRUD + 菜单权限树（半选提交）+ 数据权限 + 状态 + 导出
+// 3.0.0 批次 C：内联分页/工具行替换为 Pagination / RightToolbar 组件消费（行为等价）
 
 import { useCallback, useEffect, useState } from 'react'
 import { Button, Card, Form, Input, InputNumber, Modal, Radio, Select, Space, Table, Tree } from 'antd'
@@ -10,6 +11,8 @@ import { useCrud } from '@/hooks/useCrud'
 import { useDict } from '@/utils/dict'
 import DictTag from '@/components/DictTag'
 import Auth from '@/components/Auth'
+import Pagination from '@/components/Pagination'
+import RightToolbar from '@/components/RightToolbar'
 
 interface RoleRow {
   [k: string]: unknown
@@ -47,6 +50,8 @@ export default function Role() {
   const [scopeChecked, setScopeChecked] = useState<number[]>([])
   const [scopeHalf, setScopeHalf] = useState<number[]>([])
   const [scopeForm] = Form.useForm()
+  // 搜索表单显隐（对位基准 showSearch ref，配合 RightToolbar 折叠）
+  const [showSearch, setShowSearch] = useState(true)
 
   const load = useCallback(() => { void crud.getList() }, [crud.getList]) // eslint-disable-line
 
@@ -78,7 +83,8 @@ export default function Role() {
       roleKey: currentRole.roleKey,
       roleSort: currentRole.roleSort,
       status: currentRole.status,
-      menuIdList: [...checkedKeys, ...halfChecked].filter((v, i, a) => a.indexOf(v) === i),
+      // 字段名对位 Java SysRole.menuIds（基准 v-model form.menuIds）；半选一并提交（getMenuAllCheckedKeys 等价）
+      menuIds: [...checkedKeys, ...halfChecked].filter((v, i, a) => a.indexOf(v) === i),
     })
     setMenuOpen(false)
     void crud.getList()
@@ -103,7 +109,8 @@ export default function Role() {
     await dataScope({
       roleId: currentRole.roleId,
       dataScope: values.dataScope,
-      deptIdList: values.dataScope === '2' ? [...scopeChecked, ...scopeHalf].filter((v, i, a) => a.indexOf(v) === i) : [],
+      // 字段名对位 Java SysRole.deptIds（基准 form.deptIds）；自定义权限时提交全选+半选
+      deptIds: values.dataScope === '2' ? [...scopeChecked, ...scopeHalf].filter((v, i, a) => a.indexOf(v) === i) : [],
     })
     setScopeOpen(false)
   }
@@ -185,7 +192,7 @@ export default function Role() {
   return (
     <div style={{ padding: 16 }}>
       <Card>
-        <Form layout="inline" onFinish={() => crud.handleQuery()} style={{ marginBottom: 16 }}>
+        <Form layout="inline" onFinish={() => crud.handleQuery()} style={{ marginBottom: 16, display: showSearch ? undefined : 'none' }}>
           <Form.Item label="角色名称">
             <Input allowClear onChange={(e) => crud.setQuery((q) => ({ ...q, roleName: e.target.value }))} />
           </Form.Item>
@@ -205,23 +212,31 @@ export default function Role() {
           </Form.Item>
         </Form>
 
-        <Space style={{ marginBottom: 16 }}>
+        {/* 工具行：操作按钮 + RightToolbar（搜索折叠 + 刷新；列显隐未用不传 columns） */}
+        <Space style={{ marginBottom: 16, display: 'flex' }}>
           <Auth permissions={['system:role:add']}>
             <Button type="primary" icon={<PlusOutlined />} onClick={openAdd}>新增</Button>
           </Auth>
           <Auth permissions={['system:role:export']}>
             <Button style={{ color: '#e6a23c', borderColor: '#e6a23c' }} onClick={() => crud.handleExport()}>导出</Button>
           </Auth>
+          <RightToolbar showSearch={showSearch} onShowSearchChange={setShowSearch} onRefresh={() => void crud.getList()} />
         </Space>
 
         <Table
           rowKey="roleId" columns={columns} dataSource={crud.rows} loading={crud.loading}
           rowSelection={{ onChange: (keys) => crud.handleSelectionChange([...keys] as (string | number)[], []) }}
-          pagination={{ total: crud.total, pageSize: crud.query.pageSize, current: crud.query.pageNum,
-            showSizeChanger: true, showTotal: (t) => `共 ${t} 条`,
-            onChange: (p, size) => void crud.getList({ pageNum: p, pageSize: size }) }}
+          pagination={false}
           scroll={{ x: 'max-content' }}
         />
+        {crud.total > 0 && (
+          <Pagination
+            total={crud.total}
+            page={crud.query.pageNum}
+            pageSize={crud.query.pageSize}
+            onChange={(p, size) => void crud.getList({ pageNum: p, pageSize: size })}
+          />
+        )}
       </Card>
 
       {/* 新增/修改角色 */}

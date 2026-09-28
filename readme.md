@@ -4,7 +4,7 @@
 
 1. **Python（FastAPI + SQLAlchemy 2.0 async）**——服务端入门：异步 ORM 与分层工程化（spec-00~11 已完成）；
 2. **Go（Gin + GORM）**——第二服务端语言：同一契约的跨语言复刻（已全部完成）；
-3. **React（React 19 + TypeScript + Ant Design 5 + Redux Toolkit）**——前端栈：功能等价复刻共用前端（2026-09-27 起新增，进行中）；
+3. **React（React 19 + TypeScript + Ant Design 5 + Redux Toolkit）**——前端栈：功能等价复刻共用前端（2026-09-27 起新增，主体已完成，详见 [RuoYi-React](RuoYi-React/README.md)，尚未进行详细测试）；
 4. **AI 应用技能**（陆续补充）：**Function Calling / Tool Use** → **RAG（检索增强生成）** → **Agent / 智能体（企业智能体工程化）** → **LangChain4j / Spring AI**（Java 生态 AI 集成）。
 
 项目源于开源项目 [RuoYi](https://gitee.com/y_project/RuoYi)（若依）：`RuoYi-Vue/`（Java 版）与 `RuoYi-Vue3/`（前端）为其官方仓库的本地副本。
@@ -50,6 +50,8 @@ ai-dev-lab（原 ruoyi 工作区）
 | 平台标识 `GET /getPlatformInfo`（跨四端增量） | ✅ | ✅ | ✅ |
 
 Go / Python 版每模块的 API 契约、任务分解与验收记录见各自 specs 目录（[GO](RuoYi-Vue-GO/specs/README.md) / [Python](RuoYi-Vue-FastApi/specs/README.md)），与 Java 版的有意差异集中登记在 [deviations.md](RuoYi-Vue-GO/specs/deviations.md)。
+
+**React 前端（RuoYi-React）**：上述功能已全部实现或按拍板排除（2026-09-29），细节与测试状态见 [RuoYi-React/README.md](RuoYi-React/README.md) 与其 [specs 台账](RuoYi-React/specs/README.md)。
 
 ## 技术栈对照
 

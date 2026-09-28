@@ -6,7 +6,7 @@
 
 | # | 差异点 | RuoYi-Vue3 行为 | 本项目行为 | 原因 |
 |---|--------|----------------|-----------|------|
-| 1 | 页签缓存（keep-alive） | keep-alive 按 cachedViews（组件 name）缓存，切页签后查询条件/分页状态保留 | **暂不实现**（用户拍板 2026-09-27）：切页签组件重挂载、页面内状态丢失；tagsView.cachedViews 的 noCache 规则照常维护，为将来补自研留好数据面 | React 无 keep-alive，自研成本高风险大；用户要求先看无缓存版实际效果再决策（specs/README 遗留待办 #1） |
+| 1 | 页签缓存（keep-alive） | keep-alive 按 cachedViews（组件 name）缓存，切页签后查询条件/分页状态保留 | **不实现（定稿）**（用户拍板 2026-09-27 暂缓，2026-09-28 演示后确认不补）：切页签组件重挂载、页面内状态丢失（已演示：user 页查询条件切页签后清空）；tagsView.cachedViews 的 noCache 规则照常维护 | React 无 keep-alive，自研成本高风险大（隐藏不卸载/状态提升各有代价）；用户确认现状可用，遗留决策不再悬挂 |
 | 2 | tool/build 表单构建器 + tool/gen 代码生成 | build：完整拖拽设计器；gen：全套代码生成前端页 | **build 不实现**（用户拍板 2026-09-27）；**gen 暂缓**（用户拍板 2026-09-28）：两菜单渲染「该功能未实现/暂未实现」占位页 | build：AI 可直接生成表单代码，设计器无复刻价值；gen：React 版暂缓，后续需要时按 spec 8.0.0 原设计恢复 |
 | 3 | UI 组件库与视觉 | Element Plus，若依经典视觉 | Ant Design 5，布局结构等价（侧边栏/导航/页签/设置抽屉/暗色）但像素级样式不同 | 用户明确「界面不需要完全一致，功能保持等价」 |
 | 4 | 视觉动画 | 主题切换圆形扩散动画、锁屏粒子背景、搜索表单折叠动画 | 简化或省略（功能开关与数据流等价） | 纯视觉糖，不属于功能等价范围 |
@@ -20,3 +20,5 @@
 | 12 | uploadAvatar Content-Type 声明 | api 函数声明 urlencoded（实际 FormData 按 multipart 发送的历史瑕疵） | 直接按 multipart 声明 | 行为一致（后端收到的就是 multipart），修正声明 |
 | 13 | echarts macarons 主题 | `echarts.init(el, "macarons")` 但主题未注册，实际回退默认主题 | 直接用默认主题 | 行为等价（视觉同基准实际效果） |
 | 14 | 富文本 XSS 面 | v-html 渲染公告 HTML（无 sanitize） | dangerouslySetInnerHTML 同等渲染（不额外引入 sanitize） | 保持等价；如统一加固需与基准前端同步决策 |
+| 15 | Crontab 界面形态 | Element Plus radio/input-number 网格 | antd Radio/Select/InputNumber 组合，页签与选项集合逐字一致 | 界面不强求一致（deviations #3 同源）；生成表达式与基准逐字等价 |
+| 16 | Crontab「指定」多选清空 | 清空全部勾选时回填上一次选中值 | antd Select 直接允许清空（生成空串，由 job 页 required 校验兜底拦截提交） | 交互细节糖；空表达式无法通过提交校验，无功能影响 |

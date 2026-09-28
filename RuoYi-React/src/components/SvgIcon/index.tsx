@@ -7,11 +7,12 @@ interface SvgIconProps {
   size?: string | number
 }
 
-export default function SvgIcon({ iconClass, className, color, size = 14 }: SvgIconProps) {
+export default function SvgIcon({ iconClass, className, color, size = '1em' }: SvgIconProps) {
   return (
     <svg
       className={className}
-      style={{ color, width: size, height: size, verticalAlign: 'middle', fill: 'currentColor' }}
+      // 对位基准:width/height 1em（随字号缩放）、vertical-align:-2px、fill currentColor
+      style={{ color, width: size, height: size, verticalAlign: '-0.15em', fill: 'currentColor' }}
       aria-hidden="true"
     >
       <use href={`#icon-${iconClass}`} />

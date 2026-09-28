@@ -1,13 +1,15 @@
 // 部门管理 —— 对位基准 views/system/dept/index.vue
 // 树表 + 展开/折叠切换 + 批量排序(updateDeptSort) + excludeChild + DictTag
+// 3.0.0 批次 C：工具行接入 RightToolbar（搜索折叠 + 刷新；树表无分页不接 Pagination）
 
-import { useCallback, useEffect, useState } from 'react'
-import { Button, Card, Form, Input, Modal, InputNumber, Radio, Space, Table } from 'antd'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Button, Card, Form, Input, Modal, InputNumber, Radio, Space, Table, message } from 'antd'
 import { PlusOutlined, SearchOutlined, ReloadOutlined, OrderedListOutlined, ColumnWidthOutlined } from '@ant-design/icons'
 import { listDept, listDeptExcludeChild, getDept, addDept, updateDept, delDept, updateDeptSort } from '@/api/system/dept'
 import { useDict } from '@/utils/dict'
 import DictTag from '@/components/DictTag'
 import Auth from '@/components/Auth'
+import RightToolbar from '@/components/RightToolbar'
 import { handleTree } from '@/utils/ruoyi'
 
 interface DeptRow {
@@ -28,10 +30,11 @@ export default function Dept() {
   const [expanded, setExpanded] = useState<React.Key[]>([])
   const [expandAll, setExpandAll] = useState(true)
   const [keyword, setKeyword] = useState('')
-  const [checkedKeys, setCheckedKeys] = useState<React.Key[]>([])
   const [form] = Form.useForm()
   const [open, setOpen] = useState(false)
   const [editId, setEditId] = useState<number | null>(null)
+  // 搜索表单显隐（对位基准 showSearch ref，配合 RightToolbar 折叠）
+  const [showSearch, setShowSearch] = useState(true)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -43,6 +46,12 @@ export default function Dept() {
         ? flat.filter((d) => d.deptName.includes(keyword) || String(d.status).includes(keyword))
         : flat
       setRows(handleTree(filtered, 'deptId', 'parentId', 'children'))
+      // 记录原始排序（对位基准 recordOriginalOrders，保存排序时对比找改动行）
+      const orders: Record<number, number> = {}
+      ;(function record(list: DeptRow[]) {
+        list.forEach((i) => { orders[i.deptId] = i.orderNum; if (i.children) record(i.children) })
+      })(handleTree(filtered, 'deptId', 'parentId', 'children'))
+      originalOrdersRef.current = orders
     } finally {
       setLoading(false)
     }
@@ -98,31 +107,52 @@ export default function Dept() {
     })
   }
 
-  // 批量排序（勾选行 + Sort → updateDeptSort：deptIds + orderNums）
-  const handleSort = () => {
-    if (checkedKeys.length === 0) return
-    const flat = collectFlat(rows)
-    const chosen = checkedKeys.map((k) => flat.find((d) => d.deptId === k)).filter(Boolean) as DeptRow[]
+  // 行内排序编辑（对位基准：排序列 InputNumber 可编辑 + recordOriginalOrders 记录原始值）
+  const [editOrders, setEditOrders] = useState<Record<number, number>>({})
+  const originalOrdersRef = useRef<Record<number, number>>({})
+
+  // 保存排序（对位基准 handleSaveSort：只提交有改动的行；无改动提示「未检测到排序修改」）
+  const handleSaveSort = () => {
+    const deptIds: number[] = []
+    const orderNums: number[] = []
+    const collectChanged = (list: DeptRow[]) => {
+      list.forEach((item) => {
+        const edited = editOrders[item.deptId]
+        if (edited !== undefined && String(originalOrdersRef.current[item.deptId]) !== String(edited)) {
+          deptIds.push(item.deptId)
+          orderNums.push(edited)
+        }
+        if (item.children) collectChanged(item.children)
+      })
+    }
+    collectChanged(rows)
+    if (deptIds.length === 0) {
+      message.warning('未检测到排序修改')
+      return
+    }
     Modal.confirm({
       title: '系统提示',
-      content: `已选择 ${chosen.length} 行，将按当前显示顺序保存排序，是否继续？`,
       okText: '确定', cancelText: '取消',
       onOk: async () => {
-        await updateDeptSort({ deptIds: chosen.map((d) => d.deptId), orderNums: chosen.map((d) => d.orderNum) })
+        // Java 端 updateSort 收 Map<String,String>:deptIds/orderNums 为逗号拼接字符串(非数组)
+        await updateDeptSort({ deptIds: deptIds.join(','), orderNums: orderNums.join(',') })
+        message.success('排序保存成功')
+        setEditOrders({})
+        void load()
       },
     })
   }
 
-  function collectFlat(items: DeptRow[]): DeptRow[] {
-    const out: DeptRow[] = []
-    const walk = (list: DeptRow[]) => list.forEach((i) => { out.push(i); if (i.children) walk(i.children) })
-    walk(items)
-    return out
-  }
-
   const columns = [
     { title: '部门名称', dataIndex: 'deptName' },
-    { title: '排序', dataIndex: 'orderNum', width: 70 },
+    { title: '排序', dataIndex: 'orderNum', width: 120,
+      render: (_: unknown, row: DeptRow) => (
+        <InputNumber
+          size="small" min={0} style={{ width: 88 }}
+          value={editOrders[row.deptId] ?? row.orderNum}
+          onChange={(v) => setEditOrders((prev) => ({ ...prev, [row.deptId]: Number(v) }))}
+        />
+      ) },
     { title: '负责人', dataIndex: 'leader', width: 90 },
     { title: '状态', dataIndex: 'status', width: 80,
       render: (v: string) => <DictTag options={dicts.sys_normal_disable || []} value={v} /> },
@@ -147,7 +177,7 @@ export default function Dept() {
   return (
     <div style={{ padding: 16 }}>
       <Card>
-        <Form layout="inline" style={{ marginBottom: 16 }}>
+        <Form layout="inline" style={{ marginBottom: 16, display: showSearch ? undefined : 'none' }}>
           <Form.Item label="部门名称">
             <Input allowClear onChange={(e) => setKeyword(e.target.value)} />
           </Form.Item>
@@ -159,16 +189,18 @@ export default function Dept() {
           </Form.Item>
         </Form>
 
-        <Space style={{ marginBottom: 16 }}>
+        {/* 工具行：操作按钮 + RightToolbar（搜索折叠 + 刷新；列显隐未用不传 columns） */}
+        <Space style={{ marginBottom: 16, display: 'flex' }}>
           <Auth permissions={['system:dept:add']}>
             <Button type="primary" icon={<PlusOutlined />} onClick={() => openAdd()}>新增</Button>
           </Auth>
           <Auth permissions={['system:dept:edit']}>
-            <Button icon={<OrderedListOutlined />} disabled={checkedKeys.length === 0} onClick={handleSort}>批量排序</Button>
+            <Button type="primary" ghost icon={<OrderedListOutlined />} onClick={handleSaveSort}>保存排序</Button>
           </Auth>
           <Button icon={<ColumnWidthOutlined />} onClick={toggleExpand}>
             {expandAll ? '折叠' : '展开'}
           </Button>
+          <RightToolbar showSearch={showSearch} onShowSearchChange={setShowSearch} onRefresh={() => void load()} />
         </Space>
 
         <Table
@@ -176,7 +208,6 @@ export default function Dept() {
           columns={columns}
           dataSource={rows}
           loading={loading}
-          rowSelection={{ checkStrictly: false, onChange: (keys) => setCheckedKeys(keys as React.Key[]) }}
           expandable={{
             expandedRowKeys: expanded,
             onExpandedRowsChange: (keys) => setExpanded([...keys]),

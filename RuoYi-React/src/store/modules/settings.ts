@@ -19,18 +19,36 @@ function loadFromStorage(): Partial<AppSettings> {
   }
 }
 
+// isDark 持久化（对位 vueuse useDark：localStorage 键 vueuse-color-scheme，缺省跟随系统偏好）
+function loadIsDark(): boolean {
+  try {
+    const saved = localStorage.getItem('vueuse-color-scheme')
+    if (saved === 'dark') return true
+    if (saved === 'light') return false
+  } catch {
+    /* ignore */
+  }
+  try {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+  } catch {
+    return false
+  }
+}
+
 const initialState: SettingsState = {
   ...defaultSettings,
   ...loadFromStorage(),
-  isDark: document.documentElement.classList.contains('dark'),
+  isDark: loadIsDark(),
 }
 
 const settingsSlice = createSlice({
   name: 'settings',
   initialState,
   reducers: {
+    // 对位基准 changeSetting({key, value})：按 key 单字段更新
     changeSetting(state, action: PayloadAction<{ key: keyof SettingsState; value: SettingsState[keyof SettingsState] }>) {
-      Object.assign(state, action.payload)
+      const { key, value } = action.payload
+      ;(state as unknown as Record<string, unknown>)[key] = value
     },
     setTitle(state, action: PayloadAction<string>) {
       state.title = action.payload
@@ -42,6 +60,11 @@ const settingsSlice = createSlice({
     toggleTheme(state) {
       state.isDark = !state.isDark
       document.documentElement.classList.toggle('dark', state.isDark)
+      try {
+        localStorage.setItem('vueuse-color-scheme', state.isDark ? 'dark' : 'light')
+      } catch {
+        /* ignore */
+      }
     },
   },
 })

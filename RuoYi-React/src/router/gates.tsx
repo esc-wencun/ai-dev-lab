@@ -90,9 +90,10 @@ function joinPath(parent: string, child: string): string {
 function buildLeaf(
   parentPath: string,
   item: RouteItem,
+  keepHidden = false,
 ): RouteObjectLite | null {
   const meta = item.meta || {}
-  if (item.hidden) return null
+  if (item.hidden && !keepHidden) return null
   // 外链不注册 Route（侧边栏渲染 <a> 跳转，对齐基准 isHttp 跳过逻辑）
   if (isHttpLink(meta)) return null
   const path = joinPath(parentPath, item.path)
@@ -127,23 +128,24 @@ function collectLeaves(
   parentPath: string,
   items: RouteItem[],
   out: RouteObjectLite[],
+  keepHidden = false,
 ) {
   for (const item of items) {
-    if (item.hidden) continue
+    if (item.hidden && !keepHidden) continue
     if (isHttpLink(item.meta)) continue
     const fullPath = joinPath(parentPath, item.path)
     if (item.children && item.children.length > 0) {
-      const visible = item.children.filter((c) => !c.hidden)
+      const visible = item.children.filter((c) => !c.hidden || keepHidden)
       // 唯一可见子路由直接取子级路径（对齐基准 SidebarItem onlyOneChild 展示逻辑的路由侧）
       if (visible.length === 1 && !visible[0].children) {
-        const leaf = buildLeaf(fullPath, visible[0])
+        const leaf = buildLeaf(fullPath, visible[0], keepHidden)
         if (leaf) out.push(leaf)
         continue
       }
       // ParentView 中间层：递归拍平，子路径拼父路径
-      collectLeaves(fullPath, item.children, out)
+      collectLeaves(fullPath, item.children, out, keepHidden)
     } else {
-      const leaf = buildLeaf(parentPath, item)
+      const leaf = buildLeaf(parentPath, item, keepHidden)
       if (leaf) out.push(leaf)
     }
   }
@@ -151,10 +153,13 @@ function collectLeaves(
 
 // 主入口：后端菜单树 → RouteObjectLite[]
 // 结构：一个 Layout 壳路由（path '/'）挂全部叶子 + 内层已就绪的静态壳由 App 组装
-export function buildRouteObjects(menus: RouteItem[]): RouteObjectLite[] {
+// keepHidden: 前端自有 dynamicRoutes（五条 hidden 子页）复用本函数时传 true——
+// 它们的 hidden 是「不在侧边栏显示」而非「不挂载」（对位基准 dynamicRoutes 与
+// 菜单树走不同处理分支的行为）；后端菜单树保持默认过滤。
+export function buildRouteObjects(menus: RouteItem[], keepHidden = false): RouteObjectLite[] {
   const leaves: RouteObjectLite[] = []
   for (const top of menus) {
-    if (top.hidden) continue
+    if (top.hidden && !keepHidden) continue
     if (isHttpLink(top.meta)) continue
     const topPath = top.path
     if (top.component === 'InnerLink' && !top.children) {
@@ -162,9 +167,9 @@ export function buildRouteObjects(menus: RouteItem[]): RouteObjectLite[] {
       const leaf = buildLeaf('/', top)
       if (leaf) leaves.push(leaf)
     } else if (top.children && top.children.length > 0) {
-      collectLeaves(topPath, top.children, leaves)
+      collectLeaves(topPath, top.children, leaves, keepHidden)
     } else {
-      const leaf = buildLeaf('/', top)
+      const leaf = buildLeaf('/', top, keepHidden)
       if (leaf) leaves.push(leaf)
     }
   }

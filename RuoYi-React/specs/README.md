@@ -26,17 +26,17 @@ specs/
 |------|------|------|------|------|
 | 00 | [0.0.0-工程基础](0.0.0-工程基础/spec.md) | Vite+React+TS 脚手架 / 代理 / svg 精灵 / 环境变量 / 目录骨架 / Vitest / 工作区文档同步 | ✅ 2026-09-27 | 无 |
 | 01 | [1.0.0-基础设施](1.0.0-基础设施/spec.md) | 请求层契约（401/500/601 分支/防重/下载）/ token / 工具函数 / useDict / API 层 20 文件 | ✅ 2026-09-27 | 00 |
-| 02 | [2.0.0-状态与路由](2.0.0-状态与路由/spec.md) | RTK 七 store / 动态路由挂载（Gate 方案）/ 全局守卫 / 登录闭环打通（KeepAlive 暂缓见 deviations #1） | 🔶 核心完成 2026-09-27 | 01 |
-| 03 | [3.0.0-通用组件](3.0.0-通用组件/spec.md) | Pagination/RightToolbar/DictTag/Auth 权限组件/TreePanel/Crontab/上传四件套等 | 🔶 批次 A 完成 2026-09-27 | 01, 02 |
-| 04 | [4.0.0-布局主题](4.0.0-布局主题/spec.md) | 布局壳 / 三种导航模式 / TagsView / 设置抽屉 / 暗色主题 / 锁屏页 | 🔶 核心完成 2026-09-27 | 02, 03 |
-| 05 | [5.0.0-登录与个人中心](5.0.0-登录与个人中心/spec.md) | 登录（验证码/记住我）/ 注册 / 错误页 / 首页 / 个人中心（头像裁剪） | ✅ 2026-09-28（头像上传实操待验） | 02, 03 |
-| 06 | [6.0.0-系统管理](6.0.0-系统管理/spec.md) | useCrud 范式 + user/role/menu/dept/post/dict/config/notice 八页 | 🔶 八页完成 2026-09-27，深度验收待做 | 03 |
-| 07 | [7.0.0-系统监控](7.0.0-系统监控/spec.md) | online/job(+表达式)/jobLog/druid/server/cache(+echarts)/operlog/logininfor 八页 | ✅ 2026-09-28 | 03 |
-| 08 | [8.0.0-系统工具](8.0.0-系统工具/spec.md) | 代码生成 gen（**暂缓**，占位页）+ swagger 降级页 + build 占位（deviations #2） | 🔶 2026-09-28（gen 暂缓） | 03, 06 |
+| 02 | [2.0.0-状态与路由](2.0.0-状态与路由/spec.md) | RTK 七 store / 动态路由挂载（Gate 方案）/ 全局守卫 / 登录闭环打通（KeepAlive 不实现见 deviations #1 定稿） | ✅ 2026-09-29 | 01 |
+| 03 | [3.0.0-通用组件](3.0.0-通用组件/spec.md) | Pagination/RightToolbar/DictTag/Auth 权限组件/TreePanel/ExcelImportDialog/Crontab/上传四件套等 | ✅ 2026-09-28（FileUpload/ImageUpload/ImagePreview 按需延后，见 tasks） | 01, 02 |
+| 04 | [4.0.0-布局主题](4.0.0-布局主题/spec.md) | 布局壳 / 三种导航模式 / TagsView / 设置抽屉 / 暗色主题 / 锁屏页 | ✅ 2026-09-28 | 02, 03 |
+| 05 | [5.0.0-登录与个人中心](5.0.0-登录与个人中心/spec.md) | 登录（验证码/记住我）/ 注册 / 错误页 / 首页 / 个人中心（头像裁剪） | ✅ 2026-09-29（改资料/改密表单提交实操遗留，见 tasks） | 02, 03 |
+| 06 | [6.0.0-系统管理](6.0.0-系统管理/spec.md) | useCrud 范式 + user/role/menu/dept/post/dict/config/notice 八页 | ✅ 2026-09-29（分配用户子页实操遗留） | 03 |
+| 07 | [7.0.0-系统监控](7.0.0-系统监控/spec.md) | online/job(+表达式)/jobLog/druid/server/cache(+echarts)/operlog/logininfor 八页 | ✅ 2026-09-29（Go/Python 降级矩阵随总验收） | 03 |
+| 08 | [8.0.0-系统工具](8.0.0-系统工具/spec.md) | 代码生成 gen（**暂缓**，占位页）+ swagger 降级页 + build 占位（deviations #2） | 🔶 2026-09-28（gen 暂缓；swagger Java 已验；降级矩阵随总验收） | 03, 06 |
 
 > 全部完成后执行 [final-acceptance.md](final-acceptance.md) 总验收。
-> **进度快照（2026-09-28）**：00/01/05/07 ✅；02/03/04/06/08 🔶 核心完成。全部 51 个基准页面对应功能已实现或按 deviations 排除（build 砍除、gen 暂缓）。**主要遗留**：① TagsView 页签栏/设置抽屉/navType 2·3（4.0.0 余项）；② Crontab 七域完整版与批次 B/C/D 部分组件；③ 深度验收项（三版后端矩阵、半选提交、导入导出实操、KeepAlive 演示）。
-> **已拍板决策（2026-09-27 用户）**：① KeepAlive 页签缓存暂不实现，先看无缓存版实际效果再定（spec 02 遗留项）；② 动态路由采用「数据就绪后全量重渲染」Gate 方案；③ tool/build 表单构建器不实现（AI 可直接生成代码）。**追加（2026-09-28）**：④ tool/gen 代码生成 React 版暂缓（占位页）。
+> **进度快照（2026-09-29 三轮收口）**：00~07 全部 ✅，08 🔶（gen 暂缓为长期状态，其余完成）。三轮补齐并实操验证：dept/menu 树表行内排序（修复交互偏差与 updateSort 参数契约）、用户导入导出（updateSupport 双分支）、重置密码后新密码登录、字典联动（refreshCache 进 Redis）、**初始密码提醒弹窗（发现实现缺口并补齐于 getInfo thunk，与基准同位）**、记住我 RSA 密文 Cookie、锁屏硬劫持与解锁回跳（**修复守卫解锁竞态**：!isLock 分支移出守卫，改锁屏页自检 + 渲染期 Navigate）、job 全生命周期（调度器真实运行 102 条日志）。**遗留**：① 5.0.0 改资料/改密表单提交实操（避免动 admin 密码）；② 6.0.0 分配用户子页实操；③ 三版后端矩阵（Python/Go 降级）随 final-acceptance 总验收；④ 8.0.0 gen 暂缓（用户拍板，长期状态）。
+> **已拍板决策（2026-09-27 用户）**：① KeepAlive 页签缓存暂不实现，先看无缓存版实际效果再定（spec 02 遗留项）；② 动态路由采用「数据就绪后全量重渲染」Gate 方案；③ tool/build 表单构建器不实现（AI 可直接生成代码）。**追加（2026-09-28）**：④ tool/gen 代码生成 React 版暂缓（占位页）。**追加（2026-09-29）**：⑤ KeepAlive 演示后确认不补（deviations #1 定稿）。
 
 ## 动工检查单（每个模块动工前逐条执行）
 
@@ -57,5 +57,5 @@ specs/
 
 ## 遗留待办
 
-1. **KeepAlive 演示后决策**：6.0.0 列表页可操作后，向用户演示「切页签查询条件/分页状态丢失」的实际效果，再决定是否补自研 KeepAlive（deviations #1）。
-2. **tool/build 占位页**：后端菜单若下发 build 页，前端映射「该功能未实现」占位（deviations #2），占位页在 8.0.0 落地。
+1. ~~KeepAlive 演示后决策~~ → **已闭环（2026-09-28 用户拍板：不补）**，演示记录与定稿见 deviations #1。
+2. **tool/build 占位页**：已落地（8.0.0，NotImplemented「该功能未实现」）。

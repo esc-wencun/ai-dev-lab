@@ -1,5 +1,6 @@
 // 岗位管理 —— 对位基准 views/system/post/index.vue
 // 查询（编码/名称/状态）/ 新增 / 修改 / 删除 / 批量删除 + DictTag(sys_normal_disable) + Auth
+// 3.0.0 批次 C：内联分页/工具行替换为 Pagination / RightToolbar 组件消费（行为等价）
 
 import { useEffect, useState } from 'react'
 import { Button, Card, Form, Input, InputNumber, Modal, Select, Space, Table } from 'antd'
@@ -9,6 +10,8 @@ import { useCrud } from '@/hooks/useCrud'
 import { useDict } from '@/utils/dict'
 import DictTag from '@/components/DictTag'
 import Auth from '@/components/Auth'
+import Pagination from '@/components/Pagination'
+import RightToolbar from '@/components/RightToolbar'
 
 interface PostRow {
   [k: string]: unknown
@@ -28,6 +31,8 @@ export default function Post() {
     exportUrl: '/system/post/export',
     defaultQuery: { pageNum: 1, pageSize: 10 },
   })
+  // 搜索表单显隐（对位基准 showSearch ref，配合 RightToolbar 折叠）
+  const [showSearch, setShowSearch] = useState(true)
   const [form] = Form.useForm()
   const [open, setOpen] = useState(false)
   const [editId, setEditId] = useState<number | null>(null)
@@ -88,7 +93,7 @@ export default function Post() {
   return (
     <div style={{ padding: 16 }}>
       <Card>
-        <Form layout="inline" onFinish={() => crud.handleQuery()} style={{ marginBottom: 16 }}>
+        <Form layout="inline" onFinish={() => crud.handleQuery()} style={{ marginBottom: 16, display: showSearch ? undefined : 'none' }}>
           <Form.Item label="岗位编码">
             <Input allowClear onChange={(e) => crud.setQuery((q) => ({ ...q, postCode: e.target.value }))} />
           </Form.Item>
@@ -108,7 +113,8 @@ export default function Post() {
           </Form.Item>
         </Form>
 
-        <Space style={{ marginBottom: 16 }}>
+        {/* 工具行：操作按钮 + RightToolbar（搜索折叠 + 刷新；列显隐未用不传 columns） */}
+        <Space style={{ marginBottom: 16, display: 'flex' }}>
           <Auth permissions={['system:post:add']}>
             <Button type="primary" icon={<PlusOutlined />} onClick={openAdd}>新增</Button>
           </Auth>
@@ -119,6 +125,7 @@ export default function Post() {
           <Auth permissions={['system:post:export']}>
             <Button style={{ color: '#e6a23c', borderColor: '#e6a23c' }} onClick={() => crud.handleExport()}>导出</Button>
           </Auth>
+          <RightToolbar showSearch={showSearch} onShowSearchChange={setShowSearch} onRefresh={() => void crud.getList()} />
         </Space>
 
         <Table
@@ -126,13 +133,17 @@ export default function Post() {
           columns={columns}
           dataSource={crud.rows}
           loading={crud.loading}
-          pagination={{
-            total: crud.total, pageSize: crud.query.pageSize, current: crud.query.pageNum,
-            showSizeChanger: true, showTotal: (t) => `共 ${t} 条`,
-            onChange: (p, size) => void crud.getList({ pageNum: p, pageSize: size }),
-          }}
+          pagination={false}
           scroll={{ x: 'max-content' }}
         />
+        {crud.total > 0 && (
+          <Pagination
+            total={crud.total}
+            page={crud.query.pageNum}
+            pageSize={crud.query.pageSize}
+            onChange={(p, size) => void crud.getList({ pageNum: p, pageSize: size })}
+          />
+        )}
       </Card>
 
       <Modal title={editId ? '修改岗位' : '添加岗位'} open={open} onOk={() => void submit()} onCancel={() => setOpen(false)} destroyOnHidden>

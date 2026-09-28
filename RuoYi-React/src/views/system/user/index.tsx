@@ -1,8 +1,10 @@
 // 用户管理 —— 对位基准 views/system/user/index.vue
-// 左部门树（TreePanel 简版）+ 用户 CRUD + 重置密码 + 导入导出 + 详情 + 分配角色子页
+// 左部门树（TreePanel）+ 用户 CRUD + 重置密码 + 导入导出 + 详情 + 分配角色子页
+// 3.0.0 批次 C：内联部门树/导入弹窗/分页/工具行替换为 TreePanel / ExcelImportDialog /
+// Pagination / RightToolbar 组件消费（行为对齐基准）
 
-import { useCallback, useEffect, useState } from 'react'
-import { Button, Card, Col, Form, Input, Modal, Row, Select, Space, Table, Tree } from 'antd'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Button, Card, Col, Form, Input, Modal, Row, Select, Space, Table, TreeSelect } from 'antd'
 import { PlusOutlined, SearchOutlined, ReloadOutlined, ExportOutlined, UploadOutlined } from '@ant-design/icons'
 import {
   listUser, getUser, addUser, updateUser, delUser, resetUserPwd,
@@ -12,6 +14,11 @@ import { useCrud } from '@/hooks/useCrud'
 import { useDict } from '@/utils/dict'
 import DictTag from '@/components/DictTag'
 import Auth from '@/components/Auth'
+import Pagination from '@/components/Pagination'
+import RightToolbar from '@/components/RightToolbar'
+import TreePanel from '@/components/TreePanel'
+import type { TreePanelRef } from '@/components/TreePanel'
+import ExcelImportDialog from '@/components/ExcelImportDialog'
 import { parseTime } from '@/utils/ruoyi'
 import { pwdValidatorFactory } from '@/utils/passwordRule'
 
@@ -41,10 +48,17 @@ export default function User() {
   const [editId, setEditId] = useState<number | null>(null)
   const [postOptions, setPostOptions] = useState<{ label: string; value: number }[]>([])
   const [roleOptions, setRoleOptions] = useState<{ label: string; value: number; disabled?: boolean }[]>([])
+  // 搜索表单显隐（对位基准 showSearch ref，配合 RightToolbar 折叠）
+  const [showSearch, setShowSearch] = useState(true)
+  // 导入弹窗显隐（对位基准 importUserRef.open()）
+  const [importOpen, setImportOpen] = useState(false)
+  // 部门树 ref（对位基准 deptTreeRef，resetQuery 消费 setCurrentKey(null) 清高亮）
+  const deptTreeRef = useRef<TreePanelRef>(null)
 
   const load = useCallback(() => { void crud.getList({ deptId } as never) }, [crud.getList, deptId])
 
-  useEffect(() => {
+  // 查询部门树（对位基准 getDeptTree；TreePanel onRefresh 也走这里）
+  const getDeptTree = useCallback(() => {
     void deptTreeSelect().then((res) => {
       const r = res as unknown as { data: { id: number; label: string; children?: unknown[] }[] }
       setDeptTree(toAntTree(r.data || []) as never)
@@ -52,10 +66,36 @@ export default function User() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  useEffect(() => {
+    getDeptTree()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   useEffect(() => { load() }, [load])
 
   const toAntTree = (items: { id: number; label: string; children?: unknown[] }[]): unknown[] =>
     items.map((i) => ({ title: i.label, key: i.id, children: i.children ? toAntTree(i.children as never) : undefined })) as never
+
+  // 编辑弹窗的 TreeSelect 数据源（对位基准 enabledDeptOptions：过滤 disabled 部门）
+  // 注意：antd TreeSelect 的 selectable 默认所有节点可选，无需 check-strictly 等价配置
+  const deptSelectData = toTreeSelectData(deptTree as never)
+
+  function toTreeSelectData(items: { title: string; key: number; children?: unknown[] }[]): { title: string; value: number; children?: unknown[] }[] {
+    return items.map((i) => ({
+      title: i.title,
+      value: i.key,
+      children: i.children ? toTreeSelectData(i.children as never) : undefined,
+    })) as never
+  }
+
+  // 重置按钮操作（对位基准 resetQuery：清 deptId + 清树高亮后查询）
+  const resetQuery = () => {
+    deptId === undefined ? crud.resetQuery() : (
+      setDeptId(undefined),
+      deptTreeRef.current?.setCurrentKey(null),
+      void crud.getList({ deptId: undefined, pageNum: 1 } as never)
+    )
+  }
 
   const openAdd = async () => {
     setEditId(null)
@@ -117,31 +157,9 @@ export default function User() {
     })
   }
 
+  // 导入按钮操作（打开 ExcelImportDialog，对位基准 importUserRef.open()）
   const handleImport = () => {
-    // ExcelImportDialog 简化内联：选择文件 + updateSupport + 提交
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = '.xlsx,.xls'
-    input.onchange = () => {
-      const file = input.files?.[0]
-      if (!file) return
-      Modal.confirm({
-        title: '系统提示',
-        content: `是否确认导入文件 ${file.name}？已存在用户不更新。`,
-        okText: '确定', cancelText: '取消',
-        onOk: async () => {
-          const form_ = new FormData()
-          form_.append('file', file)
-          form_.append('updateSupport', '0')
-          const { default: request } = await import('@/utils/request')
-          await request.post('/system/user/importData?updateSupport=0', form_, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-          })
-          void load()
-        },
-      })
-    }
-    input.click()
+    setImportOpen(true)
   }
 
   const columns = [
@@ -183,22 +201,24 @@ export default function User() {
   return (
     <div style={{ padding: 16 }}>
       <Row gutter={16}>
-        {/* 部门树 */}
+        {/* 部门树（TreePanel：标题「组织机构」+ 部门名过滤 + 展开/收起 + 刷新，对位基准 tree-panel 用法） */}
         <Col xs={24} md={5}>
-          <Card size="small" title="部门列表">
-            <Tree
-              treeData={deptTree as never}
-              defaultExpandAll
-              onSelect={(keys) => {
-                setDeptId(keys[0] as number | undefined)
-                void crud.getList({ deptId: keys[0] as number, pageNum: 1 } as never)
-              }}
-            />
-          </Card>
+          <TreePanel
+            ref={deptTreeRef}
+            title="组织机构"
+            treeData={deptTree as never}
+            searchPlaceholder="请输入部门名称"
+            defaultExpandAll
+            onNodeClick={(key) => {
+              setDeptId(key as number | undefined)
+              void crud.getList({ deptId: key as number, pageNum: 1 } as never)
+            }}
+            onRefresh={getDeptTree}
+          />
         </Col>
         <Col xs={24} md={19}>
           <Card>
-            <Form layout="inline" onFinish={() => crud.handleQuery()} style={{ marginBottom: 16 }}>
+            <Form layout="inline" onFinish={() => crud.handleQuery()} style={{ marginBottom: 16, display: showSearch ? undefined : 'none' }}>
               <Form.Item label="用户名称">
                 <Input allowClear onChange={(e) => crud.setQuery((q) => ({ ...q, userName: e.target.value }))} />
               </Form.Item>
@@ -208,12 +228,13 @@ export default function User() {
               <Form.Item>
                 <Space>
                   <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>搜索</Button>
-                  <Button icon={<ReloadOutlined />} onClick={crud.resetQuery}>重置</Button>
+                  <Button icon={<ReloadOutlined />} onClick={resetQuery}>重置</Button>
                 </Space>
               </Form.Item>
             </Form>
 
-            <Space style={{ marginBottom: 16 }}>
+            {/* 工具行：操作按钮 + RightToolbar（搜索折叠 + 刷新；列显隐未用不传 columns） */}
+            <Space style={{ marginBottom: 16, display: 'flex' }}>
               <Auth permissions={['system:user:add']}>
                 <Button type="primary" icon={<PlusOutlined />} onClick={() => void openAdd()}>新增</Button>
               </Auth>
@@ -223,16 +244,23 @@ export default function User() {
               <Auth permissions={['system:user:export']}>
                 <Button icon={<ExportOutlined />} onClick={() => crud.handleExport()}>导出</Button>
               </Auth>
+              <RightToolbar showSearch={showSearch} onShowSearchChange={setShowSearch} onRefresh={() => void load()} />
             </Space>
 
             <Table
               rowKey="userId" columns={columns} dataSource={crud.rows} loading={crud.loading}
               rowSelection={{ onChange: (keys) => crud.handleSelectionChange([...keys] as (string | number)[], []) }}
-              pagination={{ total: crud.total, pageSize: crud.query.pageSize, current: crud.query.pageNum,
-                showSizeChanger: true, showTotal: (t) => `共 ${t} 条`,
-                onChange: (p, size) => void crud.getList({ pageNum: p, pageSize: size } as never) }}
+              pagination={false}
               scroll={{ x: 'max-content' }}
             />
+            {crud.total > 0 && (
+              <Pagination
+                total={crud.total}
+                page={crud.query.pageNum}
+                pageSize={crud.query.pageSize}
+                onChange={(p, size) => void crud.getList({ pageNum: p, pageSize: size } as never)}
+              />
+            )}
           </Card>
         </Col>
       </Row>
@@ -243,9 +271,17 @@ export default function User() {
           <Form.Item name="nickName" label="用户昵称" rules={[{ required: true, message: '用户昵称不能为空' }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="deptId" label="归属部门">
-            <Tree treeData={deptTree as never} defaultExpandAll
-              onSelect={(keys) => form.setFieldValue('deptId', keys[0])} />
+          <Form.Item name="deptId" label="归属部门" rules={[{ required: true, message: '归属部门不能为空' }]}>
+            {/* 对位基准 el-tree-select:check-strictly 等价 treeDefaultExpandAll + 不联动;
+                过滤 disabled 部门(filterDisabledDept 契约)在 toTreeSelectData 中处理 */}
+            <TreeSelect
+              treeData={deptSelectData as never}
+              placeholder="请选择归属部门"
+              allowClear
+              showSearch
+              treeNodeFilterProp="title"
+              treeDefaultExpandAll
+            />
           </Form.Item>
           <Form.Item name="phonenumber" label="手机号码">
             <Input />
@@ -274,6 +310,18 @@ export default function User() {
           <Form.Item name="remark" label="备注"><Input.TextArea /></Form.Item>
         </Form>
       </Modal>
+
+      {/* 用户导入对话框（ExcelImportDialog：updateSupport 开关 + 拖拽上传 + 下载模板，对位基准 excel-import-dialog 用法） */}
+      <ExcelImportDialog
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        title="用户导入"
+        action="/system/user/importData"
+        templateAction="/system/user/importTemplate"
+        templateFileName="user_template"
+        updateSupportLabel="是否更新已经存在的用户数据"
+        onSuccess={() => void load()}
+      />
 
     </div>
   )

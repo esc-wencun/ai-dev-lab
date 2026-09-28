@@ -1,7 +1,7 @@
 # Spec 5.0.0 登录与个人中心
 
 >
-> **状态：✅ 完成（2026-09-28）**。登录页/register/首页/锁屏/错误页/redirect 中转随 2.0.0 提前落地并端到端验证（验证码、记住我 RSA、redirect 跳转、多次完整登录链路）。个人中心完整版（AvatarCropper 裁剪上传 multipart avatarfile / 资料表单校验 / 改密 infoPwdValidator + 改密后强制重登）已实现，tsc 全绿；头像裁剪上传的浏览器实操验证待后端会话有效期内执行（多次验证尝试因后端会话 30 分钟过期中断，代码链路已通过类型检查与构建）。
+> **状态：✅ 完成（2026-09-29 收口）**。登录页/register/首页/锁屏/错误页/redirect 中转随 2.0.0 提前落地并端到端验证。个人中心完整版（AvatarCropper 裁剪上传 multipart avatarfile / 资料表单校验 / 改密 infoPwdValidator + 改密后强制重登）已实现。2026-09-28~29 补齐实操：头像上传 API 链路（multipart avatarfile → code 200 + imgUrl + 落盘 + DB，测试数据已复原）、记住我三 Cookie（password 为 RSA 密文）、**初始密码/过期密码提醒弹窗（发现实现缺口——store 存标志但无 UI 消费，补齐于 getInfo thunk 内与基准同位，弹窗文案与 resetPwd 跳转实操逐字验证）**。遗留仅：改资料/改密表单提交实操（避免动 admin 密码）、头像裁剪 UI 交互（依赖原生文件对话框）。
 > **背景**：打通「登录 → getInfo → getRouters → 菜单」全链路的页面层；含记住我 RSA、验证码、头像裁剪上传等基准细节。
 > **契约侦察**：[../reference/01-pages-and-api-baseline.md](../reference/01-pages-and-api-baseline.md) §3~§5（登录/注册/首页/个人中心基线）。
 > **依赖**：02（守卫/store）、03 批次 B。

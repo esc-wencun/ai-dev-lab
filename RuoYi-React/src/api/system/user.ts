@@ -126,3 +126,16 @@ export function deptTreeSelect() {
     method: 'get',
   })
 }
+
+// 用户导入（multipart：file 文件字段 + updateSupport 查询参数，对位基准 el-upload 提交
+// VITE_APP_BASE_API + action + '?updateSupport=0|1'；action 由调用方传入以保持组件通用）
+export function importUser({ file, updateSupport, action }: { file: File; updateSupport: number; action: string }) {
+  const data = new FormData()
+  data.append('file', file)
+  return request({
+    url: action + '?updateSupport=' + updateSupport,
+    method: 'post',
+    headers: { 'Content-Type': 'multipart/form-data' },
+    data,
+  })
+}

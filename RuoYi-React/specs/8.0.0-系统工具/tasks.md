@@ -12,4 +12,4 @@
 - [x] swagger 降级页（PlatformGate feature=swaggerDocs + iFrame /swagger-ui/index.html）（2026-09-28）
 - [x] build 占位页（tool/build/index.tsx → NotImplemented「该功能未实现」，deviations #2）（2026-09-28）
 - [ ] 验证：gen 全流程——取消（随 gen 暂缓，后续需要时按 spec 8.0.0 原设计恢复）
-- [ ] 验证：swagger Java 正常 iframe；Python/Go 降级提示——遗留未做（swagger 页代码就绪，Java 下 iframe 渲染待后端 swagger-ui 就绪后浏览器验证）
+- [x] 验证：swagger Java 正常 iframe（2026-09-28，浏览器实操：/tool/swagger iframe 渲染 Java swagger-ui「若依管理系统_接口文档 v3.9.2 OAS 3.1」；Python/Go 降级提示待三版后端矩阵）

@@ -1,5 +1,6 @@
 // 字典管理 —— 对位基准 views/system/dict（类型列表 + 行内数据抽屉）
 // 完整 CRUD + DictTag(sys_normal_disable) + 刷新缓存；数据列表嵌在抽屉内
+// 3.0.0 批次 C：内联分页/工具行替换为 Pagination / RightToolbar 组件消费（行为等价）
 
 import { useEffect, useState } from 'react'
 import { Button, Card, Form, Input, Modal, Select, Space, Table } from 'antd'
@@ -9,6 +10,8 @@ import { useCrud } from '@/hooks/useCrud'
 import { useDict } from '@/utils/dict'
 import DictTag from '@/components/DictTag'
 import Auth from '@/components/Auth'
+import Pagination from '@/components/Pagination'
+import RightToolbar from '@/components/RightToolbar'
 import DictDataDrawer from './DictDataDrawer'
 
 interface DictTypeRow {
@@ -33,6 +36,8 @@ export default function Dict() {
   // 抽屉状态
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [currentType, setCurrentType] = useState<DictTypeRow | null>(null)
+  // 搜索表单显隐（对位基准 showSearch ref，配合 RightToolbar 折叠）
+  const [showSearch, setShowSearch] = useState(true)
 
   useEffect(() => {
     void crud.getList()
@@ -99,7 +104,7 @@ export default function Dict() {
   return (
     <div style={{ padding: 16 }}>
       <Card>
-        <Form layout="inline" onFinish={() => crud.handleQuery()} style={{ marginBottom: 16 }}>
+        <Form layout="inline" onFinish={() => crud.handleQuery()} style={{ marginBottom: 16, display: showSearch ? undefined : 'none' }}>
           <Form.Item label="字典名称">
             <Input allowClear onChange={(e) => crud.setQuery((q) => ({ ...q, dictName: e.target.value }))} />
           </Form.Item>
@@ -114,7 +119,8 @@ export default function Dict() {
           </Form.Item>
         </Form>
 
-        <Space style={{ marginBottom: 16 }}>
+        {/* 工具行：操作按钮 + RightToolbar（搜索折叠 + 刷新；列显隐未用不传 columns） */}
+        <Space style={{ marginBottom: 16, display: 'flex' }}>
           <Auth permissions={['system:dict:add']}>
             <Button type="primary" icon={<PlusOutlined />} onClick={openAdd}>新增</Button>
           </Auth>
@@ -125,15 +131,22 @@ export default function Dict() {
           <Auth permissions={['system:dict:remove']}>
             <Button icon={<RedoOutlined />} onClick={handleRefreshCache}>刷新缓存</Button>
           </Auth>
+          <RightToolbar showSearch={showSearch} onShowSearchChange={setShowSearch} onRefresh={() => void crud.getList()} />
         </Space>
 
         <Table
           rowKey="dictId" columns={typeColumns} dataSource={crud.rows} loading={crud.loading}
-          pagination={{ total: crud.total, pageSize: crud.query.pageSize, current: crud.query.pageNum,
-            showSizeChanger: true, showTotal: (t) => `共 ${t} 条`,
-            onChange: (p, size) => void crud.getList({ pageNum: p, pageSize: size }) }}
+          pagination={false}
           scroll={{ x: 'max-content' }}
         />
+        {crud.total > 0 && (
+          <Pagination
+            total={crud.total}
+            page={crud.query.pageNum}
+            pageSize={crud.query.pageSize}
+            onChange={(p, size) => void crud.getList({ pageNum: p, pageSize: size })}
+          />
+        )}
       </Card>
 
       {/* 字典类型 新增/修改弹窗 */}

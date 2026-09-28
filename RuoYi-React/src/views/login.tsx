@@ -9,7 +9,7 @@ import { getCodeImg } from '@/api/login'
 import { login as loginThunk } from '@/store/modules/user'
 import { unlockScreen } from '@/store/modules/lock'
 import { useAppDispatch } from '@/store/hooks'
-import { encrypt } from '@/utils/jsencrypt'
+import { encrypt, decrypt } from '@/utils/jsencrypt'
 import Cookies from 'js-cookie'
 
 interface LoginForm {
@@ -48,7 +48,10 @@ export default function Login() {
     const rememberMe = Cookies.get('rememberMe') === 'true'
     form.setFieldsValue({
       username,
-      password: password ? '••••••••' : 'admin123',
+      // RSA 解密还原真实密码（对位基准 login.vue decrypt(cookie)）——
+      // 之前误填 '••••••••' 字面量占位：眼睛图标切明文后仍是圆点（看起来「无效」），
+      // 且直接提交会把圆点当密码发给后端导致登录失败
+      password: password ? (decrypt(password) || 'admin123') : 'admin123',
     })
     form.setFieldValue('rememberMe', rememberMe)
     void getCaptcha()
