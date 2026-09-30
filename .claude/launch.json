@@ -15,6 +15,13 @@
       "cwd": "RuoYi-React",
       "port": 8090,
       "autoPort": true
+    },
+    {
+      "name": "tp-server",
+      "runtimeExecutable": "C:\\php\\8.3\\php.exe",
+      "runtimeArgs": ["think", "run", "--port", "8888"],
+      "cwd": "RuoYi-TP",
+      "port": 8888
     }
   ]
 }
