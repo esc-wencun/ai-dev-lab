@@ -26,7 +26,7 @@
 
 - [x] 列表页：空态/有数据态渲染
 - [x] 排序点击（实测点「表名称」表头发出 `orderByColumn=tableName&isAsc=asc`；tableName/tableComment/className/createTime/updateTime 均在排序白名单内）
-- [ ] showExport **实际导出 CSV 文件**——遗留未验（导出扩展已加载：`window.tableExport` 存在 + 导出按钮 2 个已实测；但本 DSH×Tabbit 连接不投递下载事件、无法捕获文件，浏览器下载行为未验证。前端导出为 bootstrap-table 纯本地能力，零后端端点）
+- [x] showExport **实际导出 CSV 文件**——2026-10-01 用户侧浏览器实测：勾选数据行 → 导出下拉（CSV/TXT/Word/Excel 四格式）→ 点 CSV 触发下载，**用户确认文件已保存**（前端导出为 bootstrap-table 纯本地能力，零后端端点）
 - [x] rememberSelected：第 1 页勾选 → 翻页 → 回第 1 页勾选保持（**实测 stillChecked=true**，13 行数据分 2 页场景）
 - [x] 导入弹窗：精简配置（无搜索/刷新/翻页器切换栏）；勾选 → 提交 → 父页表格刷新出新行（实测导入 sys_config）；再次打开弹窗该表消失
 - [x] 操作列五按钮按权限串显隐（admin 全显；非 admin 会话四 flag 全 `hidden`）；删除确认框链路（**确认后真删** + 取消不删均实测）；**预览/编辑/同步/生成代码点击 404 属有意**（浏览器实测预览 404）
