@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+	{/* 定时任务/调度日志 双形态详情页（对位经典版 monitor/job/detail.html；name=job|jobLog 分支） */}
+	{assign name="pageTitle" value="定时任务详细" /}
+	{include file="include/header" /}
+</head>
+<body class="white-bg">
+	<div class="wrapper wrapper-content animated fadeInRight ibox-content">
+
+	{if condition="$name == 'jobLog'"}
+	<form class="form-horizontal m-t" id="jobLogForm">
+	    <div class="ibox">
+	        <div class="ibox-title">
+	            <h5><i class="fa fa-tasks"></i> 定时任务执行日志详情</h5>
+	        </div>
+	        <div class="ibox-content">
+	            <div class="row">
+	                <div class="col-sm-6">
+	                    <h4><i class="fa fa-info-circle text-info"></i> 基础信息</h4>
+	                    <hr/>
+	                    <div class="form-group">
+	                        <label class="col-sm-4 control-label"><i class="fa fa-hashtag"></i> 日志序号：</label>
+	                        <div class="col-sm-8 form-control-static">{$jobLog.job_log_id}</div>
+	                    </div>
+	                    <div class="form-group">
+	                        <label class="col-sm-4 control-label"><i class="fa fa-font"></i> 任务名称：</label>
+	                        <div class="col-sm-8 form-control-static">{$jobLog.job_name}</div>
+	                    </div>
+	                    <div class="form-group">
+	                        <label class="col-sm-4 control-label"><i class="fa fa-object-group"></i> 任务分组：</label>
+	                        <div class="col-sm-8 form-control-static">{$groupLabel}</div>
+	                    </div>
+	                    <div class="form-group">
+	                        <label class="col-sm-4 control-label"><i class="fa fa-flag"></i> 执行状态：</label>
+	                        <div class="col-sm-8">
+	                            <span {if condition="$jobLog['status'] == '0'"}class="label label-primary"{/if}><i class="fa fa-check"></i> 正常</span>
+	                            <span {if condition="$jobLog['status'] == '1'"}class="label label-danger"{/if}><i class="fa fa-close"></i> 失败</span>
+	                        </div>
+	                    </div>
+	                </div>
+
+	                <div class="col-sm-6">
+	                    <h4><i class="fa fa-clock-o text-success"></i> 执行时间线</h4>
+	                    <hr/>
+	                    <div class="form-group">
+	                        <label class="col-sm-4 control-label"><i class="fa fa-play-circle"></i> 开始时间：</label>
+	                        <div class="col-sm-8 form-control-static">{$jobLog.start_time}</div>
+	                    </div>
+	                    <div class="form-group">
+	                        <label class="col-sm-4 control-label"><i class="fa fa-stop-circle"></i> 结束时间：</label>
+	                        <div class="col-sm-8 form-control-static">{$jobLog.end_time}</div>
+	                    </div>
+	                    <div class="form-group">
+	                        <label class="col-sm-4 control-label"><i class="fa fa-calendar-plus-o"></i> 记录时间：</label>
+	                        <div class="col-sm-8 form-control-static">{$jobLog.create_time}</div>
+	                    </div>
+	                    <div class="form-group" {if condition="$jobLog['status'] != '0'"}style="display:none"{/if}>
+	                        <label class="col-sm-4 control-label"><i class="fa fa-rocket"></i> 执行耗时：</label>
+	                        <div class="col-sm-8 form-control-static">
+	                            <span class="text-info">{:max(0, strtotime((string)$jobLog['end_time']) - strtotime((string)$jobLog['start_time'])) * 1000} 毫秒</span>
+	                        </div>
+	                    </div>
+	                </div>
+	            </div>
+
+	            <div class="row">
+	                <div class="col-sm-12">
+	                    <h4><i class="fa fa-code text-warning"></i> 执行方法</h4>
+	                    <hr/>
+	                    <div class="form-group">
+	                        <label class="col-sm-2 control-label"><i class="fa fa-code"></i> 调用目标：</label>
+	                        <div class="col-sm-10">
+	                            <div class="well well-sm" style="margin-bottom: 0;">{$jobLog.invoke_target}</div>
+	                        </div>
+	                    </div>
+
+	                    {if condition="$jobLog['status'] == '1'"}
+	                    <div class="form-group">
+	                        <label class="col-sm-2 control-label"><i class="fa fa-exclamation-triangle text-danger"></i> 异常信息：</label>
+	                        <div class="col-sm-10">
+	                            <pre class="alert alert-danger" style="border: none; margin-bottom: 0; white-space: pre-wrap; word-break: break-all;">{$jobLog.exception_info}</pre>
+	                        </div>
+	                    </div>
+	                    {/if}
+	                </div>
+
+	                <div class="col-sm-12">
+	                    <h4><i class="fa fa-file-text-o text-warning"></i> 日志详情</h4>
+	                    <hr/>
+	                    <div class="form-group">
+	                        <label class="col-sm-2 control-label"><i class="fa fa-commenting"></i> 日志信息：</label>
+	                        <div class="col-sm-10">
+	                            <div class="well well-sm" style="margin-bottom: 0;">{$jobLog.job_message}</div>
+	                        </div>
+	                    </div>
+	                </div>
+	            </div>
+	        </div>
+	    </div>
+	</form>
+	{/if}
+
+	{if condition="$name == 'job'"}
+	<form class="form-horizontal m-t" id="jobForm">
+	    <div class="ibox">
+	        <div class="ibox-title">
+	            <h5><i class="fa fa-clock-o"></i> 定时任务详情</h5>
+	        </div>
+	        <div class="ibox-content">
+	            <div class="row">
+	                <div class="col-sm-6">
+	                    <h4><i class="fa fa-cogs text-info"></i> 任务配置</h4>
+	                    <hr/>
+	                    <div class="form-group">
+	                        <label class="col-sm-4 control-label"><i class="fa fa-hashtag"></i> 任务序号：</label>
+	                        <div class="col-sm-8 form-control-static">{$job.job_id}</div>
+	                    </div>
+	                    <div class="form-group">
+	                        <label class="col-sm-4 control-label"><i class="fa fa-font"></i> 任务名称：</label>
+	                        <div class="col-sm-8 form-control-static">{$job.job_name}</div>
+	                    </div>
+	                    <div class="form-group">
+	                        <label class="col-sm-4 control-label"><i class="fa fa-object-group"></i> 任务分组：</label>
+	                        <div class="col-sm-8 form-control-static">{$groupLabel}</div>
+	                    </div>
+	                    <div class="form-group">
+	                        <label class="col-sm-4 control-label"><i class="fa fa-flag"></i> 执行状态：</label>
+	                        <div class="col-sm-8">
+	                            <span {if condition="$job['status'] == '0'"}class="label label-primary"{/if}><i class="fa fa-play"></i> 正常</span>
+	                            <span {if condition="$job['status'] == '1'"}class="label label-default"{/if}><i class="fa fa-pause"></i> 暂停</span>
+	                        </div>
+	                    </div>
+	                </div>
+
+	                <div class="col-sm-6">
+	                    <h4><i class="fa fa-calendar-check-o text-success"></i> 调度信息</h4>
+	                    <hr/>
+	                    <div class="form-group">
+	                        <label class="col-sm-4 control-label">cron表达式：</label>
+	                        <div class="col-sm-8">
+	                            <code class="form-control-static" style="background-color: #f7f7f9; padding: 2px 5px; border-radius: 3px;">{$job.cron_expression}</code>
+	                        </div>
+	                    </div>
+	                    <div class="form-group">
+	                        <label class="col-sm-4 control-label"><i class="fa fa-history"></i> 执行策略：</label>
+	                        <div class="col-sm-8 form-control-static">
+	                            <span {if condition="$job['misfire_policy'] == '0'"}class="label label-default"{/if}>默认策略</span>
+	                            <span {if condition="$job['misfire_policy'] == '1'"}class="label label-warning"{/if}>立即执行</span>
+	                            <span {if condition="$job['misfire_policy'] == '2'"}class="label label-info"{/if}>执行一次</span>
+	                            <span {if condition="$job['misfire_policy'] == '3'"}class="label label-danger"{/if}>放弃执行</span>
+	                        </div>
+	                    </div>
+	                    <div class="form-group">
+	                        <label class="col-sm-4 control-label"><i class="fa fa-bolt"></i> 并发执行：</label>
+	                        <div class="col-sm-8">
+	                            <span {if condition="$job['concurrent'] == '0'"}class="label label-success"{/if}><i class="fa fa-check"></i> 允许</span>
+	                            <span {if condition="$job['concurrent'] == '1'"}class="label label-danger"{/if}><i class="fa fa-close"></i> 禁止</span>
+	                        </div>
+	                    </div>
+	                    <div class="form-group">
+	                        <label class="col-sm-4 control-label"><i class="fa fa-calendar-plus-o"></i> 下次执行：</label>
+	                        <div class="col-sm-8 form-control-static">{$nextValidTime ?? '未计算'}</div>
+	                    </div>
+	                </div>
+	            </div>
+
+				<div class="row" style="margin-top: 20px;">
+				    <div class="col-sm-12">
+				        <h4><i class="fa fa-info-circle text-warning"></i> 执行方法</h4>
+				        <hr/>
+				        <div class="form-group">
+				            <label class="col-sm-2 control-label"><i class="fa fa-code"></i> 调用目标：</label>
+				            <div class="col-sm-10">
+				                <div class="well well-sm" style="margin-bottom: 0; font-family: monospace; font-size: 0.9em;">{$job.invoke_target}</div>
+				            </div>
+				        </div>
+				    </div>
+				    <div class="col-sm-12">
+				        <h4><i class="fa fa-info-circle text-warning"></i> 元信息</h4>
+				        <hr/>
+				        <div class="row">
+				            <div class="col-sm-6">
+				                <div class="form-group">
+				                    <label class="col-sm-4 control-label"><i class="fa fa-user-plus"></i> 创建人：</label>
+				                    <div class="col-sm-8 form-control-static">{$job.create_by ?? '-'}</div>
+				                </div>
+				                <div class="form-group">
+				                    <label class="col-sm-4 control-label"><i class="fa fa-calendar-plus-o"></i> 创建时间：</label>
+				                    <div class="col-sm-8 form-control-static">{$job.create_time}</div>
+				                </div>
+				            </div>
+				            <div class="col-sm-6">
+				                <div class="form-group">
+				                    <label class="col-sm-4 control-label"><i class="fa fa-user-edit"></i> 更新人：</label>
+				                    <div class="col-sm-8 form-control-static">{$job.update_by ?? '-'}</div>
+				                </div>
+				                <div class="form-group">
+				                    <label class="col-sm-4 control-label"><i class="fa fa-calendar-minus-o"></i> 更新时间：</label>
+				                    <div class="col-sm-8 form-control-static">{$job.update_time}</div>
+				                </div>
+				            </div>
+				        </div>
+				        {if condition="$job['remark'] != null and $job['remark'] != ''"}
+				        <div class="form-group">
+				            <label class="col-sm-2 control-label"><i class="fa fa-comment"></i> 备注：</label>
+				            <div class="col-sm-10">
+				                <div class="well well-sm" style="margin-bottom: 0; min-height: 60px;">{$job.remark}</div>
+				            </div>
+				        </div>
+				        {/if}
+				    </div>
+				</div>
+	        </div>
+	    </div>
+	</form>
+	{/if}
+
+    </div>
+</body>
+</html>

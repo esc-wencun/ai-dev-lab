@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>登录 - 若依管理系统 PHP 版</title>
+    <meta name="description" content="若依管理系统（PHP 移植版）">
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="/css/font-awesome.min.css" rel="stylesheet"/>
+    <link href="/css/style.min.css" rel="stylesheet"/>
+    <link href="/css/login.min.css" rel="stylesheet"/>
+    <link href="/ruoyi/css/ry-ui.css?v=4.8.3" rel="stylesheet"/>
+    <!-- 360浏览器急速模式 -->
+    <meta name="renderer" content="webkit">
+    <!-- 避免IE使用兼容模式 -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="shortcut icon" href="/favicon.ico"/>
+    <style type="text/css">label.error { position:inherit;  }</style>
+    <script>
+        if(window.top!==window.self){alert('未登录或登录超时。请重新登录');window.top.location=window.location};
+    </script>
+</head>
+<body class="signin">
+    <div class="signinpanel">
+        <div class="row">
+            <div class="col-sm-7">
+                <div class="signin-info">
+                    <div class="logopanel m-b">
+                        <h1><img alt="[ 若依 ]" src="/ruoyi.png"></h1>
+                    </div>
+                    <div class="m-b"></div>
+                    <h4>欢迎使用 <strong>若依 后台管理系统</strong></h4>
+                    <ul class="m-b">
+                        <li><i class="fa fa-arrow-circle-o-right m-r-xs"></i> ThinkPHP 8</li>
+                        <li><i class="fa fa-arrow-circle-o-right m-r-xs"></i> MySQL</li>
+                        <li><i class="fa fa-arrow-circle-o-right m-r-xs"></i> Redis</li>
+                        <li><i class="fa fa-arrow-circle-o-right m-r-xs"></i> Bootstrap</li>
+                        <li><i class="fa fa-arrow-circle-o-right m-r-xs"></i> jQuery</li>
+                    </ul>
+                    {if condition="$isAllowRegister"}<strong>还没有账号？ <a href="/register">立即注册&raquo;</a></strong>{/if}
+                </div>
+            </div>
+            <div class="col-sm-5">
+                <form id="signupForm" autocomplete="off">
+                    <h4 class="no-margins">登录：</h4>
+                    <p class="m-t-md">你若不离不弃，我必生死相依</p>
+                    <input type="text"     name="username" class="form-control uname"     placeholder="用户名" value="admin"    />
+                    <input type="password" name="password" class="form-control pword"     placeholder="密码"   value="admin123" />
+					{if condition="$captchaEnabled"}
+						<div class="row m-t">
+							<div class="col-xs-6">
+							    <input type="text" name="validateCode" class="form-control code" placeholder="验证码" maxlength="5" />
+							</div>
+							<div class="col-xs-6">
+								<a href="javascript:void(0);" title="点击更换验证码">
+									<img src="/captcha/captchaImage?type={$captchaType}" class="imgcode" width="85%"/>
+								</a>
+							</div>
+						</div>
+					{/if}
+                    {if condition="$isRemembered"}
+                    <div class="checkbox-custom{if condition="!$captchaEnabled"} m-t{/if}">
+					        <input type="checkbox" id="rememberme" name="rememberme"> <label for="rememberme">记住我</label>
+					    </div>
+                    {/if}
+                    <button class="btn btn-success btn-block" id="btnSubmit" data-loading="正在验证登录，请稍候...">登录</button>
+                </form>
+            </div>
+        </div>
+        <div class="signup-footer">
+            <div class="pull-left">
+                基于 RuoYi 移植 · PHP 版 <br>
+            </div>
+        </div>
+    </div>
+<script> var ctx = "/"; var captchaType = '{$captchaType}'; var captchaEnabled = {if condition="$captchaEnabled"}true{else}false{/if};</script>
+<!--[if lte IE 8]><script>window.location.href=ctx+'html/ie.html';</script><![endif]-->
+<!-- 全局js -->
+<script src="/js/jquery.min.js"></script>
+<script src="/ajax/libs/validate/jquery.validate.min.js"></script>
+<script src="/ajax/libs/layer/layer.min.js"></script>
+<script src="/ajax/libs/blockUI/jquery.blockUI.js"></script>
+<script src="/ruoyi/js/ry-ui.js?v=4.8.3"></script>
+<script src="/ruoyi/login.js"></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.5/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         colors="true"
+         failOnRisky="true">
+    <testsuite name="RuoYi-TP Unit">
+        <directory>tests/unit</directory>
+    </testsuite>
+    <!-- MenuServiceTest 引用 app\service 命名空间，bootstrap 已含 autoload；think Db 门面在纯逻辑路径不被触发 -->
+</phpunit>

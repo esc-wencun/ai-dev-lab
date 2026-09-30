@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+	{assign name="pageTitle" value="用户详细" /}
+	{include file="include/header" /}
+</head>
+<body>
+    <div class="main-content">
+        <form class="form-horizontal">
+            <h4 class="form-header h4">基本信息</h4>
+            <div class="row">
+            	<div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">用户名称：</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">{$user.user_name ?? ''}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">归属部门：</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">{$user.dept.dept_name ?? ''}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">手机号码：</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">{$user.phonenumber ?? ''}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">邮箱：</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">{$user.email ?? ''}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">登录账号：</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">{$user.login_name ?? ''}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">用户状态：</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">{if condition="$user['status'] == '0'"}正常{else /}停用{/if}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">岗位：</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">{$postGroup ?: '无岗位'}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">用户性别：</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">{volist name="datas" id="dict"}{if condition="$dict['dictValue'] == $user['sex']"}{$dict.dictLabel}{/if}{/volist}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+            	<div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="col-xs-2 control-label">角色：</label>
+                        <div class="col-xs-10">
+                            <p class="form-control-plaintext">{$roleGroup ?: '无角色'}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <h4 class="form-header h4">其他信息</h4>
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">创建者：</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">{$user.create_by ?? ''}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">创建时间：</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">{$user.create_time ?? ''}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">更新者：</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">{$user.update_by ?? ''}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">更新时间：</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">{$user.update_time ?? ''}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">最后登录IP：</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">{$user.login_ip ?? ''}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">最后登录时间：</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">{$user.login_date ?? ''}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+	        <div class="row">
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="col-xs-2 control-label">备注：</label>
+                        <div class="col-xs-10">
+                            <p class="form-control-plaintext">{$user.remark ?? ''}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+	{include file="include/footer" /}
+</body>
+</html>

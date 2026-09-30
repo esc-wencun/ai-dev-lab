@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    {/* Cron 生成器页（对位经典版 monitor/job/cron.html 纯静态页；checkbox 矩阵 volist 生成——输出与经典版静态 HTML 等价；js/cron.js 零改动） */}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cron表达式在线生成</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="/css/zen-checkbox.css" rel="stylesheet"/>
+</head>
+<body class="load-indicator">
+    <div class="container t-small-margin">
+      <div class="t-big-margin">
+        <ul class="nav nav-tabs">
+            <li class="active"><a data-toggle="tab" href="#tabSecond">秒</a></li>
+            <li><a data-toggle="tab" href="#tabMinute">分</a></li>
+            <li><a data-toggle="tab" href="#tabHour">时</a></li>
+            <li><a data-toggle="tab" href="#tabDay">日</a></li>
+            <li><a data-toggle="tab" href="#tabMonth">月</a></li>
+            <li><a data-toggle="tab" href="#tabWeek">周</a></li>
+            <li><a data-toggle="tab" href="#tabYear">年</a></li>
+        </ul>
+        <div class="tab-content tab-cron">
+            <div class="tab-pane active" id="tabSecond">
+                <div class="radio">
+                    <label>
+                        <input type="radio" id="sec_all" name="rdoSecond"> 每秒 允许的通配符[, - * /]
+                    </label>
+                </div>
+                <div class="radio">
+                    <label class="custom-radio">
+                        <input type="radio" id="sec_circle" name="rdoSecond">
+                        <div class="input-group">
+                            <span class="input-group-addon">周期从</span>
+                            <input type="number" id="sec_circle1" class="form-control">
+                            <span class="input-group-addon">-</span>
+                            <input type="number" id="sec_circle2" class="form-control">
+                            <span class="input-group-addon">秒</span>
+                        </div>
+                    </label>
+                </div>
+                <div class="radio  ">
+                    <label class="custom-radio">
+                        <input type="radio" id="sec_per" name="rdoSecond">
+                        <div class="input-group">
+                            <span class="input-group-addon">从</span>
+                            <input type="number" id="sec_per1" class="form-control">
+                            <span class="input-group-addon">秒开始，每</span>
+                            <input type="number" id="sec_per2" class="form-control">
+                            <span class="input-group-addon">秒执行一次</span>
+                        </div>
+                    </label>
+                </div>
+                <div class="radio  tabsecondchk">
+                    <label>
+                        <input type="radio" id="sec_assign" name="rdoSecond">指定
+                        <div class="checkbox">
+                            {volist name="seconds" id="n" }
+                            <div class="checkbox-primary">
+                                <input type="checkbox" id="zdSecond{$n}" name="zd_second" value="{$n}">
+                                <label for="zdSecond{$n}">{$n}</label>
+                            </div>
+                            {/volist}
+                        </div>
+                    </label>
+                </div>
+            </div>
+            <div class="tab-pane" id="tabMinute">
+                <div class="radio">
+                    <label>
+                        <input type="radio" id="min_all" name="rdoMinute"> 每分 允许的通配符[, - * /]
+                    </label>
+                </div>
+                <div class="radio  ">
+                    <label class="custom-radio">
+                        <input type="radio" id="min_circle" name="rdoMinute">
+                        <div class="input-group">
+                            <span class="input-group-addon">周期从</span>
+                            <input type="number" id="min_circle1" class="form-control">
+                            <span class="input-group-addon">-</span>
+                            <input id="min_circle2" type="number" class="form-control">
+                            <span class="input-group-addon">分</span>
+                        </div>
+                    </label>
+                </div>
+                <div class="radio  ">
+                    <label class="custom-radio">
+                        <input type="radio" name="rdoMinute" id="min_per">
+                        <div class="input-group">
+                            <span class="input-group-addon">从</span>
+                            <input type="number" id="min_per1" class="form-control">
+                            <span class="input-group-addon">分开始，每</span>
+                            <input type="number" id="min_per2" class="form-control">
+                            <span class="input-group-addon">分执行一次</span>
+                        </div>
+                    </label>
+                </div>
+                <div class="radio  tabsecondchk">
+                    <label>
+                        <input type="radio" id="min_assign" name="rdoMinute">指定
+                        <div class="checkbox">
+                            {volist name="minutes" id="n" }
+                            <div class="checkbox-primary">
+                                <input type="checkbox" id="zdMinute{$n}" name="zd_minute" value="{$n}">
+                                <label for="zdMinute{$n}">{$n}</label>
+                            </div>
+                            {/volist}
+                        </div>
+                    </label>
+                </div>
+            </div>
+            <div class="tab-pane" id="tabHour">
+                <div class="radio">
+                    <label>
+                        <input type="radio" id="hour_all" name="rdoMinute"> 每小时 允许的通配符[, - * /]
+                    </label>
+                </div>
+                <div class="radio">
+                    <label class="custom-radio">
+                        <input type="radio" id="hour_circle" name="rdoMinute">
+                        <div class="input-group">
+                            <span class="input-group-addon">周期从</span>
+                            <input type="number" id="hour_circle1" class="form-control">
+                            <span class="input-group-addon">-</span>
+                            <input type="number" id="hour_circle2" class="form-control">
+                            <span class="input-group-addon">小时</span>
+                        </div>
+                    </label>
+                </div>
+                <div class="radio">
+                    <label class="custom-radio">
+                        <input type="radio" name="rdoMinute" id="hour_per">
+                        <div class="input-group">
+                            <span class="input-group-addon">从</span>
+                            <input type="number" id="hour_per1" class="form-control">
+                            <span class="input-group-addon">小时开始，每</span>
+                            <input type="number" id="hour_per2" class="form-control">
+                            <span class="input-group-addon">小时执行一次</span>
+                        </div>
+                    </label>
+                </div>
+                <div class="radio  tabsecondchk">
+                    <label>
+                        <input type="radio" id="hour_assign" name="rdoMinute">指定
+                        <div class="checkbox">
+                            <label>AM:</label>
+                            {volist name="hours" id="n" }
+                            <div class="checkbox-primary">
+                                <input type="checkbox" id="zdHour{$n}" name="zd_hour" value="{$n}">
+                                <label for="zdHour{$n}">{$n}</label>
+                            </div>
+                            {if condition="$n == 11"}</div>
+                            <br>
+                            <label>PM:</label>
+                            <div class="checkbox">{/if}
+                            {/volist}
+                        </div>
+                    </label>
+                </div>
+            </div>
+            <div class="tab-pane" id="tabDay">
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="rdoDay" id="day_all"> 每日 允许的通配符[, - * /]
+                    </label>
+                </div>
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="rdoDay" id="day_no"> 不指定
+                    </label>
+                </div>
+                <div class="radio">
+                    <label class="custom-radio">
+                        <input type="radio" name="rdoDay" id="day_circle">
+                        <div class="input-group">
+                            <span class="input-group-addon">周期从</span>
+                            <input type="number" id="day_circle1" class="form-control">
+                            <span class="input-group-addon">-</span>
+                            <input type="number" id="day_circle2" class="form-control">
+                            <span class="input-group-addon">日</span>
+                        </div>
+                    </label>
+                </div>
+                <div class="radio">
+                    <label class="custom-radio">
+                        <input type="radio" name="rdoDay" id="day_per">
+                        <div class="input-group">
+                            <span class="input-group-addon">从</span>
+                            <input type="number" id="day_per1" class="form-control">
+                            <span class="input-group-addon">日开始，每</span>
+                            <input type="number" id="day_per2" class="form-control">
+                            <span class="input-group-addon">日执行一次</span>
+                        </div>
+                    </label>
+                </div>
+                <div class="radio">
+                    <label class="custom-radio">
+                        <input type="radio" name="rdoDay" id="day_work">
+                        <div class="input-group">
+                            <span class="input-group-addon">每月</span>
+                            <input type="number" id="day_work1" class="form-control">
+                            <span class="input-group-addon">号最近的那个工作日</span>
+                        </div>
+                    </label>
+                </div>
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="rdoDay" id="day_last"> 本月最后一日
+                    </label>
+                </div>
+                <div class="radio  tabsecondchk">
+                    <label>
+                        <input type="radio" id="day_assign" name="rdoDay">指定
+                        <div class="checkbox">
+                            {volist name="days" id="n" }
+                            <div class="checkbox-primary">
+                                <input type="checkbox" id="zdDay{$n}" name="zd_day" value="{$n}">
+                                <label for="zdDay{$n}">{$n}</label>
+                            </div>
+                            {/volist}
+                        </div>
+                    </label>
+                </div>
+            </div>
+            <div class="tab-pane" id="tabMonth">
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="rdoMonth" id="month_all"> 每月 允许的通配符[, - * /]
+                    </label>
+                </div>
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="rdoMonth" id="month_no"> 不指定
+                    </label>
+                </div>
+                <div class="radio">
+                    <label class="custom-radio">
+                        <input type="radio" name="rdoMonth" id="month_circle">
+                        <div class="input-group">
+                            <span class="input-group-addon">周期从</span>
+                            <input type="number" id="month_circle1" class="form-control">
+                            <span class="input-group-addon">-</span>
+                            <input type="number"  id="month_circle2" class="form-control">
+                            <span class="input-group-addon">月</span>
+                        </div>
+                    </label>
+                </div>
+                <div class="radio">
+                    <label class="custom-radio">
+                        <input type="radio" name="rdoMonth" id="month_per">
+                        <div class="input-group">
+                            <span class="input-group-addon">从</span>
+                            <input type="number" id="month_per1" class="form-control">
+                            <span class="input-group-addon">月开始，每</span>
+                            <input type="number" id="month_per2" class="form-control">
+                            <span class="input-group-addon">月执行一次</span>
+                        </div>
+                    </label>
+                </div>
+                <div class="radio  tabsecondchk">
+                    <label>
+                        <input type="radio" id="month_assign" name="rdoMonth">指定
+                        <div class="checkbox">
+                            {volist name="months" id="n" }
+                            <div class="checkbox-primary">
+                                <input type="checkbox" id="zdMonth{$n}" name="zd_month" value="{$n}">
+                                <label for="zdMonth{$n}">{$n}</label>
+                            </div>
+                            {/volist}
+                        </div>
+                    </label>
+                </div>
+            </div>
+            <div class="tab-pane" id="tabWeek">
+                <div class="radio">
+                    <label>
+                        <input type="radio" id="week_all" name="rdoWeek"> 周 允许的通配符[, - * /]
+                    </label>
+                </div>
+                <div class="radio">
+                    <label>
+                        <input type="radio" id="week_no" name="rdoWeek"> 不指定
+                    </label>
+                </div>
+                <div class="radio">
+                    <label class="custom-radio">
+                        <input type="radio" name="rdoWeek" id="week_circle">
+                        <div class="input-group">
+                            <span class="input-group-addon">周期从</span>
+                            <input type="number" id="week_circle1" class="form-control">
+                            <span class="input-group-addon">-</span>
+                            <input type="number" id="week_circle2" class="form-control">
+                        </div>
+                    </label>
+                </div>
+                <div class="radio">
+                    <label class="custom-radio">
+                        <input type="radio" name="rdoWeek" id="week_num">
+                        <div class="input-group">
+                            <span class="input-group-addon">第</span>
+                            <input type="number" id="week_num1" class="form-control">
+                            <span class="input-group-addon">星期的星期</span>
+                            <input type="number" id="week_num2" class="form-control">
+                        </div>
+                    </label>
+                </div>
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="rdoWeek" id="week_last">
+                        <div class="input-group">
+                            <span class="input-group-addon">本月最后一个星期</span>
+                            <input type="number" id="week_last1" class="form-control">
+                        </div>
+                    </label>
+                </div>
+                <div class="radio  tabsecondchk">
+                    <label>
+                        <input type="radio" id="week_assign" name="rdoWeek">指定
+                        <div class="checkbox">
+                            {volist name="weeks" id="n" }
+                            <div class="checkbox-primary">
+                                <input type="checkbox" id="zdWeek{$n}" name="zd_week" value="{$n}">
+                                <label for="zdWeek{$n}">{$n}</label>
+                            </div>
+                            {/volist}
+                        </div>
+                    </label>
+                </div>
+            </div>
+            <div class="tab-pane" id="tabYear">
+                <div class="radio">
+                    <label>
+                        <input type="radio" id="year_no" name="rdoWeek"> 不指定 允许的通配符[, - * /] 非必填
+                    </label>
+                </div>
+                <div class="radio">
+                    <label>
+                        <input type="radio" id="year_all" name="rdoWeek"> 每年
+                    </label>
+                </div>
+                <div class="radio">
+                    <label class="custom-radio">
+                        <input type="radio" name="rdoWeek" id="year_circle">
+                        <div class="input-group">
+                            <span class="input-group-addon">周期从</span>
+                            <input type="number" id="year_circle1" class="form-control">
+                            <span class="input-group-addon">-</span>
+                            <input type="number" id="year_circle2" class="form-control">
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="t-big-margin">
+            <h4>表达式</h4>
+        </div>
+        <table class="table table-hover cron_table table-bordered">
+            <tbody>
+            <tr>
+                <td></td>
+                <td align="center">秒</td>
+                <td align="center">分钟</td>
+                <td align="center">小时</td>
+                <td align="center">日</td>
+                <td align="center">月</td>
+                <td align="center">星期</td>
+                <td align="center">年</td>
+            </tr>
+            <tr>
+                <td>表达式字段</td>
+                <td><input type="text" class="form-control" id="v_second" value="*" readonly=""></td>
+                <td><input type="text" class="form-control" id="v_min" value="*" readonly=""></td>
+                <td><input type="text" class="form-control" id="v_hour" value="*" readonly=""></td>
+                <td><input type="text" class="form-control" id="v_day" value="*" readonly=""></td>
+                <td><input type="text" class="form-control" id="v_month" value="*" readonly=""></td>
+                <td><input type="text" class="form-control" id="v_week" value="?" readonly=""></td>
+                <td><input type="text" class="form-control" id="v_year" readonly=""></td>
+            </tr>
+            <tr>
+                <td>Cron 表达式</td>
+                <td colspan="7"><input type="text" class="form-control" id="cron" value="* * * * * ?"></td>
+            </tr>
+            </tbody>
+        </table>
+        <div class="text-center">
+            <button type="button" class="btn btn-primary" id="runBtn">查询最近10次运行时间</button>
+            <button type="button" class="btn btn-info" id="unrunBtn">Cron表达式转成字段</button>
+            <button type="button" class="btn btn-warning" id="checkCron">Cron表达式验证</button>
+        </div>
+        <br/>
+      </div>
+    </div>
+</div>
+<script src="/js/jquery.min.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/ajax/libs/layer/layer.min.js"></script>
+<script src="/ruoyi/js/ry-ui.js?v=4.8.3"></script>
+<script src="/js/cron.js"></script>
+<script type="text/javascript">
+var ctx = "/";
+var prefix = ctx + "monitor/job";
+
+// 查询最近10次运行时间
+$('#runBtn').click(function() {
+    var cronExpression = $("#cron").val();
+    $.get(prefix + "/queryCronExpression", { "cronExpression": cronExpression }, function(result) {
+    	if (result.code == web_status.SUCCESS) {
+    		if (result.data.length > 0) {
+        		var time = "表达式<font color='red'>[" + cronExpression + "]</font>最近10次运行时间<br/>";
+                for (var i = 0; i < result.data.length; i++) {
+                	time += i + 1 +"、" + result.data[i] + "<br/>"
+                }
+                $.modal.alertSuccess(time);
+        	} else {
+                $.modal.alertError("表达式有误，未查询出结果");
+            }
+        } else {
+            $.modal.alertError(result.msg);
+        }
+    });
+});
+
+// Cron表达式验证
+$('#checkCron').click(function() {
+    var cronExpression = $("#cron").val();
+    $.post(prefix + "/checkCronExpressionIsValid", { "cronExpression": cronExpression }, function(result) {
+        if (result) {
+            $.modal.msgSuccess("恭喜你，格式正确");
+        } else {
+            $.modal.msgError("很遗憾，格式错误");
+        }
+    });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>注册 - 若依管理系统 PHP 版</title>
+    <meta name="description" content="若依管理系统（PHP 移植版）">
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="/css/font-awesome.min.css" rel="stylesheet"/>
+    <link href="/css/style.min.css" rel="stylesheet"/>
+    <link href="/css/login.min.css" rel="stylesheet"/>
+    <link href="/ruoyi/css/ry-ui.css?v=4.8.3" rel="stylesheet"/>
+    <!-- 360浏览器急速模式 -->
+    <meta name="renderer" content="webkit">
+    <!-- 避免IE使用兼容模式 -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="shortcut icon" href="/favicon.ico"/>
+    <style type="text/css">label.error { position:inherit;  }</style>
+</head>
+<body class="signin">
+    <div class="signinpanel">
+        <div class="row">
+            <div class="col-sm-7">
+                <div class="signin-info">
+                    <div class="logopanel m-b">
+                        <h1><img alt="[ 若依 ]" src="/ruoyi.png"></h1>
+                    </div>
+                    <div class="m-b"></div>
+                    <h4>欢迎使用 <strong>若依 后台管理系统</strong></h4>
+                    <ul class="m-b">
+                        <li><i class="fa fa-arrow-circle-o-right m-r-xs"></i> ThinkPHP 8</li>
+                        <li><i class="fa fa-arrow-circle-o-right m-r-xs"></i> MySQL</li>
+                        <li><i class="fa fa-arrow-circle-o-right m-r-xs"></i> Redis</li>
+                        <li><i class="fa fa-arrow-circle-o-right m-r-xs"></i> Bootstrap</li>
+                        <li><i class="fa fa-arrow-circle-o-right m-r-xs"></i> jQuery</li>
+                    </ul>
+                    <strong>已经注册过? <a href="/login">直接登录&raquo;</a></strong>
+                </div>
+            </div>
+            <div class="col-sm-5">
+                <form id="registerForm" autocomplete="off">
+                    <h4 class="no-margins">注册：</h4>
+                    <p class="m-t-md">你若不离不弃，我必生死相依</p>
+                    <input type="text"     name="username" class="form-control uname"         placeholder="用户名"   maxlength="20" />
+                    <input type="password" name="password" class="form-control pword"         placeholder="密码"     maxlength="20" />
+                    <input type="password" name="confirmPassword" class="form-control pword"  placeholder="确认密码" maxlength="20" />
+					{if condition="$captchaEnabled"}
+						<div class="row m-t">
+							<div class="col-xs-6">
+							    <input type="text" name="validateCode" class="form-control code"  placeholder="验证码"   maxlength="5" >
+							</div>
+							<div class="col-xs-6">
+								<a href="javascript:void(0);" title="点击更换验证码">
+									<img src="/captcha/captchaImage?type={$captchaType}" class="imgcode" width="85%"/>
+								</a>
+							</div>
+						</div>
+					{/if}
+                    <div class="checkbox-custom{if condition="!$captchaEnabled"} m-t{/if}">
+				        <input type="checkbox" id="acceptTerm" name="acceptTerm"> <label for="acceptTerm">我已阅读并同意</label>
+				        <a href="https://gitee.com/y_project/RuoYi/blob/master/README.md" target="_blank">使用条款</a>
+				    </div>
+                    <button class="btn btn-success btn-block" id="btnSubmit" data-loading="正在验证注册，请稍候...">注册</button>
+                </form>
+            </div>
+        </div>
+        <div class="signup-footer">
+            <div class="pull-left">
+                &copy; 2018-2026 All Rights Reserved. RuoYi <br>
+            </div>
+        </div>
+    </div>
+<script> var ctx = "/"; var captchaType = '{$captchaType}'; var captchaEnabled = {if condition="$captchaEnabled"}true{else}false{/if};</script>
+<!-- 全局js -->
+<script src="/js/jquery.min.js"></script>
+<script src="/ajax/libs/validate/jquery.validate.min.js"></script>
+<script src="/ajax/libs/validate/jquery.validate.extend.js"></script>
+<script src="/ajax/libs/layer/layer.min.js"></script>
+<script src="/ajax/libs/blockUI/jquery.blockUI.js"></script>
+<script src="/ruoyi/js/ry-ui.js?v=4.8.3"></script>
+<script src="/ruoyi/register.js"></script>
+</body>
+</html>

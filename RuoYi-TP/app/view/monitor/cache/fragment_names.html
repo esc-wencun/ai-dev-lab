@@ -1,0 +1,8 @@
+{/* 片段：缓存名列表 tr（对位经典版 fragment-cache-names；AJAX 塞 #cacheNames） */}
+{volist name="cacheNames" id="cacheName" }
+<tr>
+    <td>{$i}</td>
+    <td style="word-wrap:break-word;word-break:break-all;" onclick="getCacheKeys('{$cacheName.name}')">{$cacheName.name}</td>
+    <td style="width: 50px"><a href="javascript:;" onclick="clearCacheName('{$cacheName.name}')" title="清空"><i class="fa fa-trash-o text-danger"></i></a></td>
+</tr>
+{/volist}

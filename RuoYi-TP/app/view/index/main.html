@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>首页</title>
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="/css/font-awesome.min.css" rel="stylesheet"/>
+    <link href="/css/style.min.css" rel="stylesheet"/>
+</head>
+
+<body class="gray-bg">
+    <div class="row border-bottom white-bg dashboard-header">
+        <div class="col-sm-8">
+            <h2>若依管理系统（PHP 移植版）</h2>
+            <p>本项目基于经典若依（RuoYi 4.8.3，Spring Boot 版）<b>逐功能移植</b>，采用 PHP 技术栈复刻其全部管理能力：接口路径、页面交互、响应结构、权限体系与经典版一一对应，前端静态资源原样移植、零改动对接。</p>
+            <p>可用于<b>网站管理后台</b>、<b>会员中心</b>、<b>CMS</b>、<b>CRM</b>、<b>OA</b> 等 Web 应用场景，亦可作为学习 ThinkPHP 企业级开发的完整参照实现。</p>
+            <p>
+                <b>当前版本：</b><span>v{$version}</span>
+                <b style="margin-left: 20px;">移植基准：</b><span>RuoYi v4.8.3</span>
+            </p>
+            <br>
+            <p>
+                <a class="btn btn-success btn-outline" href="https://gitee.com/y_project/RuoYi" target="_blank">
+                    <i class="fa fa-cloud"> </i> 若依原项目
+                </a>
+            </p>
+        </div>
+        <div class="col-sm-4">
+            <h4>技术选型：</h4>
+            <ol>
+                <li>核心框架：ThinkPHP 8.1。</li>
+                <li>运行环境：PHP 8.3。</li>
+                <li>模板引擎：think-template。</li>
+                <li>数据访问：think-orm（MySQL）。</li>
+                <li>会话/缓存：Redis（predis）。</li>
+                <li>Excel 处理：phpspreadsheet。</li>
+                <li>定时任务：microcron + 自研调度器。</li>
+                <li>权限体系：注解校验 + RBAC。</li>
+            </ol>
+        </div>
+    </div>
+    <div class="wrapper wrapper-content">
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>功能模块（全部完成）</h5>
+                    </div>
+                    <div class="ibox-content no-padding">
+                        <div class="panel-body">
+                            <div class="panel-group" id="modules">
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        <h5 class="panel-title"><a data-toggle="collapse" data-parent="#modules" href="#mod-sys">系统管理</a></h5>
+                                    </div>
+                                    <div id="mod-sys" class="panel-collapse collapse in">
+                                        <div class="panel-body">
+                                            <ol>
+                                                <li>用户管理（部门树联动、导入导出、分配角色、重置密码）</li>
+                                                <li>角色管理（数据权限、分配用户）与菜单管理（权限标识）</li>
+                                                <li>部门管理（树形）与岗位管理</li>
+                                                <li>字典管理与参数管理（Redis 缓存联动）</li>
+                                                <li>通知公告（summernote 富文本、已读体系）</li>
+                                                <li>操作日志 / 登录日志（查询、导出、清空、账户解锁）</li>
+                                            </ol>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        <h5 class="panel-title"><a data-toggle="collapse" data-parent="#modules" href="#mod-mon">系统监控</a></h5>
+                                    </div>
+                                    <div id="mod-mon" class="panel-collapse collapse">
+                                        <div class="panel-body">
+                                            <ol>
+                                                <li>在线用户（Redis 会话实时扫描、强退、自踢防护）</li>
+                                                <li>缓存监控（Redis 前缀枚举、键值查看、批量清理）</li>
+                                                <li>服务监控（CPU/内存/磁盘/PHP 运行环境）与数据监控</li>
+                                                <li>定时任务（Cron 调度、执行日志、账户级并发锁）与调度日志</li>
+                                            </ol>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        <h5 class="panel-title"><a data-toggle="collapse" data-parent="#modules" href="#mod-user">个人与安全</a></h5>
+                                    </div>
+                                    <div id="mod-user" class="panel-collapse collapse">
+                                        <div class="panel-body">
+                                            <ol>
+                                                <li>登录（验证码、密码错误锁定、记住我）与注册（开关控制）</li>
+                                                <li>个人中心（资料修改、头像裁剪上传、改密强制重登录）</li>
+                                                <li>锁屏/解锁（会话保持软锁）</li>
+                                                <li>数据权限（全部/自定义/本部门及以下/本部门/仅本人）</li>
+                                            </ol>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>移植说明</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <p><i class="fa fa-check-circle text-success"></i> <b>独立数据环境</b>：自用 MySQL 库与 Redis db，与原若依部署完全隔离。</p>
+                        <p><i class="fa fa-check-circle text-success"></i> <b>响应契约对齐</b>：code 信封（0/301/500）、驼峰字段、分页结构与经典版一致；同库脚本可直接对照验证。</p>
+                        <p><i class="fa fa-check-circle text-success"></i> <b>页面保真</b>：Bootstrap/jQuery 静态资源与页面结构原样移植，操作交互与经典版相同。</p>
+                        <p><i class="fa fa-check-circle text-success"></i> <b>行为差异留痕</b>：无法对齐的实现（如 Quartz→自研调度器、ehcache→Redis）全部登记在 specs/deviations.md，共 30 条。</p>
+                        <p><i class="fa fa-info-circle text-muted"></i> 与原若依的会话不互通（存储格式不同），切换系统后需重新登录。</p>
+                        <p><i class="fa fa-copyright text-muted"></i> 基于 <a href="https://gitee.com/y_project/RuoYi" target="_blank">RuoYi</a> 移植，原项目 MIT 协议；本项目仅作学习研究用途。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/ajax/libs/layer/layer.min.js"></script>
+</body>
+</html>

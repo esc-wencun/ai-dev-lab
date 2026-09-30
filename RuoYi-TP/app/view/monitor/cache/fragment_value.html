@@ -1,0 +1,15 @@
+{/* 片段：缓存内容三输入框+textarea（对位经典版 fragment-cache-value；AJAX 塞 #cacheValue） */}
+<div class="col-sm-12">
+    <div class="form-group">
+        <label>缓存名称：</label>
+        <input type="text" class="form-control" value="{$cacheName}">
+    </div>
+    <div class="form-group">
+        <label>缓存键名：</label>
+        <input type="text" class="form-control" value="{$cacheKey}">
+    </div>
+    <div class="form-group">
+        <label>缓存内容：</label>
+        <textarea class="form-control" style="height: 100px">{$cacheValue}</textarea>
+    </div>
+</div>

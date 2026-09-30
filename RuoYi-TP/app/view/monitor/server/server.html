@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+	{/* 服务监控页（对位经典版 monitor/server/server.html；oshi 降级——JVM 区块改「PHP 运行环境」，不可得项显「—」） */}
+	{assign name="pageTitle" value="服务器监控" /}
+	{include file="include/header" /}
+</head>
+<body class="gray-bg">
+    <div class="wrapper wrapper-content">
+        <div class="col-sm-12">
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="ibox float-e-margins">
+                        <div class="ibox-title">
+                            <h5><i class="fa fa-microchip"></i> CPU</h5>
+                            <div class="ibox-tools">
+                                <a class="collapse-link"><i class="fa fa-chevron-up"></i>
+                                </a>
+                                <a class="close-link"><i class="fa fa-times"></i></a>
+                            </div>
+                        </div>
+                        <div class="ibox-content">
+                            <table class="table table-hover no-margins">
+                                <thead>
+                                    <tr>
+                                        <th>属性</th>
+                                        <th>值</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>核心数</td>
+                                        <td>{$cpu.count ?? '—'}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>用户使用率</td>
+                                        <td>{$cpu.user === null ? '—' : $cpu['user'] . '%'}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>系统使用率</td>
+                                        <td>{$cpu.sys === null ? '—' : $cpu['sys'] . '%'}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>当前空闲率</td>
+                                        <td>{$cpu.idle === null ? '—' : $cpu['idle'] . '%'}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6">
+                    <div class="ibox float-e-margins">
+                        <div class="ibox-title">
+                            <h5><i class="fa fa-ticket"></i> 内存</h5>
+                            <div class="ibox-tools">
+                                <a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                                <a class="close-link"><i class="fa fa-times"></i></a>
+                            </div>
+                        </div>
+                        <div class="ibox-content">
+                            <table class="table table-hover no-margins">
+                                <thead>
+                                    <tr>
+                                        <th>属性</th>
+                                        <th>内存</th>
+                                        <th>PHP</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>总内存</td>
+                                        <td>{$mem.total === null ? '—' : $mem['total']}</td>
+                                        <td>{$mem.phpLimit === null ? '—' : $mem['phpLimit']}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>已用内存</td>
+                                        <td>{$mem.used === null ? '—' : $mem['used']}</td>
+                                        <td>{$mem.phpUsage}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>剩余内存</td>
+                                        <td>{$mem.free === null ? '—' : $mem['free']}</td>
+                                        <td>—</td>
+                                    </tr>
+                                    <tr>
+                                        <td>使用率</td>
+                                        <td>{$mem.usageRate === null ? '—' : $mem['usageRate']}</td>
+                                        <td>—</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="ibox float-e-margins">
+                        <div class="ibox-title">
+                            <h5><i class="fa fa-windows"></i> 服务器信息</h5>
+                            <div class="ibox-tools">
+                                <a class="collapse-link">
+                                    <i class="fa fa-chevron-up"></i>
+                                </a>
+                                <a class="close-link">
+                                    <i class="fa fa-times"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="ibox-content">
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <table class="table table-hover margin bottom">
+                                        <tbody>
+                                            <tr>
+                                                <td>服务器名称</td>
+                                                <td>{$sys.name}</td>
+                                                <td>操作系统</td>
+                                                <td>{$sys.os}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>服务器IP</td>
+                                                <td>{$sys.ip}</td>
+                                                <td>系统架构</td>
+                                                <td>{$sys.arch}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="ibox float-e-margins">
+                        <div class="ibox-title">
+                            <h5><i class="fa fa-coffee"></i> PHP 运行环境</h5>
+                            <div class="ibox-tools">
+                                <a class="collapse-link">
+                                    <i class="fa fa-chevron-up"></i>
+                                </a>
+                                <a class="close-link">
+                                    <i class="fa fa-times"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="ibox-content">
+
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <table class="table table-hover margin bottom" style="table-layout:fixed;">
+                                        <tbody>
+                                            <tr>
+                                                <td>PHP版本</td>
+                                                <td>{$php.version}</td>
+                                                <td>SAPI</td>
+                                                <td>{$php.sapi}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>启动时间</td>
+                                                <td>{$php.startTime ?? '—'}</td>
+                                                <td>运行参数</td>
+                                                <td>—</td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="1">内存限制</td>
+                                                <td colspan="3">{$php.memoryLimit === null ? '—' : $php['memoryLimit']}</td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="1">项目路径</td>
+                                                <td colspan="3">{:root_path()}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="ibox float-e-margins">
+                        <div class="ibox-title">
+                            <h5><i class="fa fa-hdd-o"></i> 磁盘状态</h5>
+                            <div class="ibox-tools">
+                                <a class="collapse-link">
+                                    <i class="fa fa-chevron-up"></i>
+                                </a>
+                                <a class="close-link">
+                                    <i class="fa fa-times"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="ibox-content">
+
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <table class="table table-hover margin bottom">
+                                        <thead>
+                                            <tr>
+                                                <th>盘符路径</th>
+                                                <th>文件系统</th>
+                                                <th>盘符类型</th>
+                                                <th>总大小</th>
+                                                <th>可用大小</th>
+                                                <th>已用大小</th>
+                                                <th>已用百分比</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {volist name="disks" id="disk" }
+                                            <tr>
+                                                <td>{$disk.dir}</td>
+                                                <td>{$disk.type}</td>
+                                                <td>{$disk.typeName}</td>
+                                                <td>{$disk.total}</td>
+                                                <td>{$disk.free}</td>
+                                                <td>{$disk.used}</td>
+                                                <td {if condition="$disk['usageRate'] > 80"}class="text-danger"{/if}>{$disk.usageRate}%</td>
+                                            </tr>
+                                            {/volist}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+{include file="include/footer" /}
+<script>
+    $(".modal").appendTo("body"), $("[data-toggle=popover]").popover(), $(".collapse-link").click(function() {
+        var div_ibox = $(this).closest("div.ibox"),
+        e = $(this).find("i"),
+        i = div_ibox.find("div.ibox-content");
+        i.slideToggle(200),
+        e.toggleClass("fa-chevron-up").toggleClass("fa-chevron-down"),
+        div_ibox.toggleClass("").toggleClass("border-bottom"),
+        setTimeout(function() {
+        	div_ibox.resize();
+        }, 50);
+    }), $(".close-link").click(function () {
+		var div_ibox = $(this).closest("div.ibox");
+		div_ibox.remove()
+	});
+</script>
+</html>

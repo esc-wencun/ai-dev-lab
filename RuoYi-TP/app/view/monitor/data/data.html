@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+	{/* 数据库监控页（自研——deviations #6 兑现：经典版此处 302 跳 druid；SHOW STATUS + PROCESSLIST 简页） */}
+	{assign name="pageTitle" value="数据监控" /}
+	{include file="include/header" /}
+</head>
+<body class="gray-bg">
+    <div class="wrapper wrapper-content">
+        <div class="col-sm-12">
+
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="ibox float-e-margins">
+                        <div class="ibox-title">
+                            <h5><i class="fa fa-database"></i> 基本信息</h5>
+                        </div>
+                        <div class="ibox-content">
+                            <table class="table table-hover margin bottom">
+                                <tbody>
+                                    <tr>
+                                        <td>数据库版本</td>
+                                        <td>{$dbInfo.version}</td>
+                                        <td>字符集</td>
+                                        <td>{$dbInfo.charset}</td>
+                                        <td>QPS（均值）</td>
+                                        <td>{$dbInfo.qps ?? '—'}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="ibox float-e-margins">
+                        <div class="ibox-title">
+                            <h5><i class="fa fa-tachometer"></i> 状态指标</h5>
+                        </div>
+                        <div class="ibox-content">
+                            <table class="table table-hover margin bottom">
+                                <thead>
+                                    <tr>
+                                        <th>指标</th>
+                                        <th>值</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {volist name="dbInfo.status" id="v" }
+                                    <tr>
+                                        <td>{$key}</td>
+                                        <td>{$v}</td>
+                                    </tr>
+                                    {/volist}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="ibox float-e-margins">
+                        <div class="ibox-title">
+                            <h5><i class="fa fa-list"></i> 进程列表</h5>
+                        </div>
+                        <div class="ibox-content">
+                            <table class="table table-hover margin bottom">
+                                <thead>
+                                    <tr>
+                                        <th>Id</th>
+                                        <th>User</th>
+                                        <th>Host</th>
+                                        <th>db</th>
+                                        <th>Command</th>
+                                        <th>Time</th>
+                                        <th>State</th>
+                                        <th>Info</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {volist name="dbInfo.processlist" id="p" }
+                                    <tr>
+                                        <td>{$p.Id}</td>
+                                        <td>{$p.User}</td>
+                                        <td>{$p.Host}</td>
+                                        <td>{$p.db ?? ''}</td>
+                                        <td>{$p.Command}</td>
+                                        <td>{$p.Time}</td>
+                                        <td>{$p.State ?? ''}</td>
+                                        <td style="word-wrap:break-word;word-break:break-all;">{$p.Info ?? ''}</td>
+                                    </tr>
+                                    {/volist}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</body>
+{include file="include/footer" /}
+<script>
+    $(".modal").appendTo("body");
+</script>
+</html>

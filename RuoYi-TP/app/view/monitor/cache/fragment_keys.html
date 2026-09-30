@@ -1,0 +1,8 @@
+{/* 片段：键名列表 tr（对位经典版 fragment-cache-kyes——经典版拼写原样仅备注；AJAX 塞 #cacheKeys） */}
+{volist name="cacheKeys" id="cacheKey" }
+<tr>
+    <td>{$i}</td>
+    <td style="word-wrap:break-word;word-break:break-all;" onclick="getCacheValue($('#cacheName').val(), '{$cacheKey}')">{$cacheKey}</td>
+    <td style="width: 50px"><a href="javascript:;" onclick="clearCacheKey($('#cacheName').val(), '{$cacheKey}')" title="清空"><i class="fa fa-trash-o text-danger"></i></a></td>
+</tr>
+{/volist}
