@@ -1,22 +1,22 @@
 # ai-dev-lab：学习与实践 AI coding——用工程纪律驱动 AI 跨技术栈交付一套系统
 
 这个仓库是**本人学习与实践 AI coding 的项目**：通过真实工程练习 spec 驱动开发、checklist 验收纪律与人机协作方法，并按由浅入深的顺序学习以下技术栈：
-
 1. **Python（FastAPI + SQLAlchemy 2.0 async）**——服务端入门：异步 ORM 与分层工程化（spec-00~11 已完成）；
 2. **Go（Gin + GORM）**——第二服务端语言：同一契约的跨语言复刻（已全部完成）；
-3. **React（React 19 + TypeScript + Ant Design 5 + Redux Toolkit）**——前端栈：功能等价复刻共用前端（2026-09-27 起新增，主体已完成，详见 [RuoYi-React](RuoYi-React/README.md)，尚未进行详细测试）；
-4. **AI 应用技能**（陆续补充）：**Function Calling / Tool Use** → **RAG（检索增强生成）** → **Agent / 智能体（企业智能体工程化）** → **LangChain4j / Spring AI**（Java 生态 AI 集成）。
+3. **PHP（ThinkPHP 8）**——第三服务端语言：复刻**经典若依 4.8.3**（前后端不分离，服务端渲染；specs 0.0.0~11.0.0 已完成）；
+4. **React（React 19 + TypeScript + Ant Design 5 + Redux Toolkit）**——前端栈：功能等价复刻共用前端（2026-09-27 起新增，主体已完成，详见 [RuoYi-React](RuoYi-React/README.md)，尚未进行详细测试）；
+5. **AI 应用技能**（陆续补充）：**Function Calling / Tool Use** → **RAG（检索增强生成）** → **Agent / 智能体（企业智能体工程化）** → **LangChain4j / Spring AI**（Java 生态 AI 集成）。
 
 项目源于开源项目 [RuoYi](https://gitee.com/y_project/RuoYi)（若依）：`RuoYi-Vue/`（Java 版）与 `RuoYi-Vue3/`（前端）为其官方仓库的本地副本。
 
 ## AI 开发工作流：spec 驱动，验收以数据为准
 
-每个模块动工前走同一套流程，全部过程文档在仓库中可查（两个 specs 目录共 **57 份**）：
+每个模块动工前走同一套流程，全部过程文档在仓库中可查（四个 specs 目录共 **131 份**）：
 
 1. **契约先行**：动手前先通读 Java 基准版对应的 Controller / ServiceImpl / Mapper XML，把端点路径、方法、参数、返回 JSON 结构逐条核实，写成该模块的 spec 任务书——不凭记忆，AI 记忆里的东西必须对着源码核实（为什么，见下面的跌倒案例 1）。
 2. **spec 三件套**：`spec.md`（API 契约 + 设计决策）、`tasks.md`（任务分解）、`checklist.md`（验收清单）。跨四端的增量功能用**一份契约主文档**统一管理，各语言版挂自己的实施任务书（范本：[12.0.0 平台标识](RuoYi-Vue-GO/specs/12.0.0-平台标识/spec.md)）。
 3. **验收以数据为准，不凭 AI 自述**：AI 说"做完了"不算数——要扫数据库实际数据（如 sys_job 预置任务是否覆盖）、抓前端实际调用（api/*.js + 页面内调用）、跑单元测试、浏览器端到端操作。
-4. **checklist 纪律**：做完即勾、没做不勾并在行尾注明原因、**宁可留白不可虚勾**。两版 specs 目录现有 **491 项已勾验收记录**，44 项如实留白。
+4. **checklist 纪律**：做完即勾、没做不勾并在行尾注明原因、**宁可留白不可虚勾**。四个 specs 目录现有 **1397 项已勾验收记录**，267 项如实留白。
 
 ## 项目结构
 
@@ -26,6 +26,7 @@ ai-dev-lab（原 ruoyi 工作区）
 ├── RuoYi-Vue3/         前端（Vue 3 + Element Plus + Vite）—— 三个后端共用，同样可增量演进，仍是 React 版的行为基准
 ├── RuoYi-Vue-FastApi/  Python 版服务端（FastAPI + SQLAlchemy 2.0 async）
 ├── RuoYi-Vue-GO/       Go 版服务端（Gin + GORM）
+├── RuoYi-TP/           PHP 版服务端（ThinkPHP 8，前后端不分离）—— 复刻经典若依 4.8.3，自用库 ry-tp + Redis db1
 ├── RuoYi-React/        React 前端（React 19 + TS + Ant Design 5 + Redux Toolkit）—— 功能等价复刻 RuoYi-Vue3，2026-09-27 起新增
 └── docker/             本地开发环境（MySQL 8.0 + Redis 7.0，开箱即用）
 ```
@@ -50,6 +51,8 @@ ai-dev-lab（原 ruoyi 工作区）
 | 平台标识 `GET /getPlatformInfo`（跨四端增量） | ✅ | ✅ | ✅ |
 
 Go / Python 版每模块的 API 契约、任务分解与验收记录见各自 specs 目录（[GO](RuoYi-Vue-GO/specs/README.md) / [Python](RuoYi-Vue-FastApi/specs/README.md)），与 Java 版的有意差异集中登记在 [deviations.md](RuoYi-Vue-GO/specs/deviations.md)。
+
+**PHP 版（RuoYi-TP）**：另一条复刻线——复刻**经典若依 4.8.3**（前后端不分离、服务端渲染，页面观感对齐经典版），模块 0.0.0~11.0.0 全部完成（2026-10-01），与 Java/Python/Go 三版**互不复刻接口**（经典版 AjaxResult code 0/301/500、md5 密码方案、自用库 `ry-tp` + Redis db1），学习 PHP / ThinkPHP 生态。台账见 [RuoYi-TP/specs/README.md](RuoYi-TP/specs/README.md)，差异登记 [deviations.md](RuoYi-TP/specs/deviations.md)（33 条）。
 
 **React 前端（RuoYi-React）**：上述功能已全部实现或按拍板排除（2026-09-29），细节与测试状态见 [RuoYi-React/README.md](RuoYi-React/README.md) 与其 [specs 台账](RuoYi-React/specs/README.md)。
 
@@ -80,7 +83,7 @@ docker compose up -d     # 或 Windows 双击 start.bat
 
 详情见 [docker/README.md](docker/README.md)。也可以使用自有的 MySQL 8.0 / Redis，需导入 [`RuoYi-Vue/sql/`](RuoYi-Vue/sql/) 下的初始化脚本。
 
-### 1. 启动后端（三选一，同监听 8080，**同一时间只能运行一个**）
+### 1. 启动后端（同监听 8080 的三版三选一，**同一时间只能运行一个**；PHP 版独立 8888 可并行）
 
 <details open>
 <summary><b>Go 版</b></summary>
@@ -114,6 +117,17 @@ ruoyi-admin/target/ruoyi-admin.jar         # 需先按 docker/README.md 调整�
 ```
 </details>
 
+<details>
+<summary><b>PHP 版（RuoYi-TP，独立 8888 端口）</b></summary>
+
+```bash
+cd RuoYi-TP
+composer install                           # 需 PHP 8.0+（本机 8.3）
+# 建库 ry-tp 并导入经典版官方 SQL（见 RuoYi-TP/specs/0.0.0-工程基础/spec.md），配置 .env
+php think run --port 8888                  # 与 8080 三版并行
+```
+</details>
+
 ### 2. 启动前端
 
 ```bash
@@ -136,6 +150,7 @@ npm run dev                                # 监听 80，/dev-api 代理到 loca
 | [RuoYi-Vue-GO/specs/README.md](RuoYi-Vue-GO/specs/README.md) | Go 版模块总表、动工检查单与遗留待办 |
 | [RuoYi-Vue-GO/specs/deviations.md](RuoYi-Vue-GO/specs/deviations.md) | 与 Java 版的全部有意差异（20 条） |
 | [RuoYi-Vue-GO/AGENTS.md](RuoYi-Vue-GO/AGENTS.md) | Go 版 AI 编码规范（契约先行/勾选纪律等） |
+| [RuoYi-TP/specs/README.md](RuoYi-TP/specs/README.md) | PHP 版（经典若依复刻）模块总表与动工检查单 |
 | [docker/README.md](docker/README.md) | 本地 MySQL + Redis 环境说明 |
 
 ## 说明

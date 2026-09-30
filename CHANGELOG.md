@@ -4,6 +4,11 @@
 
 格式参照 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，日期倒序。
 
+## 2026-10-01
+
+- **RuoYi-TP（ThinkPHP 8 版）全部 12 模块完成**：复刻经典若依 4.8.3（前后端不分离、服务端渲染），specs 0.0.0~11.0.0 收官——末批完成字典参数（06）、通知公告 summernote 富文本（07）、个人中心含锁屏/注册（08）、监控日志（09）、定时任务 `php think scheduler` 常驻调度（10）、代码生成器按拍板范围 A 完成（11，模板生成链有意排除）；PHPUnit 11 单测 100 项全绿，与经典版差异登记 deviations 33 条。工作区第三条服务端复刻线（学习 PHP / ThinkPHP 生态），自用库 `ry-tp` + Redis db1、端口 8888，与三版完全隔离。
+- **登录页默认口令清空**：RuoYi-Vue3 登录表单不再预填 `admin/admin123`。
+
 ## 2026-09-29
 
 - **RuoYi-React 主体完成**：布局余项（TagsView 页签/设置抽屉/navType 三模式/暗色主题/通知公告铃铛）与通用组件批次（Pagination/RightToolbar/TreePanel/ExcelImportDialog/Crontab 七域生成器）全部落地，00~07 模块完成、深度验收（CRUD/树表排序/导入导出/角色半选/job 调度全生命周期/锁屏/页签持久化）浏览器实操通过；实现期间修复多处集成 bug，含角色菜单/数据权限提交字段名（menuIdList→menuIds）与 updateSort 参数契约两处接口契约级问题。KeepAlive 页签缓存经演示后拍板不做（deviations #1 定稿）；纯逻辑单测扩至 127 项全绿。README 已声明「尚未进行详细测试」。
