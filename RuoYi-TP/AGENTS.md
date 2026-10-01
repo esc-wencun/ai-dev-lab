@@ -36,13 +36,15 @@ app/
 
 ## 常用命令
 
+本机 `C:\php\8.3` 已入 PATH（`php -v` 应为 8.3.35；若命令找不到或版本不符，一律改用全路径 `"C:\php\8.3\php.exe"`）：
+
 ```bash
 php think run --port 8888           # 开发服务器（8888 与 8080 三版并行）
-php vendor/phpunit/phpunit/phpunit  # 单元测试（纯逻辑，不连库）
-php think                           # 查看可用命令
+php vendor/bin/phpunit              # 单元测试（纯逻辑，不连库）
+php think                           # 查看可用命令（含 10.0.0 的 scheduler）
 ```
 
-Composer 直接用 `php C:\php\8.3\composer.phar <cmd>`（全局 PATH 的 composer.bat 在新终端生效）。
+Composer 用 `php C:\php\8.3\composer.phar <cmd>`（全局 PATH 的 composer.bat 在新终端生效）。
 
 ## 环境约束
 
