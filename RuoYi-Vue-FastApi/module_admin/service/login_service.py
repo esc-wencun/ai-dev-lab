@@ -4,8 +4,12 @@ from typing import Optional, List
 from fastapi import Request
 from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
-from module_admin.dao.login_dao import *
-from module_admin.entity.vo.login_vo import *
+from module_admin.dao.login_dao import (get_config_by_key, get_dept_by_id, get_menu_tree_all,
+                                        get_menu_tree_by_user_id, get_user_by_id,
+                                        get_user_by_user_name, get_user_perms_by_role_id,
+                                        get_user_perms_by_user_id, get_user_role_keys,
+                                        get_user_roles)
+from module_admin.entity.vo.login_vo import LoginModel
 from exceptions.exception import LoginException, AuthException
 from config.database import AsyncSessionLocal
 from config.env import JwtConfig

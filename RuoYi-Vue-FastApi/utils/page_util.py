@@ -3,8 +3,7 @@
 
 规范：所有列表接口经 paginate 返回 {code, msg, rows, total}，与java版TableDataInfo一致
 """
-import math
-from typing import Any, Optional
+from typing import Optional
 from fastapi import Request
 from sqlalchemy import Select, select, func, text
 from sqlalchemy.ext.asyncio import AsyncSession

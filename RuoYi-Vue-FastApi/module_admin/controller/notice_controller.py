@@ -3,7 +3,7 @@
 """
 from datetime import datetime
 from fastapi import APIRouter, Request, Depends
-from sqlalchemy import select, func, text
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from config.get_db import get_db
 from module_admin.entity.do.entity import SysNotice, SysNoticeRead, SysUser

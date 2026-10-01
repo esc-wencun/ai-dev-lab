@@ -9,7 +9,7 @@ from module_admin.entity.do.entity import SysDept
 from module_admin.dao import dept_dao
 from module_admin.aspect.interface_auth import require_perm
 from module_admin.annotation.log_annotation import log_decorator
-from common.enums import BusinessType, UserStatus
+from common.enums import BusinessType
 from common.constant import UserConstants
 from utils.response_util import ResponseUtil
 from utils.common_util import transform_result

@@ -10,7 +10,7 @@ from config.env import UploadConfig
 from common.constant import Constants, CacheConstants, SysConfig
 from common.enums import BusinessType
 from module_admin.entity.vo.login_vo import RegisterModel
-from module_admin.service.login_service import LoginService, TokenService
+from module_admin.service.login_service import LoginService
 from module_admin.service.user_service import ProfileService, RegisterService
 from module_admin.annotation.log_annotation import log_decorator
 from utils.upload_util import upload_one, upload_files, FileUploadException, is_allowed_download
@@ -89,7 +89,6 @@ async def avatar(request: Request, avatarfile: UploadFile = File(...),
         login_user = await LoginService.get_current_user(request, query_db)
         if not avatarfile or not avatarfile.filename:
             return ResponseUtil.failure(msg='上传图片异常，请联系管理员')
-        from module_admin.entity.do.entity import SysUser
         from module_admin.dao.login_dao import get_user_by_id
         result = await upload_one(avatarfile, UploadConfig.UPLOAD_PATH)
         user = await get_user_by_id(query_db, login_user.get('user_id'))

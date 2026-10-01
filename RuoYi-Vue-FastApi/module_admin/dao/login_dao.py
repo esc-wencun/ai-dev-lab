@@ -1,4 +1,4 @@
-from sqlalchemy import select, and_
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from module_admin.entity.do.entity import SysUser, SysDept, SysRole, SysUserRole, SysMenu, SysRoleMenu, SysConfig
 

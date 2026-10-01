@@ -13,7 +13,7 @@ from common.enums import BusinessType
 from utils.page_util import paginate
 from utils.response_util import ResponseUtil
 from utils.common_util import transform_result
-from utils.excel_util import export_excel, ExcelColumn
+from utils.excel_util import ExcelColumn
 from module_task import scheduler_util, registry
 from utils.log_util import logger
 

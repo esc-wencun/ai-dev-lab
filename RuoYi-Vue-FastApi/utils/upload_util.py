@@ -4,10 +4,9 @@
 规范：上传路径 {UPLOAD_PATH}/{yyyy/MM/dd}/{编码文件名}；扩展名白名单；防路径穿越
 """
 import os
-import re
 import uuid as uuid_pkg
 from datetime import datetime
-from typing import List, Optional
+from typing import List
 from fastapi import UploadFile
 from config.env import UploadConfig
 

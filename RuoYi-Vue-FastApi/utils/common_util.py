@@ -5,7 +5,7 @@
 敏感字段（password）永不序列化，对齐java版SysUser @JsonProperty(WRITE_ONLY)
 """
 from datetime import datetime, date
-from typing import Any, List
+from typing import Any
 
 # 永不序列化的敏感字段
 EXCLUDED_COLUMNS = {'password'}

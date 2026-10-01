@@ -1,6 +1,6 @@
 # Spec-00 工程规范基础：分层 / 常量枚举 / Redis 门面 / 序列化 / 事务 / 后台任务
 
-> **状态：✅ 已完成（2026-09-24）**。核心 Task 全部落地并通过端到端回归；ruff/mypy 为可选项暂缓（见 Task 8 说明）。
+> **状态：✅ 已完成（2026-09-24；ruff 工具链 2026-10-01 补齐）**。核心 Task 全部落地并通过端到端回归；mypy 仍为可选项暂缓（见 Task 8 说明）。
 >
 > 所有模块（含 spec-01）的地基，对齐 Java 版 ruoyi-common 的工程能力。
 > Java 版对应：`ruoyi-common/constant` + `ruoyi-common/enums`（常量枚举）、`RedisCache`（缓存门面）、Jackson 驼峰序列化、`@Transactional`（事务）、`AsyncManager`（后台任务）、`MessageUtils` + i18n（文案）。
@@ -87,14 +87,14 @@ class UserStatus(Enum):
 
 ## Task 8: 工具链（轻量）
 
-- [x] `ruff` 接入（lint + format，配置入 pyproject.toml 或 ruff.toml，行宽/引号与现有代码风格一致）
+- [x] `ruff` 接入（lint + format，配置入 ruff.toml；2026-10-01 完成：规则集钉死 E4/E7/E9/F+W605、单引号/行宽120。注意 format 已配置但未对存量全量重排——60/93 文件有格式差异，避免一次性大 diff，按需单文件收敛）
 - [x] mypy 可选项：暂不强制，记录决策
-- [ ] CI 前置脚本：`ruff check && pytest`（README 写明提交前自查命令）——**遗留未做**（依赖ruff接入）
+- [x] CI 前置脚本：`ruff check && pytest`（README 写明提交前自查命令）——2026-10-01 完成
 
 ## 验收清单（本 spec 完成标准）
 
-- [x] Task 1-7、8（除ruff）全部完成；ruff 为明确遗留项（见Task 8标注）
+- [x] Task 1-8 全部完成（ruff 于 2026-10-01 补齐接入，见 Task 8）
 - [x] Phase 0 登录端到端链路回归通过（含 sys-user.log、sys_logininfor 表双路日志）
-- [ ] `ruff check` 无 error（未接入ruff，跳过）；`pytest tests/` 全绿 ✅（55 passed）
+- [x] `ruff check` 无 error（2026-10-01 接入，存量 82 处修至 0：56 未用导入、1 处 `except as e` 延迟引用真 bug、2 处非法转义等）；`pytest tests/` 全绿（55 passed；2026-10-01 uv venv(3.12) 重跑复核，期间发现并补上 fakeredis 的 `[lua]` extra 声明）
 - [x] 分层规范文档定稿（放本文件或 docs/architecture.md），后续 spec 的 PR 按此评审
 - [x] 更新 specs/README.md：本 spec 状态改为 ✅

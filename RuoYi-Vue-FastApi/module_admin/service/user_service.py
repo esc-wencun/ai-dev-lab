@@ -5,18 +5,17 @@
 """
 from datetime import datetime
 from typing import Optional
-from sqlalchemy import select, and_
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from module_admin.entity.do.entity import SysUser, SysRole, SysPost, SysUserRole, SysUserPost
 from module_admin.dao.login_dao import get_user_by_id, get_user_by_user_name
-from common.constant import Constants, UserConstants, SysConfig as SysConfigKey
+from common.constant import UserConstants
 from common.enums import UserStatus
 from common.message_util import message as msg
 from config.redis_cache import RedisCache
 from config.env import JwtConfig
-from exceptions.exception import LoginException, ServiceException
+from exceptions.exception import ServiceException
 from utils.pwd_util import PwdUtil
-from utils.log_util import logger
 
 
 class ProfileService:

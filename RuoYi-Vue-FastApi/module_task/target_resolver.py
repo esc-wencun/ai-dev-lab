@@ -10,7 +10,6 @@ invoke_target 解析与校验（spec-09 补齐，对齐java版JobInvokeUtil + Sy
 """
 import re
 from typing import List, Tuple, Any
-from common.constant import Constants
 
 
 def _smart_split(param_str: str) -> List[str]:
@@ -118,11 +117,11 @@ def validate_target(invoke_target: str, registered_checker) -> str:
     for forbidden in _FORBIDDEN_SUBSTRINGS:
         if forbidden.lower() in t.lower():
             if forbidden in ('rmi:',):
-                return f"目标字符串不允许'rmi'调用"
+                return "目标字符串不允许'rmi'调用"
             if forbidden in ('ldap:', 'ldaps:'):
-                return f"目标字符串不允许'ldap(s)'调用"
+                return "目标字符串不允许'ldap(s)'调用"
             if forbidden in ('http://', 'https://'):
-                return f"目标字符串不允许'http(s)'调用"
+                return "目标字符串不允许'http(s)'调用"
             return '目标字符串存在违规'
     try:
         bean, method, _ = parse_target(t)

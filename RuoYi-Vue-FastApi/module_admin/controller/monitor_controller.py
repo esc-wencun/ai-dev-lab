@@ -2,11 +2,10 @@
 监控模块控制器（spec-08）：在线用户/服务监控/缓存监控/操作日志/登录日志
 对应java版SysUserOnlineController/ServerController/CacheController/SysOperlogController/SysLogininforController
 """
-import time
 import platform
 from datetime import datetime
 from fastapi import APIRouter, Request, Depends
-from sqlalchemy import select, func, delete
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 import psutil
 from config.get_db import get_db

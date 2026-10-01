@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import pytest
 from module_task.target_resolver import parse_target, validate_target, _parse_param
-from module_task.registry import register, is_registered
+from module_task.registry import is_registered
 
 
 class TestParseParam:

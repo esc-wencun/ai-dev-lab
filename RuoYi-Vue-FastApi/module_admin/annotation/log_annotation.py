@@ -13,10 +13,9 @@ from functools import wraps
 from typing import Callable, Optional
 from fastapi import Request
 from common.enums import BusinessType, OperatorType
-from common.constant import Constants
 from config.database import AsyncSessionLocal
 from module_admin.entity.do.entity import SysOperLog
-from module_admin.service.login_service import TokenService, get_redis_cache
+from module_admin.service.login_service import TokenService
 from utils.log_util import logger
 
 # 敏感参数不记录（对齐java版LogAspect的PASSWORD字段过滤）
@@ -129,11 +128,12 @@ def log_decorator(title: str, business_type: BusinessType = BusinessType.OTHER):
                 return response
             except Exception as e:
                 cost_ms = int((time.perf_counter() - start) * 1000)
+                err_msg = str(e)   # except as 的 e 在块退出时被 Python 删除，延迟任务须提前捕获文本
                 if request is not None:
                     async def _save_err():
                         async with AsyncSessionLocal() as session:
                             session.add(await _build_oper_log(request, title, business_type,
-                                                              cost_ms, str(e), is_error=True))
+                                                              cost_ms, err_msg, is_error=True))
                             await session.commit()
                     asyncio.create_task(_guard(_save_err()))
                 raise

@@ -3,7 +3,7 @@
 分层职责：仅查询与写库语句，无业务判断
 """
 from typing import List, Optional
-from sqlalchemy import select, and_, or_
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from module_admin.entity.do.entity import SysDept, SysUser
 

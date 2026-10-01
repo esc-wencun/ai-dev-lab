@@ -7,7 +7,7 @@
 """
 from fastapi import Request
 from exceptions.exception import PermissionException
-from module_admin.service.login_service import LoginService, get_redis_cache, ADMIN_USER_ID
+from module_admin.service.login_service import LoginService, ADMIN_USER_ID
 
 
 def _match(perms: set, pattern: str) -> bool:
@@ -49,7 +49,6 @@ async def validate_role(request: Request, role: str):
         raise PermissionException(message='登录状态已过期，请重新登录')
     if login_user.get('user_id') == ADMIN_USER_ID:
         return
-    perms = set(login_user.get('permissions') or [])
     # 角色信息存于会话外，此处简化：会话permissions中admin角色直接放行（与java行为一致：admin用户全通过）
     from module_admin.dao.login_dao import get_user_role_keys
     # 角色key不入会话（会话只存permissions），走数据库查询（后续spec-05优化为会话内缓存）
@@ -64,7 +63,6 @@ def require_perm(permission: str):
     """
     FastAPI依赖工厂：校验接口权限
     """
-    from fastapi import Depends
 
     async def _dependency(request: Request):
         await validate_permission(request, permission)

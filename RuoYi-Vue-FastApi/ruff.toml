@@ -1,0 +1,29 @@
+# ruff 配置——spec-00 Task 8 工具链
+# 行宽/引号与现有代码风格一致：单引号为主（统计 6249 vs 2588）、主流行宽 120。
+# 规则集显式钉死经典错误集（E4/E7/E9/F = pycodestyle 错误子集 + pyflakes）+ W605 非法转义（未来必炸）。
+# 不随 ruff 0.16+ 扩容后的默认集走（含 B/UP/DTZ/SIM 等风格族，全量 ~660 条，
+# 属风格统一范畴，按需增量启用，不混入本次接入）。
+# 不开 E501（存量有 40 行超 120，避免格式化大 diff）。
+
+target-version = "py310"   # 项目最低要求 Python 3.10+
+line-length = 120
+
+extend-exclude = [
+    ".idea",
+    ".ruff-tmp",
+    ".tools",
+    "assets",
+    "download_path",
+    "upload_path",
+    "logs",
+]
+
+[lint]
+select = ["E4", "E7", "E9", "F", "W605"]
+
+[lint.per-file-ignores]
+# ryTask 演示任务参数名与 java 版 RyTask.ryMultipleParams(s, b, l, d, i) 逐字对位，不改名
+"module_task/ry_task.py" = ["E741"]
+
+[format]
+quote-style = "single"     # format 引号风格跟随存量代码

@@ -10,8 +10,6 @@ from module_admin.entity.do.entity import SysMenu, SysRoleMenu, SysRole
 from module_admin.aspect.interface_auth import require_perm
 from module_admin.annotation.log_annotation import log_decorator
 from common.enums import BusinessType
-from common.constant import UserConstants
-from module_admin.service.login_service import build_menus, get_child_perms, ADMIN_USER_ID
 from utils.response_util import ResponseUtil
 from utils.common_util import transform_result
 from utils.log_util import logger

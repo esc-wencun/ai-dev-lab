@@ -1,7 +1,6 @@
 """
 代码生成器 DO（spec-10，对应java版gen_table / gen_table_column）
 """
-from datetime import datetime
 from sqlalchemy import Column, BigInteger, String, Integer, DateTime
 from config.database import Base
 

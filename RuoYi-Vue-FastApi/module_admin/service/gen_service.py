@@ -6,11 +6,10 @@
 import json
 import re
 from datetime import datetime
-from typing import List, Optional, Tuple
+from typing import List, Optional
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from module_admin.entity.do.gen_do import GenTable, GenTableColumn
-from utils.log_util import logger
 
 # ============ 配置（对齐java generator.yml） ============
 GEN_CONFIG = {

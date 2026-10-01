@@ -10,7 +10,7 @@ import zipfile
 from typing import List
 from jinja2 import Environment, FileSystemLoader
 from module_admin.service.gen_service import (
-    build_template_context, get_permission_prefix, get_pk_column, to_camel_case,
+    build_template_context, get_pk_column, to_camel_case,
 )
 from module_admin.entity.do.gen_do import GenTable, GenTableColumn
 
@@ -81,7 +81,6 @@ def get_file_name(template: str, table: GenTable) -> str:
     """
     生成物文件路径（对齐java getFileName的目录结构语义，改为python项目结构）
     """
-    class_name = table.class_name
     module_name = table.module_name
     business_name = table.business_name
 

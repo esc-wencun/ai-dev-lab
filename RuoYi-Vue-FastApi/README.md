@@ -70,7 +70,7 @@ RuoYi-Vue-FastApi/
 
 ### 1. 环境要求
 
-- Python 3.10+
+- Python 3.10+（本机用 uv 建项目专用 3.12 venv，见「3. 安装依赖」）
 - MySQL 5.7+（与 Java 版共用 `ry-vue` 库）
 - Redis
 
@@ -100,20 +100,32 @@ REDIS_DATABASE=0
 
 ```bash
 cd RuoYi-Vue-FastApi
-"C:\Program Files\Python310\python.exe" -m pip install -r requirements.txt
+uv venv --python 3.12                        # 首次：创建项目专用 venv（.venv，已 gitignore）
+$env:UV_INDEX_URL = "https://mirrors.aliyun.com/pypi/simple"   # uv 走镜像（PowerShell）
+uv pip install -r requirements.txt
 ```
 
 ### 4. 启动
 
 ```bash
-"C:\Program Files\Python310\python.exe" app.py --env=dev
+.venv\Scripts\python app.py --env=dev
 ```
 
 服务监听 `http://localhost:8080`（与 Java 版同端口，前端 `vite.config.js` 代理无需修改）。
 
 接口文档：http://localhost:8080/docs
 
-### 5. 启动前端
+### 5. 提交前自查
+
+```bash
+.venv\Scripts\activate        # 激活项目 venv
+ruff check .                  # 代码静态检查（配置见 ruff.toml），零 error 才提交
+python -m pytest tests/ -v    # 单元测试
+```
+
+一条命令串行执行：`ruff check . && python -m pytest tests/`
+
+### 6. 启动前端
 
 ```bash
 cd ../RuoYi-Vue3

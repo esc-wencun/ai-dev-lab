@@ -5,14 +5,12 @@
     @router.post('/add', dependencies=[Depends(prevent_repeat_submit())])
     @router.get('/list', dependencies=[Depends(rate_limiter(count=10, time_seconds=60))])
 """
-import json
 import hashlib
 from typing import Optional
 from fastapi import Request
 from common.constant import CacheConstants
 from module_admin.service.login_service import get_redis_cache
 from exceptions.exception import LoginException
-from utils.response_util import ResponseUtil
 from utils.log_util import logger
 
 # 限流Lua脚本（对齐java版RedisConfig.limitScriptText）
@@ -49,7 +47,6 @@ def prevent_repeat_submit(interval_seconds: int = 5, message: str = '不允许�
     防重复提交依赖（对应java @RepeatSubmit(interval=...)，java为毫秒，此处秒）
     interval窗口内同url+同token+同body视为重复
     """
-    from common.constant import Constants
 
     async def _dependency(request: Request):
         if request.method not in ('POST', 'PUT', 'DELETE'):

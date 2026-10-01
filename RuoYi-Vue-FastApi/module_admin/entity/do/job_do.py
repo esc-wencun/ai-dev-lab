@@ -2,8 +2,7 @@
 定时任务模块（spec-09，对应java版ruoyi-quartz）
 DO: sys_job / sys_job_log
 """
-from datetime import datetime
-from sqlalchemy import Column, BigInteger, String, Integer, DateTime
+from sqlalchemy import Column, BigInteger, String, DateTime
 from config.database import Base
 
 

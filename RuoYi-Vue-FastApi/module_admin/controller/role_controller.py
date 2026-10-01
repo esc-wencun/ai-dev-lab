@@ -4,14 +4,14 @@
 """
 from datetime import datetime
 from fastapi import APIRouter, Request, Depends
-from sqlalchemy import select, func
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from config.get_db import get_db
 from module_admin.entity.do.entity import SysRole, SysUserRole, SysUser, SysDept, SysRoleDept
 from module_admin.aspect.interface_auth import require_perm
 from module_admin.annotation.log_annotation import log_decorator
 from common.enums import BusinessType
-from utils.page_util import paginate, get_page_domain
+from utils.page_util import paginate
 from utils.response_util import ResponseUtil
 from utils.common_util import transform_result
 from utils.excel_util import export_excel, ExcelColumn
@@ -47,7 +47,7 @@ async def _refresh_role_sessions(request: Request, role_id: int):
     """
     from module_admin.service.login_service import get_redis_cache
     from module_admin.dao.login_dao import get_user_perms_by_role_id
-    from common.constant import CacheConstants, Constants
+    from common.constant import CacheConstants
     from config.get_db import AsyncSessionLocal
     cache = get_redis_cache(request)
     for key in await cache.keys_by_prefix(CacheConstants.LOGIN_TOKEN_KEY):

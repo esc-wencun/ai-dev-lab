@@ -8,13 +8,12 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from config.get_db import get_db
 from module_admin.entity.do.entity import SysUser, SysDept, SysRole, SysPost, SysUserRole, SysUserPost
-from module_admin.dao import dept_dao, post_dao
+from module_admin.dao import dept_dao
 from module_admin.aspect.interface_auth import require_perm
 from module_admin.aspect.data_scope import build_data_scope_conditions
 from module_admin.annotation.log_annotation import log_decorator
 from common.enums import BusinessType
-from common.constant import UserConstants, SysConfig as SysConfigKey
-from utils.page_util import paginate
+from common.constant import SysConfig as SysConfigKey
 from utils.response_util import ResponseUtil
 from utils.common_util import transform_result
 from utils.excel_util import export_excel, export_template, parse_excel, ExcelColumn

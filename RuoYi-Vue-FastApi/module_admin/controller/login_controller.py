@@ -4,10 +4,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from config.get_db import get_db
 from config.redis_cache import RedisCache
 from common.constant import CacheConstants, Constants, SysConfig
-from module_admin.entity.vo.login_vo import LoginModel, RegisterModel
+from module_admin.entity.vo.login_vo import LoginModel
 from module_admin.service.login_service import LoginService
 from module_admin.service.captcha_service import CaptchaService
-from exceptions.exception import LoginException, AuthException
+from exceptions.exception import LoginException
 from utils.response_util import ResponseUtil
 from utils.log_util import logger
 

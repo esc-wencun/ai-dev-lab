@@ -6,8 +6,12 @@
 
 ## Python 解释器（RuoYi-Vue-FastApi）
 
-- 必须用全路径 `"C:\Program Files\Python310\python.exe"`（3.10）。
-- 本机 PATH 默认的 Python 是 Anaconda 3.8，版本过旧不能用于本项目（FastAPI + SQLAlchemy 2.0 async 需要 3.10+）。
+- **项目专用 venv（2026-10-01 起）**：`RuoYi-Vue-FastApi\.venv`，Python 3.12.14（uv 管理的解释器），本项目所有 python/ruff/pytest 命令一律走它：
+  - 全路径：`"W:\wencun\ai\java_ai\ruoyi\RuoYi-Vue-FastApi\.venv\Scripts\python.exe"`（`-m ruff` / `-m pytest` 同理）；
+  - 重建环境：项目根目录执行 `uv venv --python 3.12`，再 `uv pip install -r requirements.txt`（镜像已固化在 `%APPDATA%\uv\uv.toml` 全局生效，无需再设 `UV_INDEX_URL`；注意 uv **不读 pip.ini**，且该 toml 必须保持无 BOM 的 UTF-8/纯 ASCII，编码坏了 uv 会拒绝加载）。
+- PATH 默认 Python 是 3.14（`C:\Users\wencun\AppData\Local\Programs\Python\Python314`），**不能用于本项目**：requirements.txt 钉死的 asyncmy 等老包无 cp314 wheel。
+- Anaconda 3.8 在 `W:\opt\Anaconda3`，版本过旧不能用于本项目（FastAPI + SQLAlchemy 2.0 async 需要 3.10+）。
+- 历史：原 `C:\Program Files\Python310\python.exe`（3.10）已随环境变更不存在，2026-10-01 起改为上述 uv venv 方案。
 
 ## Java 运行时（RuoYi-Vue）
 

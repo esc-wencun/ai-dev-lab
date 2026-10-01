@@ -85,7 +85,7 @@ def _user_dept_id(login_user: dict):
             user = await get_user_by_id(db, login_user.get('user_id'))
             return user.dept_id if user else None
     try:
-        loop = asyncio.get_running_loop()
+        asyncio.get_running_loop()   # 仅探测是否在事件循环内，探测失败走下方兜底
         # 已在事件循环中：同步预查不可行，返回-1兜底（调用方应确保会话含dept_id）
         logger.warning('数据权限：会话缺少dept_id且无法同步查询')
         return -1

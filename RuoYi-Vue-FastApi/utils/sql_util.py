@@ -18,7 +18,7 @@ def filter_keyword(sql: str):
     import re
     if not sql:
         return
-    dangerous = ['truncate', 'sleep', 'shutdown', 'drop\s+database', 'drop\s+schema']
+    dangerous = ['truncate', 'sleep', 'shutdown', r'drop\s+database', r'drop\s+schema']
     for kw in dangerous:
         if re.search(kw, sql, re.IGNORECASE):
             raise ValueError(f'SQL包含不允许的关键字: {kw}')

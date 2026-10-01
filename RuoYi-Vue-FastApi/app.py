@@ -1,5 +1,4 @@
 import uvicorn
-from server import app, AppConfig
 from config.env import AppConfig
 
 

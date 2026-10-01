@@ -130,7 +130,7 @@ async def run_job_safely(job_id: int, invoke_target: str):
     from module_task.registry import get_task
     from module_task.target_resolver import parse_target
     from config.database import AsyncSessionLocal
-    from module_admin.entity.do.job_do import SysJob, SysJobLog
+    from module_admin.entity.do.job_do import SysJobLog
 
     async with AsyncSessionLocal() as db:
         job = (await db.execute(
@@ -138,7 +138,7 @@ async def run_job_safely(job_id: int, invoke_target: str):
         if not job:
             return
         start = datetime.now()
-        status, message_, exc = '0', '执行成功', ''
+        status, exc = '0', ''
         try:
             bean, method, params = parse_target(invoke_target)
             func = get_task(f'{bean}.{method}')
@@ -147,7 +147,6 @@ async def run_job_safely(job_id: int, invoke_target: str):
                 await result
         except Exception as e:
             status = '1'
-            message_ = '执行失败'
             exc = str(e)
             logger.error(f'任务{job.job_name}执行失败: {e}')
         cost = int((datetime.now() - start).total_seconds() * 1000)
