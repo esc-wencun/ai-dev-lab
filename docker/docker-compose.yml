@@ -10,6 +10,10 @@
 #
 # 可选自定义：在 docker 目录放一个 .env 文件可覆盖默认端口/密码（见 .env.example）。
 # MySQL 数据在命名卷 ruoyi-mysql-data，Redis 数据在 ruoyi-redis-data，删卷即完全重置。
+# 项目名固定为 ruoyi（决定资源前缀：卷 ruoyi_ruoyi-mysql-data、网络 ruoyi_default），
+# 不随目录名变化；Docker Engine 需 Compose v2.20+（2023 年后的 Docker Desktop 均满足）。
+
+name: ruoyi
 
 services:
   mysql:

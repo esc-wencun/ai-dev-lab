@@ -39,8 +39,8 @@ docker compose ps        # STATE 变为 healthy 即就绪
 
 ```bash
 cd ../RuoYi-Vue-FastApi
-"C:\Program Files\Python310\python.exe" app.py --env=docker    # Windows
-python3 app.py --env=docker                                    # macOS / Linux
+.venv\Scripts\python app.py --env=docker    # Windows（项目 venv，建立方式见该项目 README「安装依赖」）
+python3 app.py --env=docker                 # macOS / Linux
 ```
 
 **Java 版**：把 `RuoYi-Vue/ruoyi-admin/src/main/resources/application-druid.yml` 的数据库 URL 指到 `127.0.0.1:3306/ry-vue`（账号 `wencun` / `111111`）、`application.yml` 的 redis 指到 `127.0.0.1:6379`（密码 `111111`）即可。
@@ -84,6 +84,7 @@ docker/
 
 ## 说明
 
+- Compose 项目名固定为 `ruoyi`（`docker-compose.yml` 顶部 `name:`），实际资源名：容器 `ruoyi-mysql` / `ruoyi-redis`，数据卷 `ruoyi_ruoyi-mysql-data` / `ruoyi_ruoyi-redis-data`，网络 `ruoyi_default`——不随目录名变化。
 - MySQL 数据卷：`ruoyi-mysql-data`；Redis 开启 AOF 持久化，数据卷 `ruoyi-redis-data`。`down -v` 彻底重置。
 - 字符集统一 `utf8mb4`，时区 `+08:00`，表名小写（`lower_case_table_names=1`，与 Java 版线上行为一致）。
 - 镜像 `mysql:8.0` / `redis:7.0` 均支持 amd64 与 arm64（Apple Silicon Mac 可直接跑）。
