@@ -12,7 +12,9 @@
 | 序号 | 模块 | 内容 | 状态 | 依赖 |
 |------|------|------|------|------|
 | 00 | [0.0.0-MyBatis-Plus功能增加](0.0.0-MyBatis-Plus功能增加/spec.md) | 引入 MyBatis-Plus：删 PageHelper 全面切 MP 分页 + BaseService 抽取公用方法 | ✅ 2026-09-26 | 无 |
-| 01 | [1.0.0-数据权限MP原生适配](1.0.0-数据权限MP原生适配/spec.md) | 纯 MP 查询（无 XML）的 DataScope：DataPermissionInterceptor + 规则白名单 + 范围 DTO（dcoa 校准） | ✅ 2026-09-26 | 0.0.0 |
+| 01 | [1.0.0-数据权限MP原生适配](1.0.0-数据权限MP原生适配/spec.md) | 纯 MP 查询（无 XML）的 DataScope：DataPermissionInterceptor + 规则白名单 + 范围 DTO | ✅ 2026-09-26 | 0.0.0 |
+| 02 | [2.0.0-SpringAI-Alibaba集成](2.0.0-SpringAI-Alibaba集成/spec.md) | AI 序列首个模块：Spring AI 2.0.1 + SAA 2.0.0-M1.1 版本验证（Boot 4 线）+ ruoyi-ai 模块 + GLM 冒烟端点 + 前端临时对话页（2026-10-10 瘦身为单文件：仅留版本结论/缺陷 D1-D4/遗留事项） | ✅ 2026-10-08 | 无 |
+| 03 | [2.0.1-AI基础域](2.0.1-AI基础域/spec.md) | 基础域三表（ai_provider/ai_api_key/ai_model）+ 三管理页后端与前端 + AiModelResolver 解析器 + ChatModelRouter 实例路由 + 冒烟端点按 modelId 调用（21 家厂商目录+图标；端到端全绿，单测待补跑） | 🚧 2026-10-11 | 2.0.0 |
 
 ## 动工检查单（每个模块动工前逐条执行）
 

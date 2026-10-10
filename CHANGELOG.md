@@ -4,6 +4,10 @@
 
 格式参照 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，日期倒序。
 
+## 2026-10-03
+
+- **本地 Docker 环境升级 Redis Stack**：共享 Redis 由 `redis:7.0` 换为 `redis/redis-stack-server`（内置 RediSearch / RedisJSON），具备向量检索能力，满足 Spring AI `RedisVectorStore` 等场景；端口/密码/数据卷不变，三版后端与既有数据零影响。启动参数改经 `REDIS_ARGS` 传入（Stack 镜像用 `command:` 覆盖会绕过模块加载），新增 `maxmemory 512mb` + `noeviction`；`docker/.env` 同步移出 gitignore 刻意入库（内容全为公开本地默认值）。
+
 ## 2026-10-01
 
 - **RuoYi-TP（ThinkPHP 8 版）全部 12 模块完成**：复刻经典若依 4.8.3（前后端不分离、服务端渲染），specs 0.0.0~11.0.0 收官——末批完成字典参数（06）、通知公告 summernote 富文本（07）、个人中心含锁屏/注册（08）、监控日志（09）、定时任务 `php think scheduler` 常驻调度（10）、代码生成器按拍板范围 A 完成（11，模板生成链有意排除）；PHPUnit 11 单测 100 项全绿，与经典版差异登记 deviations 33 条。工作区第三条服务端复刻线（学习 PHP / ThinkPHP 生态），自用库 `ry-tp` + Redis db1、端口 8888，与三版完全隔离。

@@ -11,7 +11,7 @@
 | 3 | UI 组件库与视觉 | Element Plus，若依经典视觉 | Ant Design 5，布局结构等价（侧边栏/导航/页签/设置抽屉/暗色）但像素级样式不同 | 用户明确「界面不需要完全一致，功能保持等价」 |
 | 4 | 视觉动画 | 主题切换圆形扩散动画、锁屏粒子背景、搜索表单折叠动画 | 简化或省略（功能开关与数据流等价） | 纯视觉糖，不属于功能等价范围 |
 | 5 | 主题色派生 | utils/theme.js 手写 light-1..9/dark-1..9 十八档色阶 | antd ConfigProvider colorPrimary 自动派生 | 组件库机制不同；视觉色阶精度差异可接受 |
-| 6 | dev 端口 | 80 | **8090** | 与 RuoYi-Vue3 并行运行，同屏对照验收 |
+| 6 | dev 端口 | 8888 | **8090** | 与 RuoYi-Vue3 并行运行，同屏对照验收 |
 | 7 | 语言 | JavaScript（无 lint/无测试） | TypeScript strict + Vitest + oxlint（脚手架自带） | 用户拍板 TS；新增测试能力属增强不属差异 |
 | 8 | 权限控制形态 | v-hasPermi / v-hasRole 指令（DOM 移除） | `<Auth>` 包裹组件（无权限渲染 null，语义等价移除）+ useAuth() hook | React 无指令体系 |
 | 9 | API 自动导入 | unplugin-auto-import（vue/pinia API 免 import） | 显式 import（React 惯例） | React 生态无等价自动导入惯例 |

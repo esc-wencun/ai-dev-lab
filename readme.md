@@ -28,7 +28,7 @@ ai-dev-lab（原 ruoyi 工作区）
 ├── RuoYi-Vue-GO/       Go 版服务端（Gin + GORM）
 ├── RuoYi-TP/           PHP 版服务端（ThinkPHP 8，前后端不分离）—— 复刻经典若依 4.8.3，自用库 ry-tp + Redis db1
 ├── RuoYi-React/        React 前端（React 19 + TS + Ant Design 5 + Redux Toolkit）—— 功能等价复刻 RuoYi-Vue3，2026-09-27 起新增
-└── docker/             本地开发环境（MySQL 8.0 + Redis 7.0，开箱即用）
+└── docker/             本地开发环境（MySQL 8.0 + Redis Stack，开箱即用）
 ```
 
 > 「前端零改动」指三版后端切换时前端无需适配，不代表前端与 Java 版冻结：2026-09-25 起两者均可按学习需要增量演进，以不破坏三版后端通用性为前提（详见 [AGENTS.md](AGENTS.md)）。
@@ -133,12 +133,12 @@ php think run --port 8888                  # 与 8080 三版并行
 ```bash
 cd RuoYi-Vue3
 npm install
-npm run dev                                # 监听 80，/dev-api 代理到 localhost:8080
+npm run dev                                # 监听 8888，/dev-api 代理到 localhost:8080
 ```
 
 ### 3. 访问
 
-浏览器打开 `http://localhost`，默认账号 **`admin` / `admin123`**。
+浏览器打开 `http://localhost:8888`，默认账号 **`admin` / `admin123`**。
 
 ## 目录速查
 

@@ -25,11 +25,11 @@
 - `autoCompactWindow: 750000`——触发自动压缩的窗口大小（token）。750000 ≈ 1M 上下文的 75%（当前模型 GLM-5.3-Flash[1M]）；切换 200K 窗口模型时需改为 150000。
 - settings.json 是严格 schema 校验的 JSON，不支持注释（连 `_comment` 键都会校验失败），配置含义统一记录在本节。
 
-## MySQL / Redis 当前指向（2026-09-25 起）
+## MySQL / Redis 当前指向（2026-09-25 起；2026-10-08 起端口改为默认端口+10000）
 
-三版后端共用的数据库与缓存指向 `docker/` 提供的本地 Docker 环境（详见 [docker/README.md](docker/README.md)），各版 `.env.dev` 与 Java 版 `application.yml` / `application-druid.yml` 已同步为此配置：
+三版后端共用的数据库与缓存指向 `docker/` 提供的本地 Docker 环境（详见 [docker/README.md](docker/README.md)），各版 `.env.dev` 与 Java 版 `application.yml` / `application-druid.yml` 已同步为此配置。**端口约定：宿主机端口 = 默认端口 + 10000**（MySQL 3306→13306、Redis 6379→16379），避免与本机其他项目的 Docker 栈（如 ai-middleware 的 middle-* 占用 3306/6379）冲突：
 
-- MySQL：`127.0.0.1:3306`，库 `ry-vue`，账号 `wencun` / `111111`
-- Redis：`127.0.0.1:6379`，db `0`，密码 `111111`
+- MySQL：`127.0.0.1:13306`，库 `ry-vue`，账号 `wencun` / `111111`
+- Redis：`127.0.0.1:16379`，db `0`，密码 `111111`
 
 > 历史备注：早期开发用的是阿里云 RDS（库 `ry-vue-26-09-24`）+ Redis db11，2026-09-25 前后迁移到本地 Docker。环境再变动时，以 Java 版配置文件为准并同步各版 `.env.dev`，同时更新本节。

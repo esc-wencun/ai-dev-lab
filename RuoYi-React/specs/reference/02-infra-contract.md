@@ -381,4 +381,4 @@ Navbar 头像下拉「锁定屏幕」→ `lockStore.lockScreen(route.fullPath)` 
 7. keep-alive（React 中为状态保持方案）按**组件 name** 匹配 cachedViews，`meta.noCache` 为 true 不缓存。
 8. visitedViews 持久化受 `tagsViewPersist` 开关控制且排除 affix 页签，键 `tags-view-visited`。
 9. 锁屏由路由守卫硬性劫持（非仅 UI 覆盖），解锁接口 `POST /unlockscreen`。
-10. dev 端口 80、代理目标 localhost:8080、`/dev-api` 前缀剥离——代理契约必须一致。
+10. dev 端口 8888、代理目标 localhost:8080、`/dev-api` 前缀剥离——代理契约必须一致。

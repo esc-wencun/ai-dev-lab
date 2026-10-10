@@ -4,12 +4,12 @@ docker/ 子目录的专用约定（所有 AI 编码工具通用）。工作区�
 
 ## 定位
 
-本目录提供**开箱即用的本地 MySQL 8.0 + Redis 7.0**（Docker Compose），供三个后端版本共用，避免把真实云数据库凭据提交到 GitHub。面向人类的完整使用说明在 [README.md](./README.md)，本文件只写 AI 修改代码时需要知道的约束。
+本目录提供**开箱即用的本地 MySQL 8.0 + Redis Stack**（Docker Compose），供三个后端版本共用，避免把真实云数据库凭据提交到 GitHub。面向人类的完整使用说明在 [README.md](./README.md)，本文件只写 AI 修改代码时需要知道的约束。
 
 ## 结构与职责
 
-- `docker-compose.yml` — 唯一的服务定义（mysql:8.0 + redis:7.0）。端口/密码/库名全部走 `${VAR:-default}` 环境变量，默认值即 README 承诺的开箱值（3306/6379，密码 111111，库 `ry-vue`，账号 `wencun`）。
-- `.env.example` — 覆盖模板；真实 `.env` 含密码，已被 gitignore，禁止提交。
+- `docker-compose.yml` — 唯一的服务定义（mysql:8.0 + redis/redis-stack-server）。端口/密码/库名全部走 `${VAR:-default}` 环境变量，默认值即 README 承诺的开箱值（13306/16379，密码 111111，库 `ry-vue`，账号 `wencun`）。Redis Stack 自带 RediSearch/RedisJSON（向量检索能力），**Redis 启动参数必须经 `REDIS_ARGS` 环境变量传入**（entrypoint 靠它加载模块，用 `command:` 覆盖 redis-server 会绕过模块加载）。
+- `.env.example` — 覆盖模板。`docker/.env` 同样**刻意提交入库**（2026-10-03 起移出 gitignore）：内容与模板一致，全部是公开的本地开发默认值（密码 111111），无真实凭据；使用者本地改出真实凭据后自行注意不要提交。
 - `start.sh` / `start.bat` / `stop.sh` / `stop.bat` — 平台启动/停止包装脚本，逻辑必须保持四份脚本语义一致（等价能力跨平台成对）。
 - `mysql/init/01-ruoyi-schema.sql` — 若依业务表（20 张）+ 预置数据（来自 RuoYi-Vue/sql）。
 - `mysql/init/02-quartz.sql` — Quartz 11 张表（仅 Java 版调度用）。

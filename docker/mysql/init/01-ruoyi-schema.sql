@@ -723,3 +723,87 @@ create table gen_table_column (
   update_time       datetime                                   comment '更新时间',
   primary key (column_id)
 ) engine=innodb auto_increment=1 comment = '代码生成业务表字段';
+
+-- ============================================================
+-- AI 基础域三表（specs/2.0.1；表结构同步自 RuoYi-Vue/sql/ai_20261010.sql，
+-- 内置数据/菜单/字典在 ai_20261010.sql，不在本文件——init 只对齐官方 schema 结构）
+-- ============================================================
+-- ----------------------------
+-- 1. AI 厂商表
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS ai_provider (
+  provider_id     bigint        NOT NULL AUTO_INCREMENT COMMENT '厂商ID',
+  provider_name   varchar(100)  NOT NULL                COMMENT '厂商名称',
+  provider_code   varchar(50)   NOT NULL                COMMENT '厂商编码（唯一）',
+  protocol        varchar(32)   NOT NULL DEFAULT 'openai' COMMENT '协议类型（openai/anthropic/ollama/gemini/dify/coze/custom）',
+  api_host        varchar(500)  NOT NULL                COMMENT '默认API地址（必填，各厂商官方地址不同）',
+  icon            varchar(1000) DEFAULT NULL            COMMENT '厂商图标',
+  website         varchar(1000) DEFAULT NULL            COMMENT '官网地址',
+  key_apply_url   varchar(1000) DEFAULT NULL            COMMENT '密钥申请地址',
+  status          char(1)       NOT NULL DEFAULT '0'    COMMENT '状态（0正常 1停用）',
+  sort_order      int           NOT NULL DEFAULT 0      COMMENT '显示顺序',
+  remark          varchar(500)  DEFAULT NULL            COMMENT '备注',
+  create_by       varchar(64)        DEFAULT ''         COMMENT '创建者',
+  create_time     datetime      DEFAULT NULL            COMMENT '创建时间',
+  update_by       varchar(64)        DEFAULT ''         COMMENT '更新者',
+  update_time     datetime      DEFAULT NULL            COMMENT '更新时间',
+  del_flag        char(1)       NOT NULL DEFAULT '0'    COMMENT '删除标志（0代表存在 2代表删除）',
+  PRIMARY KEY (provider_id),
+  UNIQUE KEY uk_provider_code (provider_code, del_flag),
+  KEY idx_status (status)
+) ENGINE=InnoDB AUTO_INCREMENT=100 DEFAULT CHARSET=utf8mb4 COMMENT='AI厂商表';
+
+-- ----------------------------
+-- 2. AI 密钥表
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS ai_api_key (
+  key_id        bigint       NOT NULL AUTO_INCREMENT COMMENT '密钥ID',
+  provider_id   bigint       NOT NULL                COMMENT '所属厂商ID',
+  key_name      varchar(64)  NOT NULL                COMMENT '密钥名称',
+  api_key       varchar(512) NOT NULL                COMMENT '密钥内容（支持${ENV_VAR}占位符）',
+  base_url      varchar(500) DEFAULT NULL            COMMENT 'Key专属网关地址（NULL用厂商默认）',
+  api_path      varchar(500) DEFAULT NULL            COMMENT '二级地址：拼接在网关地址后的请求路径（NULL用协议默认路径）',
+  status        char(1)      NOT NULL DEFAULT '0'    COMMENT '状态（0启用 1停用）',
+  expire_time   datetime     DEFAULT NULL            COMMENT '过期时间',
+  create_by     varchar(64)       DEFAULT ''         COMMENT '创建者',
+  create_time   datetime     DEFAULT NULL            COMMENT '创建时间',
+  update_by     varchar(64)       DEFAULT ''         COMMENT '更新者',
+  update_time   datetime     DEFAULT NULL            COMMENT '更新时间',
+  remark        varchar(500) DEFAULT NULL            COMMENT '备注',
+  del_flag      char(1)      NOT NULL DEFAULT '0'    COMMENT '删除标志（0代表存在 2代表删除）',
+  PRIMARY KEY (key_id),
+  KEY idx_provider (provider_id, status)
+) ENGINE=InnoDB AUTO_INCREMENT=100 DEFAULT CHARSET=utf8mb4 COMMENT='AI密钥表';
+
+-- ----------------------------
+-- 3. AI 模型表
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS ai_model (
+  model_id          bigint       NOT NULL AUTO_INCREMENT COMMENT '模型ID',
+  provider_id       bigint       NOT NULL                COMMENT '所属厂商ID',
+  key_id            bigint       NOT NULL                COMMENT '绑定密钥ID（须与厂商一致；同一模型可经多把Key建多条通道）',
+  model_name        varchar(100) NOT NULL                COMMENT '模型名称（展示用）',
+  model_code        varchar(100) NOT NULL                COMMENT '模型标识（传给API）',
+  model_type        tinyint      NOT NULL DEFAULT 1      COMMENT '模型类型（1对话 2图片 3语音 4视频 5向量 6重排序）',
+  support_thinking  tinyint      NOT NULL DEFAULT 0      COMMENT '支持深度思考（0否 1是）',
+  support_tool      tinyint      NOT NULL DEFAULT 0      COMMENT '支持工具调用',
+  support_vision    tinyint      NOT NULL DEFAULT 0      COMMENT '支持图片输入',
+  support_audio     tinyint      NOT NULL DEFAULT 0      COMMENT '支持音频输入',
+  support_video     tinyint      NOT NULL DEFAULT 0      COMMENT '支持视频输入',
+  model_dimension   int          DEFAULT NULL            COMMENT '向量维度（仅type=5时有意义）',
+  temperature       double       DEFAULT NULL            COMMENT '默认温度（NULL=供应商默认）',
+  max_tokens        int          DEFAULT NULL            COMMENT '默认最大输出Token',
+  max_contexts      int          DEFAULT NULL            COMMENT '默认携带历史消息条数上限',
+  status            char(1)      NOT NULL DEFAULT '0'    COMMENT '状态（0正常 1停用）',
+  sort_order        int          NOT NULL DEFAULT 0      COMMENT '显示顺序（升序）',
+  remark            varchar(500) DEFAULT NULL            COMMENT '备注（选型建议）',
+  create_by         varchar(64)       DEFAULT ''         COMMENT '创建者',
+  create_time       datetime     DEFAULT NULL            COMMENT '创建时间',
+  update_by         varchar(64)       DEFAULT ''         COMMENT '更新者',
+  update_time       datetime     DEFAULT NULL            COMMENT '更新时间',
+  del_flag          char(1)      NOT NULL DEFAULT '0'    COMMENT '删除标志（0代表存在 2代表删除）',
+  PRIMARY KEY (model_id),
+  UNIQUE KEY uk_provider_key_model (provider_id, key_id, model_code, del_flag),
+  KEY idx_key (key_id),
+  KEY idx_type_status (model_type, status)
+) ENGINE=InnoDB AUTO_INCREMENT=100 DEFAULT CHARSET=utf8mb4 COMMENT='AI模型表';
