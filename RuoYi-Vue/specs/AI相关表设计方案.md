@@ -306,6 +306,7 @@ ai_agent（智能体） 1 ──── N  ai_conversation（会话） 1 ──�
 | `mcp_ids` | varchar(1024) | | 挂载的 MCP 服务 ID 数组（JSON，关联工具域 ai_mcp）。**存 ID 而非名字**——MCP 服务入库（ai_mcp 表）提供 DB 真源，比配置文件 client 名方式可管理（改配置/停用有据可查） |
 | `enable_thinking` | tinyint(1) | ✓ | 默认深度思考开关（仅 support_thinking 的模型生效） |
 | `welcome_message` | varchar(1000) | | 开场白（进入会话展示） |
+| `suggested_questions` | varchar(1024) | | 开场白后的「猜你想问」建议问题数组（JSON），前端渲染为可点击 chip，点击即发送该问题 |
 | `visibility` | tinyint | ✓ | 可见性（0 私有 1 公开）。私有=仅 `user_id` 本人可见；公开=进智能体市场 |
 | `user_id` | bigint | | 归属用户。配合 visibility：公开智能体归属人仍是作者（用于「我创建的」筛选） |
 | `sort_order` | int | ✓ | 显示顺序 |
@@ -432,6 +433,7 @@ CREATE TABLE ai_agent (
   mcp_ids          varchar(1024) DEFAULT NULL            COMMENT 'MCP服务ID数组（JSON，关联ai_mcp）',
   enable_thinking  tinyint       NOT NULL DEFAULT 0      COMMENT '默认深度思考开关（0关 1开）',
   welcome_message  varchar(1000) DEFAULT NULL            COMMENT '开场白',
+  suggested_questions varchar(1024) DEFAULT NULL        COMMENT '建议问题数组（JSON，开场白chip）',
   visibility       tinyint       NOT NULL DEFAULT 0      COMMENT '可见性（0私有 1公开）',
   user_id          bigint        DEFAULT NULL            COMMENT '归属用户（作者）',
   sort_order       int           NOT NULL DEFAULT 0      COMMENT '显示顺序',

@@ -1,6 +1,6 @@
 # 2.0.2 AI 对话域：前端先行（阶段 A：UI + Mock）
 
-> **状态：📝 阶段 A spec 待确认（2026-10-11）**
+> **状态：📝 阶段 B 细化稿待二次确认（2026-10-11）；阶段 A 已完成（用户评审通过）**
 >
 > 对话域采用**两阶段交付**（2026-10-11 用户定的流程）：
 > - **阶段 A（本 spec 现在的内容）**：先做前端界面，API 用 Mock（藏 在真实接口签名后的假实现）——用户看真实界面定交互、找优化点；
@@ -61,13 +61,68 @@ views/ai/chat/
 
 交互状态清单（阶段 A 验收就是把这串状态全用 Mock 触发一遍）：空会话 → 发送中 → 流式增量 → 完成；停止 → 半截+已取消标；Mock 强制出错路径 → 错误气泡；刷新 → 会话清空（Mock 提示条说明"演示数据不持久"）。
 
-## 四、阶段 B 骨架（待阶段 A 评审后细化，二次确认才动工）
+## 四、阶段 B 技术方案（细化稿，2026-10-11；二次确认后动工）
 
-1. 建表 SQL：ai_agent / ai_conversation / ai_message 三表 + 菜单（2020 AI对话）+ 权限点（按 UI 定稿的实际功能定）；
-2. 后端：三表 CRUD + 会话/消息 service + SSE 流式端点（`TEXT_EVENT_STREAM`，三路落库）+ 接 AiModelResolver（2.0.1 产物）；
-3. 前端切真实 API：chat.js 关 Mock 开关补 request 实现；
-4. 细化时必须回答的问题（UI 评审的可能产出）：模型选择器放哪、会话内切模型/改参数要不要、智能体入口形态、Markdown 依赖加不加。
+### 4.1 数据库变更（Task B1）
 
+新建 `RuoYi-Vue/sql/ai_20261012.sql`（可重复执行，风格同 2.0.1）：
+
+1. **三张表**（对话域建表 SQL 原样搬运自设计文档第二部分第五节，含审查修正：tool_ids/mcp_ids/enable_thinking/summary_upto_message_id/context_msg_count 快照与水位线列、msg_status 状态机、suggested_questions）；
+2. **内置数据**：
+   - 2 个预置智能体（平台使用助手：限定答题范围 system_prompt + welcome_message + suggested_questions；写作助手），visibility=1 公开、user_id=admin 的 userId（取 sys_user.admin 的 id=1）；
+   - **不预置会话/消息**（用户数据运行时产生）；
+3. **菜单**（2020 号段）：「AI 对话」C 类型菜单（component=`ai/chat/index`，perms 留空——对话页本人数据无需按按钮授权；菜单可见性走角色分配）+ 角色授权 admin；
+4. `/ai/chat` 静态路由**保留**（浏览器直达）；菜单与静态路由并存不冲突（菜单渲染的是动态路由，同一组件两处入口）。
+
+同步 `docker/mysql/init/01-ruoyi-schema.sql`（追加三表 DDL，风格同 2.0.1）。本机验证：docker exec 对 13306 执行两次验证幂等。
+
+### 4.2 后端（Task B2-B4，ruoyi-ai 模块内）
+
+```
+com.ruoyi.ai/
+├── domain/      AiAgent / AiConversation / AiMessage（MP 注解；JSON 数组列用 String 存原文，service 层序列化）
+├── mapper/      三 Mapper（BaseMapper + default 分页查询：会话按 userId+pinned+lastMessageTime；消息按 conversationId 升序）
+├── service/     IAiAgentService（CRUD + checkUnique 名称）
+│                IAiConversationService（我的会话列表/新建[agent 配置快照复制]/重命名/置顶/删除[连带软删消息]）
+│                IAiMessageService（按会话拉历史/落库/更新）
+├── planner/     AiPromptPlanner（纯函数可单测）：system_prompt + context_summary + 最近 max_contexts 条
+│                useContext=1 历史消息（同 replyId 只取最新）+ 单轮 user 消息 → Spring AI Prompt
+└── controller/  AiAgentController（list 公开下拉+CRUD）
+                 AiConversationController（/ai/conversations CRUD + /ai/conversations/{id}/messages）
+                 AiChatController（POST /ai/chat/stream —— SSE 流式端点）
+```
+
+**接口清单**（前端 chat.js 契约的落地，字段与 Mock 逐字一致）：
+
+| 方法/路径 | 说明 | 对应 chat.js |
+|---|---|---|
+| GET /ai/agents | 可用智能体下拉（status=0，公开 + 本人私有） | listAgents |
+| GET /ai/conversations | 我的会话列表（置顶组+时间倒序） | listConversations |
+| POST /ai/conversations | 新建（agentId 可空；服务端复制 agent 快照：system_prompt/knowledge_ids/tool_ids/mcp_ids/enable_thinking + title=角色名；last_message_time=now） | createConversation |
+| PUT /ai/conversations/{id}/title | 重命名 | renameConversation |
+| PUT /ai/conversations/{id}/pin | 置顶/取消（body: pinned） | pinConversation |
+| DELETE /ai/conversations/{id} | 删除（连带消息软删；进行中流拒绝或中止） | deleteConversation |
+| GET /ai/conversations/{id}/messages | 历史消息升序 | listMessages |
+| POST /ai/chat/stream | **SSE 流式**：body {conversationId, content}。事件序列：`begin`（assistant 占位消息 JSON，msgStatus=0）→ 多个 `token`（增量文本）→ `done`（最终消息 JSON：msgStatus=1/2/3 + tokens + duration）| sendMessage/stopGenerate |
+
+**SSE 端点实现要点**（对位生产级流式落库范式）：
+- `produces = TEXT_EVENT_STREAM`，返回 Flux<ServerSentEvent<String>>；事件名做 domain 前缀（`data: {"event":"token","payload":...}` 信封，阶段 A 前端 handlers 三回调直接对位）；
+- **取消**：前端停止按钮调 `DELETE /ai/chat/stream/{messageId}`（新增一个非流式端点），服务端 dispose 该会话 Flux 订阅 + doOnCancel 分支置 msgStatus=3 落库——三路落库（onComplete=1 / onError=2 / cancel=3）；
+- 鉴权：SSE 端点走登录态（token 经 query 参数传递——EventSource 不支持自定义 header，前端 fetchEventSource 或 axios-download 模式二选一，实施时定并记坑）；
+- AiModelResolver/ChatModelRouter（2.0.1 产物）取模型；msg_status 启动孤儿清理（0 且超 1 小时 → 3）放定时任务或启动钩子（本期启动钩子即可）。
+
+### 4.3 前端切换（Task B5-B6）
+
+1. `chat.js`：USE_MOCK=false，补 real 实现（request 实例 + SSE 消费）；**组件零改动是验收项**（含 stop 语义：Mock 是本地 clearInterval，真实版是调服务端 dispose 端点——chat.js 内部差异，签名不变）；
+2. **Markdown 渲染**（阶段 A 定案）：`npm i marked highlight.js dompurify`；MessageItem 的 assistant 气泡 content 走 marked+DOMPurify 渲染（user 气泡保持纯文本）；
+3. **模型选择器**（阶段 A 定案）：ChatInput 左侧下拉（读 `2.0.1` 的模型列表接口，type=1 过滤），切换调 `PUT /ai/conversations/{id}/model`（新增契约函数 changeConversationModel——Mock 同步补）；
+4. welcome chips / 角色头条 / 懒创建逻辑不变（已是定稿形态）。
+
+### 4.4 参数覆盖与不做项（重申）
+
+- 会话级 temperature/max_tokens/max_contexts 列落库、会话创建时从模型默认带入，但**不暴露 UI**（阶段 A 定案）；
+- 上下文压缩（水位线摘要是异步任务）本期只做**数据落点**（context_summary/summary_upto_message_id 列就位 + planner 预留拼装位），**压缩任务本身不做**——contextMsgCount 远不到阈值前无实际需求，登记为后续模块；
+- RAG 溯源（segment_ids）/联网/附件：列就位，功能不做（后续 RAG 模块）。
 ## 五、风险与约束
 
 | # | 风险/约束 | 应对 |

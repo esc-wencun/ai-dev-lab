@@ -178,7 +178,7 @@ insert into ai_model values(100, 101, 100, 'GLM-4.7', 'glm-4.7', 1, 0, 1, 0, 0, 
 delete from sys_menu where menu_id between 2000 and 2099;
 insert into sys_menu values('2000', 'AI管理', '0', '50', 'ai', null, '', '', 1, 0, 'M', '0', '0', '', 'message', 'admin', sysdate(), '', null, 'AI 能力管理目录');
 insert into sys_menu values('2001', '厂商管理', '2000', '1', 'provider', 'ai/provider/index', '', '', 1, 0, 'C', '0', '0', 'ai:provider:list', 'component', 'admin', sysdate(), '', null, 'AI厂商菜单');
-insert into sys_menu values('2002', '密钥管理', '2000', '2', 'key',      'ai/key/index',      '', '', 1, 0, 'C', '0', '0', 'ai:key:list',      'key',       'admin', sysdate(), '', null, 'AI密钥菜单');
+insert into sys_menu values('2002', '密钥管理', '2000', '2', 'key',      'ai/key/index',      '', '', 1, 0, 'C', '0', '0', 'ai:key:list',      'lock',      'admin', sysdate(), '', null, 'AI密钥菜单');
 insert into sys_menu values('2003', '模型管理', '2000', '3', 'model',    'ai/model/index',    '', '', 1, 0, 'C', '0', '0', 'ai:model:list',    'education', 'admin', sysdate(), '', null, 'AI模型菜单');
 
 -- 厂商管理按钮

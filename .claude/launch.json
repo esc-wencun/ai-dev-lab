@@ -22,6 +22,11 @@
       "runtimeArgs": ["think", "run", "--port", "8888"],
       "cwd": "RuoYi-TP",
       "port": 8888
+    },
+    {
+      "name": "frontend-attach",
+      "url": "http://localhost:8888",
+      "port": 8888
     }
   ]
 }
