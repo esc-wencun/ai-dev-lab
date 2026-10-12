@@ -807,3 +807,111 @@ CREATE TABLE IF NOT EXISTS ai_model (
   KEY idx_key (key_id),
   KEY idx_type_status (model_type, status)
 ) ENGINE=InnoDB AUTO_INCREMENT=100 DEFAULT CHARSET=utf8mb4 COMMENT='AI模型表';
+
+
+-- ============================================================
+-- AI 对话域三表（specs/2.0.2；表结构同步自 RuoYi-Vue/sql/ai_20261012.sql，
+-- 内置智能体/菜单在 ai_20261012.sql，不在本文件）
+-- ============================================================
+-- ----------------------------
+-- 4. AI 智能体表
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS ai_agent (
+  agent_id         bigint        NOT NULL AUTO_INCREMENT COMMENT '智能体ID',
+  agent_name       varchar(100)  NOT NULL                COMMENT '智能体名称',
+  avatar           varchar(1000) DEFAULT NULL            COMMENT '头像URL',
+  category         varchar(64)   DEFAULT NULL            COMMENT '分类（市场分组）',
+  description      varchar(500)  DEFAULT NULL            COMMENT '一句话描述',
+  system_prompt    text          NOT NULL                COMMENT '系统提示词',
+  model_id         bigint        DEFAULT NULL            COMMENT '默认模型ID（NULL=会话时另选）',
+  knowledge_ids    varchar(1024) DEFAULT NULL            COMMENT '知识库ID数组（JSON）',
+  tool_ids         varchar(1024) DEFAULT NULL            COMMENT '工具ID数组（JSON）',
+  mcp_ids          varchar(1024) DEFAULT NULL            COMMENT 'MCP服务ID数组（JSON，关联ai_mcp）',
+  enable_thinking  tinyint       NOT NULL DEFAULT 0      COMMENT '默认深度思考开关（0关 1开）',
+  welcome_message  varchar(1000) DEFAULT NULL            COMMENT '开场白',
+  suggested_questions varchar(1024) DEFAULT NULL        COMMENT '建议问题数组（JSON，开场白chip）',
+  visibility       tinyint       NOT NULL DEFAULT 0      COMMENT '可见性（0私有 1公开）',
+  user_id          bigint        DEFAULT NULL            COMMENT '归属用户（作者）',
+  sort_order       int           NOT NULL DEFAULT 0      COMMENT '显示顺序',
+  status           char(1)       NOT NULL DEFAULT '0'    COMMENT '状态（0正常 1停用）',
+  remark           varchar(500)  DEFAULT NULL            COMMENT '备注',
+  create_by        varchar(64)        DEFAULT ''         COMMENT '创建者',
+  create_time      datetime      DEFAULT NULL            COMMENT '创建时间',
+  update_by        varchar(64)        DEFAULT ''         COMMENT '更新者',
+  update_time      datetime      DEFAULT NULL            COMMENT '更新时间',
+  del_flag         char(1)       NOT NULL DEFAULT '0'    COMMENT '删除标志（0代表存在 2代表删除）',
+  PRIMARY KEY (agent_id),
+  KEY idx_user (user_id, status),
+  KEY idx_category (category)
+) ENGINE=InnoDB AUTO_INCREMENT=100 DEFAULT CHARSET=utf8mb4 COMMENT='AI智能体表';
+
+-- ----------------------------
+-- 5. AI 会话表
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS ai_conversation (
+  conversation_id   bigint       NOT NULL AUTO_INCREMENT COMMENT '会话ID',
+  user_id           bigint       NOT NULL                COMMENT '归属用户',
+  title             varchar(256) NOT NULL                COMMENT '会话标题',
+  agent_id          bigint       DEFAULT NULL            COMMENT '绑定的智能体（NULL=自由对话）',
+  model_id          bigint       NOT NULL                COMMENT '会话使用模型ID',
+  model_code        varchar(100) DEFAULT NULL            COMMENT '模型标识（冗余，免联表）',
+  system_prompt     text                                 COMMENT '会话级系统提示词（创建时从智能体复制）',
+  knowledge_ids     varchar(1024) DEFAULT NULL           COMMENT '会话级知识库ID数组（JSON快照）',
+  tool_ids          varchar(1024) DEFAULT NULL           COMMENT '会话级工具ID数组（JSON快照，创建时从智能体复制）',
+  mcp_ids           varchar(1024) DEFAULT NULL           COMMENT '会话级MCP服务ID数组（JSON快照，创建时从智能体复制）',
+  enable_thinking   tinyint      NOT NULL DEFAULT 0      COMMENT '深度思考开关快照（0关 1开）',
+  summary_upto_message_id bigint  DEFAULT NULL           COMMENT '压缩水位线（context_summary覆盖到的最后一条消息ID；NULL=未压缩）',
+  temperature       double       DEFAULT NULL            COMMENT '温度覆盖（NULL=模型默认）',
+  max_tokens        int          DEFAULT NULL            COMMENT '最大输出Token覆盖（NULL=模型默认）',
+  max_contexts      int          DEFAULT NULL            COMMENT '历史消息条数上限覆盖（NULL=模型默认）',
+  pinned            tinyint      NOT NULL DEFAULT 0      COMMENT '是否置顶（0否 1是）',
+  pinned_time       datetime     DEFAULT NULL            COMMENT '置顶时间',
+  last_message_time datetime     DEFAULT NULL            COMMENT '最后消息时间（列表排序；建会话时初始化为创建时间防NULL沉底）',
+  message_count     int          NOT NULL DEFAULT 0      COMMENT '消息总条数（冗余计数）',
+  context_msg_count int          NOT NULL DEFAULT 0      COMMENT '上下文活跃消息数（use_context=1条数，压缩触发依据）',
+  context_summary   text                                 COMMENT '上下文压缩摘要（长对话优化）',
+  status            char(1)      NOT NULL DEFAULT '0'    COMMENT '状态（0正常 1归档）',
+  remark            varchar(500) DEFAULT NULL            COMMENT '备注',
+  create_by         varchar(64)       DEFAULT ''         COMMENT '创建者',
+  create_time       datetime     DEFAULT NULL            COMMENT '创建时间',
+  update_by         varchar(64)       DEFAULT ''         COMMENT '更新者',
+  update_time       datetime     DEFAULT NULL            COMMENT '更新时间',
+  del_flag          char(1)      NOT NULL DEFAULT '0'    COMMENT '删除标志（0代表存在 2代表删除）',
+  PRIMARY KEY (conversation_id),
+  KEY idx_user_pinned (user_id, pinned, last_message_time),
+  KEY idx_agent (agent_id)
+) ENGINE=InnoDB AUTO_INCREMENT=100 DEFAULT CHARSET=utf8mb4 COMMENT='AI会话表';
+
+-- ----------------------------
+-- 6. AI 消息表
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS ai_message (
+  message_id         bigint        NOT NULL AUTO_INCREMENT COMMENT '消息ID',
+  conversation_id    bigint        NOT NULL                COMMENT '所属会话ID',
+  reply_id           bigint        DEFAULT NULL            COMMENT '回复的消息ID（user/assistant配对；user消息为NULL）',
+  msg_type           varchar(16)   NOT NULL                COMMENT '消息类型（user/assistant/system）',
+  msg_status         tinyint       NOT NULL DEFAULT 1      COMMENT '消息状态（0生成中 1完成 2出错 3已取消；启动时残留0置3）',
+  user_id            bigint        NOT NULL                COMMENT '触发用户',
+  agent_id           bigint        DEFAULT NULL            COMMENT '智能体ID（冗余，统计用）',
+  model_id           bigint        DEFAULT NULL            COMMENT '实际生成模型ID（中途切模型时与会话当前值不同）',
+  model_code         varchar(100)  DEFAULT NULL            COMMENT '模型标识（冗余，免联表）',
+  content            mediumtext                            COMMENT '消息内容（流式聚合后完整值）',
+  reasoning_content  text                                  COMMENT '深度思考推理过程（与正文分开存）',
+  use_context        tinyint       NOT NULL DEFAULT 1      COMMENT '是否纳入上下文拼装（0剔除但不删）',
+  segment_ids        varchar(1024) DEFAULT NULL            COMMENT '引用的知识库分段ID数组（JSON，RAG溯源）',
+  web_search_pages   text                                  COMMENT '联网来源（JSON：标题/URL/摘要）',
+  attachment_urls    text                                  COMMENT '附件地址数组（JSON，多模态）',
+  prompt_tokens      int           NOT NULL DEFAULT 0      COMMENT '输入Token用量',
+  completion_tokens  int           NOT NULL DEFAULT 0      COMMENT '输出Token用量',
+  duration_ms        int           DEFAULT NULL            COMMENT '生成耗时（毫秒）',
+  error_message      varchar(1000) DEFAULT NULL            COMMENT '失败原因（流式出错落库）',
+  remark             varchar(500)  DEFAULT NULL            COMMENT '备注',
+  create_by          varchar(64)        DEFAULT ''         COMMENT '创建者',
+  create_time        datetime      DEFAULT NULL            COMMENT '创建时间',
+  update_by          varchar(64)        DEFAULT ''         COMMENT '更新者',
+  update_time        datetime      DEFAULT NULL            COMMENT '更新时间',
+  del_flag           char(1)       NOT NULL DEFAULT '0'    COMMENT '删除标志（0代表存在 2代表删除）',
+  PRIMARY KEY (message_id),
+  KEY idx_conversation (conversation_id, message_id),
+  KEY idx_user (user_id)
+) ENGINE=InnoDB AUTO_INCREMENT=100 DEFAULT CHARSET=utf8mb4 COMMENT='AI消息表';
