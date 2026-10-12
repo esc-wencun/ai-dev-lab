@@ -4,6 +4,16 @@
 
 格式参照 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，日期倒序。
 
+## 2026-10-12
+
+### feat(ai): AI 对话域全链路——三表/SSE 流式/思考过程/Claude Code 风格对话页
+
+- 对话域三表 + 会话/智能体接口 + AiPromptPlanner + SSE 流式三路落库（specs 2.0.2）
+- 深度思考：enable_thinking 会话快照驱动、reasoning 独立 SSE 事件、思考耗时折叠行（specs 2.0.2 D7/D8）
+- 前端对话页 Claude Code 终端风格定稿，真实 API 接入（fetch+ReadableStream SSE），组件与 Mock 契约零改动
+- ruoyi-ai 模块 Lombok 化；基础域模型连通性测试接口（specs 2.0.1 收尾）
+
+
 ## 2026-10-03
 
 - **本地 Docker 环境升级 Redis Stack**：共享 Redis 由 `redis:7.0` 换为 `redis/redis-stack-server`（内置 RediSearch / RedisJSON），具备向量检索能力，满足 Spring AI `RedisVectorStore` 等场景；端口/密码/数据卷不变，三版后端与既有数据零影响。启动参数改经 `REDIS_ARGS` 传入（Stack 镜像用 `command:` 覆盖会绕过模块加载），新增 `maxmemory 512mb` + `noeviction`；`docker/.env` 同步移出 gitignore 刻意入库（内容全为公开本地默认值）。
