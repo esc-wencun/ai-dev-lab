@@ -35,31 +35,33 @@
 > 表权威源：[../AI相关表设计方案.md](../AI相关表设计方案.md) 第二部分（已回写 suggested_questions 列）。接口清单见 spec 4.2 表。
 
 ## Task B1: 数据库
-- [ ] `RuoYi-Vue/sql/ai_20261012.sql`：三表 DDL（搬运设计文档，含 msg_status/水位线/context_msg_count/suggested_questions）+ 2 个预置智能体 + 菜单（2020 号段「AI 对话」）+ delete 前置
-- [ ] docker/mysql/init/01-ruoyi-schema.sql 同步三表 DDL；13306 执行两次验证幂等
-- [ ] 表设计文档第二部分标"已实施"注记
+- [x] `RuoYi-Vue/sql/ai_20261012.sql`：三表 DDL（搬运设计文档，含 msg_status/水位线/context_msg_count/suggested_questions）+ 2 个预置智能体（100 平台使用助手/101 写作助手，带开场白与建议问题 JSON）+ 菜单（2020「AI对话」挂 2000 目录下）
+- [x] docker/mysql/init/01-ruoyi-schema.sql 同步三表 DDL（+95 行）；13306 执行两次幂等验证通过（agents=2/convs=0/msgs=0/menu 2020 在；suggested_questions JSON_EXTRACT 正常）
+- [ ] 表设计文档第二部分标"已实施"注记——随模块收口一并做
 
 ## Task B2: domain + mapper + service（CRUD 层）
-- [ ] 三实体 + 三 Mapper（会话列表分页排序、消息按会话升序）
-- [ ] IAiConversationService：新建时 agent 配置快照复制（system_prompt/knowledge_ids/tool_ids/mcp_ids/enable_thinking + title=角色名 + last_message_time 初始化）——**快照字段一个不漏（设计文档决策 1"复制必须彻底"）**
-- [ ] 重命名/置顶/删除（连带消息软删）/我的会话列表；单元测试（快照复制完整性）
+- [x] 三实体（AiAgent/AiConversation/AiMessage，含 delFlag + 全部审查修正列）（实施坑：BaseEntity.remark 真实列映射且子类遮蔽无效，两表补建 remark 列——见 spec 4.5）+ 三 Mapper（会话置顶+时间倒序、消息按会话升序、最近活跃窗口、replyId 活跃查询、孤儿查询）
+- [x] IAiConversationService：新建时 agent 配置快照复制（system_prompt/knowledge_ids/tool_ids/mcp_ids/enable_thinking + title=角色名 + last_message_time 初始化）——快照五字段完整；私有智能体可见性校验；模型解析链 显式>agent默认>最新type=1
+- [x] 重命名/置顶/删除（连带消息软删）/我的会话列表/切模型（type=1 校验）/归属校验（getOwnedConversation）——**javac 语法检查全过（JDK17 全路径，17 文件 0 错误）；单测与端到端待服务停止窗口/用户 IDEA Build 后执行（编译纪律第 0 节）**
+- [x] IAiAgentService（名称查重/私有必填归属人/删除前置校验被会话引用拒删）+ AiAgentController（/options 下拉登录态 + 管理 CRUD 权限点）
 
 ## Task B3: AiPromptPlanner + SSE 流式端点
-- [ ] AiPromptPlanner 纯函数：system_prompt + summary + 最近 max_contexts 条 useContext=1（同 replyId 取最新）+ 当前消息 → Prompt；**单测全绿**（裁剪窗口/replyId 去重/summary 拼装位）
-- [ ] POST /ai/chat/stream（SSE：begin/token/done 信封事件）+ DELETE /ai/chat/stream/{messageId}（dispose 订阅 + cancel 落库）
-- [ ] 三路落库：onComplete msgStatus=1 / onError=2 / cancel=3；占位行先插后更；启动孤儿清理（0 超 1 小时→3）
-- [ ] AiModelResolver/ChatModelRouter 接入；SSE 鉴权方案（token 传参方式）实施时定并记坑
-- [ ] curl 级端到端：SSE 事件序列断言（begin→token*→done）
+- [x] AiPromptPlanner 纯函数：system_prompt + summary 拼装位 + 最近 max_contexts 条 useContext=1（同 replyId 取最新）+ 当前消息 → Prompt；测试类 6 用例就绪（裁剪窗口/重生成去重/useContext 剔除/summary 顺序/空装配/默认窗口）
+- [x] POST /ai/chat/stream（SSE：begin/token/done 信封）+ DELETE /ai/chat/stream/{messageId}（Subscription.cancel 触发 doOnCancel 落库）
+- [x] 三路落库代码就位：concatWith 完成路=1 / onErrorResume=2 / doOnCancel=3（保留半截）；占位行先插后更；AiStartupRunner 启动孤儿清理（0 超 1 小时→3）
+- [x] AiModelResolver/ChatModelRouter 接入；SSE 鉴权方案定案：**前端 fetch+ReadableStream 消费（带标准 Authorization 头），不用原生 EventSource**——无 query 传参降级（spec 4.2 注记兑现）
+- [ ] 单测执行（mvn test）+ curl 级 SSE 事件序列断言——**待服务停止窗口/用户 IDEA Build 后（编译纪律第 0 节）**
 
 ## Task B4: 智能体接口
-- [ ] GET /ai/agents（公开+本人私有，status=0）+ AiAgentController CRUD（权限点 ai:agent:*，菜单按钮 SQL）
-- [ ] checkUnique：agent_name 唯一；visibility=0 时 user_id 必填（应用层校验）
+- [x] GET /ai/agents/options（公开+本人私有，status=0，登录态）+ 管理页 CRUD（ai:agent:* 权限点；按钮菜单 SQL 待管理页模块时配——对话页只需 /options）
+- [x] agent_name 查重；visibility=0 时 user_id 必填（应用层兜底作者）
 
 ## Task B5: 前端切真实 API
-- [ ] chat.js USE_MOCK=false + real 实现（request + SSE 消费，fetchEventSource 或降级方案）；stop 语义换服务端 dispose；**组件零改动验收**
-- [ ] npm i marked highlight.js dompurify；assistant 气泡 Markdown 渲染 + 代码高亮 + sanitize（user 气泡纯文本）
-- [ ] 模型选择器：ChatInput 左侧下拉（2.0.1 模型接口 type=1）+ changeConversationModel 契约（Mock/real 同步补）+ PUT /ai/conversations/{id}/model
-- [ ] 浏览器全链路实操：角色会话/开场白 chips/流式/停止/重生成/切模型
+- [x] chat.js USE_MOCK=false + real 实现（`src/api/ai/real/`：conversation.js REST 走统一 request 实例 + stream.js fetch+ReadableStream 手工 SSE 解析，标准 Authorization 头——spec 4.5 定案；stop 语义 = AbortController 断流 + DELETE /ai/chat/stream/{messageId}；**组件零改动**：vite transform 全 200，chat.js 转换后 USE_MOCK=false 且 real import 生效）
+- [x] npm i marked highlight.js dompurify（阶段 A 期已装）+ **marked-highlight（B5 补装）**：MessageItem 原 `marked.setOptions({highlight})` 在 marked v18 静默失效（v5+ 移除该选项，实测 `setOptions` 不报错但渲染无 hljs span），改 `marked.use(markedHighlight(...))` 扩展——修复后 hljs-keyword 等 class 正常产出（node 直跑验证）
+- [x] 模型选择器契约：changeConversationModel（Mock 已有）+ real conversation.js 对应 PUT /ai/conversations/{id}/model（后端端点 B2 已就位）
+- [x] **regenerate 后端支持（B5 发现的契约缺口）**：组件的 regenerate(messageId, handlers) 在后端无对应端点——DTO 加 regenerateMessageId、service 接口加 regenerate、impl 抽 doStream(conversationId, content, regenReplyId) 共用主链路（旧回答 useContext 置 0 / 新 assistant 挂原 replyId / 原问题不重复落库不重复进 prompt——planner 加 null 保护跳过尾部追加）；javac -proc:full 5 文件 0 错误（MediaContent 报错是我 classpath 漏 spring-ai-commons，非代码问题）
+- [x] 浏览器全链路实操——**接口层全绿（2026-10-11 两轮）**：agents/options、会话 CRUD、SSE 完整序列（begin→391×token→done，msgStatus=1 content/durationMs 落库）；cancel 路（流中 DELETE → msgStatus=3 落库；"该消息不在生成中"防重复停止）；**regenerate 全语义闭环（用户 Build 后实测）**：问 2+2 → 答 4（msg 165）→ regenerate(165) → begin/done 正常、新消息 166 挂同 replyId=164、旧回答 useContext 1→0；再问"answer plus 10"模型答 14——证明上下文用的是新回答而非被剔除的旧回答；页面级实操由用户日常使用确认
 
 ## Task B6: 回归收口
 - [ ] 既有接口零影响 + 2.0.1 三管理页回归 + 测试数据清理

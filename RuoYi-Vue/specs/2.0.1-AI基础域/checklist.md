@@ -2,6 +2,8 @@
 
 > 勾选 = 验收通过；测试没跑、验证没过的不许勾，保持 `- [ ]` 并注明原因。
 > 共用库纪律：MySQL 13306（本工作区 Docker）；测试数据测完清理（内置 5 厂商 3 Key 1 模型保留）；admin 会话测完清理。
+>
+> **状态：✅ 全部勾选（2026-10-11）**——12/12 验收项完成，spec-2.0.1 闭环。
 
 ## 验收清单
 
@@ -9,7 +11,7 @@
 - [x] 三个管理页面 CRUD 全通（接口层）：新增/编辑/删除/分页/筛选/排序；唯一性校验生效（重复 provider_code 被拒）
 - [x] 删除级联校验生效：有 Key 的厂商拒删（报错带数量）、有模型的 Key 拒删（报错带数量）；密钥编辑改 provider_id 被拒
 - [x] 密钥脱敏：列表/明细 api_key 显示为 `前4***后4`（占位符 `${VAR}` 原样显示变量名），数据库中为原文或占位符
-- [ ] AiModelResolver 单测全绿（拼接矩阵 / env 解析 / 一致性断言 / 状态组合 / 过期拦截）——测试文件已建，**未执行**：IDEA 运行中禁 mvn（编译纪律第 0 节）；解析器逻辑已经由端到端实测覆盖（model 101 全链路 + 停用/不存在/一致性的报错定位），单测补跑待服务停止窗口
+- [x] AiModelResolver 单测全绿（拼接矩阵 / env 解析 / 一致性断言 / 状态组合 / 过期拦截）——**2026-10-11 补跑通过：12 tests successful**。绕过 mvn 的直跑方式（IDEA 运行中编译纪律）：javac 编译测试类到 Temp + JUnit Platform Launcher 直跑（jupiter-engine 5.12.2 + launcher 1.12.2 + commons-lang3 3.20.0 拼 classpath）；附带修掉 Lombok 化后测试类残留的零参构造调用（`new AiModelResolver()` → `new AiModelResolver(null, null, null)`，该测试只覆盖纯逻辑方法，mapper 传 null）
 - [x] `/ai/chat` 传 modelId 走 DB 配置真实调用返回 AI 应答（`{"code":200,"data":"verification passed"}`，用户自建 airouter 通道全链路）；不存在的 modelId / 停用模型返回明确业务错误（报错定位到具体环节）
 - [x] 前端三页登录可见「AI 管理」菜单，接口全绿；页面级 CRUD 浏览器实操由用户日常使用确认（非阻塞项）
 - [x] 既有接口零影响（登录 + /system/user/list 冒烟 ✅）；契约零变化（不改既有接口/表）

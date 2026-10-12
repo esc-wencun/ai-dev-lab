@@ -223,7 +223,7 @@ CREATE TABLE ai_model (
 | 智谱开放平台 | `zhipu` | `openai` | `https://open.bigmodel.cn/api/paas` |
 | 阿里百炼（通义千问） | `bailian` | `openai` | `https://dashscope.aliyuncs.com/compatible-mode` |
 | 硅基流动 | `siliconflow` | `openai` | `https://api.siliconflow.cn` |
-| Ollama（本地） | `ollama` | `ollama` | `http://localhost:11434` |
+| Ollama（本地） | `ollama` | `ollama` | `http://localhost:11434`（走其自带 OpenAI 兼容端点 /v1，对话协议与 openai 同路） |
 | 文心一言 | `yiyan` | `openai` | `https://qianfan.baidubce.com/v2` |
 | 讯飞星火 | `xinghuo` | `openai` | `https://spark-api-open.xf-yun.com` |
 | 豆包 | `doubao` | `openai` | `https://ark.cn-beijing.volces.com/api/v3` |

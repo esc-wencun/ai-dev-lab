@@ -123,6 +123,21 @@ com.ruoyi.ai/
 - 会话级 temperature/max_tokens/max_contexts 列落库、会话创建时从模型默认带入，但**不暴露 UI**（阶段 A 定案）；
 - 上下文压缩（水位线摘要是异步任务）本期只做**数据落点**（context_summary/summary_upto_message_id 列就位 + planner 预留拼装位），**压缩任务本身不做**——contextMsgCount 远不到阈值前无实际需求，登记为后续模块；
 - RAG 溯源（segment_ids）/联网/附件：列就位，功能不做（后续 RAG 模块）。
+
+### 4.5 实施记录与实施期缺陷（2026-10-11 端到端验证期）
+
+- **D5**：Reactor 异步线程没有 SecurityContext——落库回调里调 SecurityUtils 抛「获取用户账户异常」（生产级流式范式的「异步线程丢上下文」同款问题）。解法：请求线程先取 userId/username，闭包捕获传入各回调。
+- **D6**：停止句柄若在 doOnSubscribe（订阅传播时）才注册，模型思考期（首 token 前数十个空 delta）内到达的 stop 请求会扑空。解法：请求线程组装 Flux 时同步注册句柄（AtomicReference<Subscription> 占位，doOnSubscribe 时 set）。
+- **remark 列坑**：BaseEntity.remark 是真实列映射（无 exist=false），表未建该列则实体任何 SELECT 报错；子类声明同名字段 + @TableField(exist=false) **不能**遮蔽父类映射。解法：ai_conversation/ai_message 补建 remark 列（增量 SQL 与 init SQL 已同步）。
+- SSE 鉴权落地形态：前端 fetch + ReadableStream 消费（标准 Authorization 头），无 query 传 token（spec 4.2 预留问题的定案）。
+- **对话页视觉风格定稿（2026-10-11 用户确认）**：Claude Code 终端风格——无气泡无头像、全左对齐平铺、角色等宽前缀（`>` 用户 / `●` 助手）、用户输入灰底窄条+左竖线、助手 Markdown 平铺正文、建议问题终端菜单式（`›` 前缀竖排）、元信息等宽弱化（`2.3s`/`48 tok`/`↻`）、输入框带 `>` 提示符行 + Esc 停止快捷键、会话栏左竖线 active 指示。配色仍用 RuoYi 主题变量（浅色），字体 JetBrains Mono/Consolas 等宽链。后续模块（SSE 真实接入等）样式不再动。
+- 验证结果：Planner 单测 6/6、Resolver 单测 12/12（顺带清了 2.0.1 遗留账）、SSE 三路落库全断言通过、快照复制/CRUD/删除级联/智能体删除校验实测通过。
+- **思考过程功能（2026-10-12 实施，参考客户端做法）**：四项全部落地——
+  ① **模型思考开关接通**：`doStream` 读会话 `enable_thinking` 快照，OpenAI 兼容协议经 `OpenAiChatOptions.extraBody` 透传（qwen3→`enable_thinking:true`、GLM→`thinking:{type:enabled}`、DeepSeek R1 等默认思考模型不传参）。**坑 D7：请求级 options 必须带全 baseUrl/apiKey/model**——只传 extraBody 会整体覆盖、回退到 spring-ai 默认（gpt-5-mini/官方地址），404。
+  ② **思考耗时显示**：前端 onReasoning 首帧起表、首个正文 token 止表，折叠行显示 `✻ 思考了 Ns`（生成中为 `✻ 思考中…`）；_thinkingMs 仅本地态不落库（回放无此数据可接受）。
+  ③ 思考过程 UI：`✻` 前缀折叠行（黄星）、思考体斜体灰字、生成中默认展开。
+  ④ **坑 D8（端到端抓到的真 bug）**：GLM 网关帧结构——`reasoning_content` 走 metadata 累积、**同一帧的 text 同时携带正文增量**，原 map() 的"reasoning/content 互斥"假设导致正文增量被 reasoning 分支吞掉（表现为"只思考不回答"）。修复：map→flatMap，一帧两路各自非空各发一个事件。修复后实测：reasoning 事件 ×90、token ×1（content="2"）、reasoning 落库 17072 字符、13s 完成。
+- **Lombok 化（2026-10-11，用户指令）**：ruoyi-ai 全模块 35 类转 Lombok——实体用 `@Getter @Setter`（**不用 @Data**：避免 MP 实体上生成全字段 equals/hashCode 的陷阱）、服务/控制器注入字段转 `private final` + `@RequiredArgsConstructor`、手写 Logger 转 `@Slf4j`；内部纯数据类 ResolvedAiModel 同步转换。依赖只在 ruoyi-ai pom（provided 1.18.48），**其余模块不动**（保持手写风格，不扩大影响面）。验证：javac -proc:full 全量 0 错误 + mvn BUILD SUCCESS + 冷启动 SSE 全链路（model 101 流式正常落库）。**前置条件：IDEA 需开启 annotation processing**（Settings → Build → Compiler → Annotation Processors），否则本地编译报"找不到 getXxx"。
 ## 五、风险与约束
 
 | # | 风险/约束 | 应对 |
