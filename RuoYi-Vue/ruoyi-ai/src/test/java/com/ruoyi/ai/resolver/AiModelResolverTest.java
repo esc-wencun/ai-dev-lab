@@ -1,6 +1,7 @@
 package com.ruoyi.ai.resolver;
 
 import org.junit.jupiter.api.Test;
+import com.ruoyi.common.exception.ServiceException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -13,7 +14,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class AiModelResolverTest
 {
-    private final AiModelResolver resolver = new AiModelResolver();
+    // @RequiredArgsConstructor 三参构造（三个 mapper）；本测试只覆盖纯逻辑方法，mapper 传 null
+    private final AiModelResolver resolver = new AiModelResolver(null, null, null);
 
     // ---------- 地址拼接矩阵 ----------
 
@@ -58,7 +60,7 @@ public class AiModelResolverTest
     @Test
     void joinLocalhost()
     {
-        assertEquals("http://localhost:11434/api", join("http://localhost:11434", "/api"));
+        assertEquals("http://localhost:11434/v1", join("http://localhost:11434", "/v1"));
     }
 
     // ---------- 协议默认路径 ----------
@@ -72,7 +74,8 @@ public class AiModelResolverTest
     @Test
     void defaultPathOllama()
     {
-        assertEquals("/api", AiModelResolver.defaultPath("ollama"));
+        // Ollama 自带 OpenAI 兼容端点：默认路径 = /v1（与 openai 协议相同）
+        assertEquals("/v1", AiModelResolver.defaultPath("ollama"));
     }
 
     @Test
