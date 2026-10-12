@@ -1,9 +1,11 @@
 package com.ruoyi.ai.service.impl;
 
+import com.ruoyi.ai.common.AiConstants;
 import java.util.Arrays;
 import java.util.List;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -23,12 +25,11 @@ import com.ruoyi.common.utils.StringUtils;
  * @author ruoyi
  */
 @Service
+@RequiredArgsConstructor
 public class AiApiKeyServiceImpl extends BaseService<AiApiKeyMapper, AiApiKey> implements IAiApiKeyService
 {
-    private static final String DEL_FLAG_REMOVED = "2";
 
-    @Autowired
-    private AiModelMapper modelMapper;
+    private final AiModelMapper aiModelMapper;
 
     @Override
     public Page<AiApiKey> selectKeyPage(AiApiKey key)
@@ -47,8 +48,8 @@ public class AiApiKeyServiceImpl extends BaseService<AiApiKeyMapper, AiApiKey> i
     {
         List<AiApiKey> keys = baseMapper.selectList(Wrappers.<AiApiKey>lambdaQuery()
                 .eq(AiApiKey::getProviderId, providerId)
-                .eq(AiApiKey::getStatus, "0")
-                .eq(AiApiKey::getDelFlag, "0")
+                .eq(AiApiKey::getStatus, AiConstants.STATUS_NORMAL)
+                .eq(AiApiKey::getDelFlag, AiConstants.DEL_FLAG_EXISTS)
                 .orderByDesc(AiApiKey::getKeyId));
         for (AiApiKey k : keys)
         {
@@ -108,15 +109,15 @@ public class AiApiKeyServiceImpl extends BaseService<AiApiKeyMapper, AiApiKey> i
     public String deleteKeyByIds(Long[] keyIds)
     {
         List<Long> ids = Arrays.asList(keyIds);
-        Long modelCount = modelMapper.selectCount(Wrappers.<AiModel>lambdaQuery()
+        Long modelCount = aiModelMapper.selectCount(Wrappers.<AiModel>lambdaQuery()
                 .in(AiModel::getKeyId, ids)
-                .eq(AiModel::getDelFlag, "0"));
+                .eq(AiModel::getDelFlag, AiConstants.DEL_FLAG_EXISTS));
         if (modelCount != null && modelCount > 0)
         {
             return "密钥下存在 " + modelCount + " 个模型，请先删除模型";
         }
         AiApiKey del = new AiApiKey();
-        del.setDelFlag(DEL_FLAG_REMOVED);
+        del.setDelFlag(AiConstants.DEL_FLAG_REMOVED);
         del.setUpdateBy(SecurityUtils.getUsername());
         baseMapper.update(del, Wrappers.<AiApiKey>lambdaUpdate().in(AiApiKey::getKeyId, ids));
         return null;
@@ -133,7 +134,7 @@ public class AiApiKeyServiceImpl extends BaseService<AiApiKeyMapper, AiApiKey> i
         Long count = baseMapper.selectCount(Wrappers.<AiApiKey>lambdaQuery()
                 .eq(AiApiKey::getProviderId, key.getProviderId())
                 .eq(AiApiKey::getApiKey, key.getApiKey())
-                .eq(AiApiKey::getDelFlag, "0")
+                .eq(AiApiKey::getDelFlag, AiConstants.DEL_FLAG_EXISTS)
                 .ne(keyId != null, AiApiKey::getKeyId, keyId));
         return count == null || count == 0;
     }

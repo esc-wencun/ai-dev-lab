@@ -1,18 +1,26 @@
 package com.ruoyi.ai.domain;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.ruoyi.common.core.domain.BaseEntity;
+
+import java.io.Serial;
 
 /**
  * AI 厂商对象 ai_provider
  *
  * @author ruoyi
  */
+@Getter
+@Setter
 @TableName("ai_provider")
 public class AiProvider extends BaseEntity
 {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     /** 厂商ID */
@@ -49,113 +57,6 @@ public class AiProvider extends BaseEntity
     /** 删除标志（0代表存在 2代表删除） */
     private String delFlag;
 
-    public Long getProviderId()
-    {
-        return providerId;
-    }
 
-    public void setProviderId(Long providerId)
-    {
-        this.providerId = providerId;
-    }
 
-    public String getProviderName()
-    {
-        return providerName;
-    }
-
-    public void setProviderName(String providerName)
-    {
-        this.providerName = providerName;
-    }
-
-    public String getProviderCode()
-    {
-        return providerCode;
-    }
-
-    public void setProviderCode(String providerCode)
-    {
-        this.providerCode = providerCode;
-    }
-
-    public String getProtocol()
-    {
-        return protocol;
-    }
-
-    public void setProtocol(String protocol)
-    {
-        this.protocol = protocol;
-    }
-
-    public String getApiHost()
-    {
-        return apiHost;
-    }
-
-    public void setApiHost(String apiHost)
-    {
-        this.apiHost = apiHost;
-    }
-
-    public String getIcon()
-    {
-        return icon;
-    }
-
-    public void setIcon(String icon)
-    {
-        this.icon = icon;
-    }
-
-    public String getWebsite()
-    {
-        return website;
-    }
-
-    public void setWebsite(String website)
-    {
-        this.website = website;
-    }
-
-    public String getKeyApplyUrl()
-    {
-        return keyApplyUrl;
-    }
-
-    public void setKeyApplyUrl(String keyApplyUrl)
-    {
-        this.keyApplyUrl = keyApplyUrl;
-    }
-
-    public String getStatus()
-    {
-        return status;
-    }
-
-    public void setStatus(String status)
-    {
-        this.status = status;
-    }
-
-    public Integer getSortOrder()
-    {
-        return sortOrder;
-    }
-
-    public void setSortOrder(Integer sortOrder)
-    {
-        this.sortOrder = sortOrder;
-    }
-
-    public String getDelFlag()
-    {
-        return delFlag;
-    }
-
-    public void setDelFlag(String delFlag)
-    {
-        this.delFlag = delFlag;
-    }
 }

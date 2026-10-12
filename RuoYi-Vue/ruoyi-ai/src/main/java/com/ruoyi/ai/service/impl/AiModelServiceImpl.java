@@ -1,8 +1,10 @@
 package com.ruoyi.ai.service.impl;
 
+import com.ruoyi.ai.common.AiConstants;
 import java.util.Arrays;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -22,12 +24,11 @@ import com.ruoyi.common.utils.SecurityUtils;
  * @author ruoyi
  */
 @Service
+@RequiredArgsConstructor
 public class AiModelServiceImpl extends BaseService<AiModelMapper, AiModel> implements IAiModelService
 {
-    private static final String DEL_FLAG_REMOVED = "2";
 
-    @Autowired
-    private AiApiKeyMapper keyMapper;
+    private final AiApiKeyMapper keyMapper;
 
     @Override
     public Page<AiModel> selectModelPage(AiModel model)
@@ -55,7 +56,7 @@ public class AiModelServiceImpl extends BaseService<AiModelMapper, AiModel> impl
                 .eq(AiModel::getProviderId, model.getProviderId())
                 .eq(AiModel::getKeyId, model.getKeyId())
                 .eq(AiModel::getModelCode, model.getModelCode())
-                .eq(AiModel::getDelFlag, "0"));
+                .eq(AiModel::getDelFlag, AiConstants.DEL_FLAG_EXISTS));
         if (dup != null && dup > 0)
         {
             return false;
@@ -81,7 +82,7 @@ public class AiModelServiceImpl extends BaseService<AiModelMapper, AiModel> impl
                 .eq(AiModel::getProviderId, model.getProviderId())
                 .eq(AiModel::getKeyId, model.getKeyId())
                 .eq(AiModel::getModelCode, model.getModelCode())
-                .eq(AiModel::getDelFlag, "0")
+                .eq(AiModel::getDelFlag, AiConstants.DEL_FLAG_EXISTS)
                 .ne(AiModel::getModelId, model.getModelId()));
         if (dup != null && dup > 0)
         {
@@ -96,7 +97,7 @@ public class AiModelServiceImpl extends BaseService<AiModelMapper, AiModel> impl
     public void deleteModelByIds(Long[] modelIds)
     {
         AiModel del = new AiModel();
-        del.setDelFlag(DEL_FLAG_REMOVED);
+        del.setDelFlag(AiConstants.DEL_FLAG_REMOVED);
         del.setUpdateBy(SecurityUtils.getUsername());
         baseMapper.update(del, Wrappers.<AiModel>lambdaUpdate().in(AiModel::getModelId, Arrays.asList(modelIds)));
     }
@@ -105,7 +106,7 @@ public class AiModelServiceImpl extends BaseService<AiModelMapper, AiModel> impl
     private void assertKeyProviderConsistent(Long keyId, Long providerId)
     {
         AiApiKey key = keyMapper.selectById(keyId);
-        if (key == null || "2".equals(key.getDelFlag()))
+        if (key == null || AiConstants.DEL_FLAG_REMOVED.equals(key.getDelFlag()))
         {
             throw new ServiceException("绑定的密钥不存在，请先在密钥管理中创建");
         }

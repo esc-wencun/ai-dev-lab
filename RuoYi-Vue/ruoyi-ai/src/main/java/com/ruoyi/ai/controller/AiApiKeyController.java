@@ -1,6 +1,7 @@
 package com.ruoyi.ai.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,10 +24,10 @@ import com.ruoyi.common.core.page.TableDataInfo;
  */
 @RestController
 @RequestMapping("/ai/key")
+@RequiredArgsConstructor
 public class AiApiKeyController extends BaseController
 {
-    @Autowired
-    private IAiApiKeyService keyService;
+    private final IAiApiKeyService keyService;
 
     /**
      * 分页查询密钥列表（出口已脱敏）

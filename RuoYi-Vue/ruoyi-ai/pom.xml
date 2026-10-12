@@ -35,6 +35,21 @@
             <artifactId>ruoyi-common</artifactId>
         </dependency>
 
+        <!-- Lombok（仅 ruoyi-ai 模块使用；实体用 @Getter/@Setter 不用 @Data 避免 equals/hashCode 陷阱） -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.48</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- 单元测试（纯逻辑不连库，对齐 ruoyi-common 的 junit 5.12.2） -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
 </project>

@@ -1,9 +1,13 @@
 package com.ruoyi.ai.resolver;
 
+import com.ruoyi.ai.common.AiConstants;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+
 import org.springframework.stereotype.Component;
 import com.ruoyi.ai.domain.AiApiKey;
 import com.ruoyi.ai.domain.AiModel;
@@ -12,6 +16,7 @@ import com.ruoyi.ai.mapper.AiApiKeyMapper;
 import com.ruoyi.ai.mapper.AiModelMapper;
 import com.ruoyi.ai.mapper.AiProviderMapper;
 import com.ruoyi.common.exception.ServiceException;
+import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.common.utils.StringUtils;
 
 /**
@@ -22,6 +27,7 @@ import com.ruoyi.common.utils.StringUtils;
  * @author ruoyi
  */
 @Component
+@RequiredArgsConstructor
 public class AiModelResolver
 {
     /**
@@ -30,24 +36,26 @@ public class AiModelResolver
      * "https://api.openai.com/v1"。host 填到端点为止不带尾斜杠 + 本路径 = 传给 SDK 的 baseUrl。
      */
     private static final String PATH_OPENAI_CHAT = "/v1";
-    private static final String PATH_OLLAMA_CHAT = "/api";
 
-    private static final Pattern ENV_PLACEHOLDER = Pattern.compile("^\\$\\{(\\w+)}$");
+    /** Ollama 11434 自带 OpenAI 兼容端点（/v1/chat/completions），统一走 openai 客户端 */
+    private static final String PATH_OLLAMA_CHAT = "/v1";
+
+    /** package-private：同包测试直接复用该正则断言（避免测试里抄第二份） */
+    static final Pattern ENV_PLACEHOLDER = Pattern.compile(AiConstants.ENV_PLACEHOLDER_PATTERN);
 
     public static final String PROTOCOL_OLLAMA = "ollama";
 
-    @Autowired
-    private AiModelMapper modelMapper;
+    private final AiModelMapper modelMapper;
 
-    @Autowired
-    private AiApiKeyMapper keyMapper;
+    private final AiApiKeyMapper keyMapper;
 
-    @Autowired
-    private AiProviderMapper providerMapper;
+    private final AiProviderMapper providerMapper;
 
     /**
      * 解析结果：可直接发起调用的完整信息
      */
+    @Getter
+    @Setter
     public static class ResolvedAiModel
     {
         private AiModel model;
@@ -59,19 +67,6 @@ public class AiModelResolver
         private String baseUrl;
         /** 协议类型 */
         private String protocol;
-
-        public AiModel getModel() { return model; }
-        public void setModel(AiModel model) { this.model = model; }
-        public AiProvider getProvider() { return provider; }
-        public void setProvider(AiProvider provider) { this.provider = provider; }
-        public AiApiKey getKey() { return key; }
-        public void setKey(AiApiKey key) { this.key = key; }
-        public String getResolvedApiKey() { return resolvedApiKey; }
-        public void setResolvedApiKey(String resolvedApiKey) { this.resolvedApiKey = resolvedApiKey; }
-        public String getBaseUrl() { return baseUrl; }
-        public void setBaseUrl(String baseUrl) { this.baseUrl = baseUrl; }
-        public String getProtocol() { return protocol; }
-        public void setProtocol(String protocol) { this.protocol = protocol; }
     }
 
     /**
@@ -82,38 +77,38 @@ public class AiModelResolver
     {
         // 1. 三级取数
         AiModel model = modelMapper.selectById(modelId);
-        if (model == null || "2".equals(model.getDelFlag()))
+        if (model == null || AiConstants.DEL_FLAG_REMOVED.equals(model.getDelFlag()))
         {
             throw new ServiceException("模型不存在或已删除（modelId=" + modelId + "）");
         }
         AiApiKey key = keyMapper.selectById(model.getKeyId());
-        if (key == null || "2".equals(key.getDelFlag()))
+        if (key == null || AiConstants.DEL_FLAG_REMOVED.equals(key.getDelFlag()))
         {
             throw new ServiceException("模型绑定的密钥不存在或已删除（keyId=" + model.getKeyId() + "）");
         }
         AiProvider provider = providerMapper.selectById(model.getProviderId());
-        if (provider == null || "2".equals(provider.getDelFlag()))
+        if (provider == null || AiConstants.DEL_FLAG_REMOVED.equals(provider.getDelFlag()))
         {
             throw new ServiceException("厂商不存在或已删除（providerId=" + model.getProviderId() + "）");
         }
 
         // 0. 可用性校验：三级状态 + 过期时间，报错带明确定位
-        if (!"0".equals(model.getStatus()))
+        if (!AiConstants.STATUS_NORMAL.equals(model.getStatus()))
         {
             throw new ServiceException("模型已停用：" + model.getModelName());
         }
-        if (!"0".equals(key.getStatus()))
+        if (!AiConstants.STATUS_NORMAL.equals(key.getStatus()))
         {
             throw new ServiceException("密钥已停用：" + key.getKeyName());
         }
-        if (!"0".equals(provider.getStatus()))
+        if (!AiConstants.STATUS_NORMAL.equals(provider.getStatus()))
         {
             throw new ServiceException("厂商已停用：" + provider.getProviderName());
         }
         if (key.getExpireTime() != null && key.getExpireTime().before(new Date()))
         {
             throw new ServiceException("密钥已过期：" + key.getKeyName() + "，过期时间 " +
-                    com.ruoyi.common.utils.DateUtils.parseDateToStr("yyyy-MM-dd HH:mm:ss", key.getExpireTime()));
+                    DateUtils.parseDateToStr("yyyy-MM-dd HH:mm:ss", key.getExpireTime()));
         }
 
         // 4. 一致性断言：数据被手工改库的兜底
@@ -145,8 +140,8 @@ public class AiModelResolver
         result.setModel(model);
         result.setProvider(provider);
         result.setKey(key);
-        result.setResolvedApiKey(resolvedApiKey);
         result.setBaseUrl(baseUrl);
+        result.setResolvedApiKey(resolvedApiKey);
         result.setProtocol(provider.getProtocol());
         return result;
     }
@@ -159,7 +154,7 @@ public class AiModelResolver
             return PATH_OLLAMA_CHAT;
         }
         // openai / anthropic 等 HTTP JSON 协议本期按 openai 兼容端点处理；未知协议（dify/coze/gemini/custom）须显式配 api_path
-        if ("openai".equals(protocol))
+        if (AiConstants.PROTOCOL_OPENAI.equals(protocol))
         {
             return PATH_OPENAI_CHAT;
         }

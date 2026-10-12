@@ -1,5 +1,8 @@
 package com.ruoyi.ai.domain;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -10,6 +13,8 @@ import com.ruoyi.common.core.domain.BaseEntity;
  *
  * @author ruoyi
  */
+@Getter
+@Setter
 @TableName("ai_model")
 public class AiModel extends BaseEntity
 {
@@ -70,183 +75,6 @@ public class AiModel extends BaseEntity
     /** 删除标志（0代表存在 2代表删除） */
     private String delFlag;
 
-    public Long getModelId()
-    {
-        return modelId;
-    }
 
-    public void setModelId(Long modelId)
-    {
-        this.modelId = modelId;
-    }
 
-    public Long getProviderId()
-    {
-        return providerId;
-    }
-
-    public void setProviderId(Long providerId)
-    {
-        this.providerId = providerId;
-    }
-
-    public Long getKeyId()
-    {
-        return keyId;
-    }
-
-    public void setKeyId(Long keyId)
-    {
-        this.keyId = keyId;
-    }
-
-    public String getModelName()
-    {
-        return modelName;
-    }
-
-    public void setModelName(String modelName)
-    {
-        this.modelName = modelName;
-    }
-
-    public String getModelCode()
-    {
-        return modelCode;
-    }
-
-    public void setModelCode(String modelCode)
-    {
-        this.modelCode = modelCode;
-    }
-
-    public Integer getModelType()
-    {
-        return modelType;
-    }
-
-    public void setModelType(Integer modelType)
-    {
-        this.modelType = modelType;
-    }
-
-    public Boolean getSupportThinking()
-    {
-        return supportThinking;
-    }
-
-    public void setSupportThinking(Boolean supportThinking)
-    {
-        this.supportThinking = supportThinking;
-    }
-
-    public Boolean getSupportTool()
-    {
-        return supportTool;
-    }
-
-    public void setSupportTool(Boolean supportTool)
-    {
-        this.supportTool = supportTool;
-    }
-
-    public Boolean getSupportVision()
-    {
-        return supportVision;
-    }
-
-    public void setSupportVision(Boolean supportVision)
-    {
-        this.supportVision = supportVision;
-    }
-
-    public Boolean getSupportAudio()
-    {
-        return supportAudio;
-    }
-
-    public void setSupportAudio(Boolean supportAudio)
-    {
-        this.supportAudio = supportAudio;
-    }
-
-    public Boolean getSupportVideo()
-    {
-        return supportVideo;
-    }
-
-    public void setSupportVideo(Boolean supportVideo)
-    {
-        this.supportVideo = supportVideo;
-    }
-
-    public Integer getModelDimension()
-    {
-        return modelDimension;
-    }
-
-    public void setModelDimension(Integer modelDimension)
-    {
-        this.modelDimension = modelDimension;
-    }
-
-    public Double getTemperature()
-    {
-        return temperature;
-    }
-
-    public void setTemperature(Double temperature)
-    {
-        this.temperature = temperature;
-    }
-
-    public Integer getMaxTokens()
-    {
-        return maxTokens;
-    }
-
-    public void setMaxTokens(Integer maxTokens)
-    {
-        this.maxTokens = maxTokens;
-    }
-
-    public Integer getMaxContexts()
-    {
-        return maxContexts;
-    }
-
-    public void setMaxContexts(Integer maxContexts)
-    {
-        this.maxContexts = maxContexts;
-    }
-
-    public String getStatus()
-    {
-        return status;
-    }
-
-    public void setStatus(String status)
-    {
-        this.status = status;
-    }
-
-    public Integer getSortOrder()
-    {
-        return sortOrder;
-    }
-
-    public void setSortOrder(Integer sortOrder)
-    {
-        this.sortOrder = sortOrder;
-    }
-
-    public String getDelFlag()
-    {
-        return delFlag;
-    }
-
-    public void setDelFlag(String delFlag)
-    {
-        this.delFlag = delFlag;
-    }
 }

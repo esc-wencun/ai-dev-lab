@@ -1,6 +1,10 @@
 package com.ruoyi.ai.domain;
 
+import java.io.Serial;
 import java.util.Date;
+import lombok.Getter;
+import lombok.Setter;
+
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -12,9 +16,12 @@ import com.ruoyi.common.core.domain.BaseEntity;
  *
  * @author ruoyi
  */
+@Getter
+@Setter
 @TableName("ai_api_key")
 public class AiApiKey extends BaseEntity
 {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     /** 密钥ID */
@@ -46,93 +53,6 @@ public class AiApiKey extends BaseEntity
     /** 删除标志（0代表存在 2代表删除） */
     private String delFlag;
 
-    public Long getKeyId()
-    {
-        return keyId;
-    }
 
-    public void setKeyId(Long keyId)
-    {
-        this.keyId = keyId;
-    }
 
-    public Long getProviderId()
-    {
-        return providerId;
-    }
-
-    public void setProviderId(Long providerId)
-    {
-        this.providerId = providerId;
-    }
-
-    public String getKeyName()
-    {
-        return keyName;
-    }
-
-    public void setKeyName(String keyName)
-    {
-        this.keyName = keyName;
-    }
-
-    public String getApiKey()
-    {
-        return apiKey;
-    }
-
-    public void setApiKey(String apiKey)
-    {
-        this.apiKey = apiKey;
-    }
-
-    public String getBaseUrl()
-    {
-        return baseUrl;
-    }
-
-    public void setBaseUrl(String baseUrl)
-    {
-        this.baseUrl = baseUrl;
-    }
-
-    public String getApiPath()
-    {
-        return apiPath;
-    }
-
-    public void setApiPath(String apiPath)
-    {
-        this.apiPath = apiPath;
-    }
-
-    public String getStatus()
-    {
-        return status;
-    }
-
-    public void setStatus(String status)
-    {
-        this.status = status;
-    }
-
-    public Date getExpireTime()
-    {
-        return expireTime;
-    }
-
-    public void setExpireTime(Date expireTime)
-    {
-        this.expireTime = expireTime;
-    }
-
-    public String getDelFlag()
-    {
-        return delFlag;
-    }
-
-    public void setDelFlag(String delFlag)
-    {
-        this.delFlag = delFlag;
-    }
 }

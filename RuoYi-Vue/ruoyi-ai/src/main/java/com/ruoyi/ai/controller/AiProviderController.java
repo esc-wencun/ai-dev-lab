@@ -1,6 +1,7 @@
 package com.ruoyi.ai.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,10 +24,10 @@ import com.ruoyi.common.core.page.TableDataInfo;
  */
 @RestController
 @RequestMapping("/ai/provider")
+@RequiredArgsConstructor
 public class AiProviderController extends BaseController
 {
-    @Autowired
-    private IAiProviderService providerService;
+    private final IAiProviderService providerService;
 
     /**
      * 分页查询厂商列表

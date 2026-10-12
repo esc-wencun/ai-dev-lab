@@ -1,5 +1,6 @@
 package com.ruoyi.ai.resolver;
 
+import com.ruoyi.ai.common.AiConstants;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.ai.chat.model.ChatModel;
@@ -31,10 +32,13 @@ public class ChatModelRouter
      */
     public ChatModel getChatModel(AiModelResolver.ResolvedAiModel resolved)
     {
-        if (!"openai".equals(resolved.getProtocol()))
+        // ollama 也走 openai 客户端：Ollama 11434 自带 OpenAI 兼容端点（resolver 已把默认路径
+        // 解析为 /v1），零额外依赖。其余协议（anthropic/gemini/custom 等）仍待扩展。
+        if (!AiConstants.PROTOCOL_OPENAI.equals(resolved.getProtocol())
+                && !AiModelResolver.PROTOCOL_OLLAMA.equals(resolved.getProtocol()))
         {
             throw new ServiceException("暂不支持协议 " + resolved.getProtocol()
-                    + " 的对话调用（本期仅 openai 兼容协议），ollama 等协议在后续模块扩展");
+                    + " 的对话调用（本期支持 openai 兼容协议与 Ollama），其余协议在后续模块扩展");
         }
         AiModel model = resolved.getModel();
         String cacheKey = resolved.getBaseUrl() + "|" + resolved.getResolvedApiKey() + "|" + model.getModelCode();

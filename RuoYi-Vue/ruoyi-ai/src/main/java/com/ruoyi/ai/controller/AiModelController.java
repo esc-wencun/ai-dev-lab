@@ -1,6 +1,7 @@
 package com.ruoyi.ai.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.ruoyi.ai.domain.AiModel;
 import com.ruoyi.ai.service.IAiModelService;
+import com.ruoyi.ai.service.IAiModelTestService;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.page.TableDataInfo;
@@ -23,10 +25,12 @@ import com.ruoyi.common.core.page.TableDataInfo;
  */
 @RestController
 @RequestMapping("/ai/model")
+@RequiredArgsConstructor
 public class AiModelController extends BaseController
 {
-    @Autowired
-    private IAiModelService modelService;
+    private final IAiModelService modelService;
+
+    private final IAiModelTestService modelTestService;
 
     /**
      * 分页查询模型列表
@@ -36,6 +40,17 @@ public class AiModelController extends BaseController
     public TableDataInfo list(AiModel model)
     {
         return getDataTable(modelService.selectModelPage(model));
+    }
+
+    /**
+     * 连通性测试（specs/2.0.3 用户需求）：按 modelId 解析链路发起一次最小对话请求，
+     * 返回耗时与失败原因（空响应/网关错误均归为失败并带提示）。
+     */
+    @PreAuthorize("@ss.hasPermi('ai:model:edit')")
+    @PostMapping("/{modelId}/test")
+    public AjaxResult testConnectivity(@PathVariable Long modelId)
+    {
+        return success(modelTestService.testConnectivity(modelId));
     }
 
     /**

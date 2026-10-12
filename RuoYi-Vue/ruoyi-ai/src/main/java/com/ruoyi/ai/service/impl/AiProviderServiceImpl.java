@@ -1,8 +1,10 @@
 package com.ruoyi.ai.service.impl;
 
+import com.ruoyi.ai.common.AiConstants;
 import java.util.Arrays;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -21,12 +23,11 @@ import com.ruoyi.common.utils.SecurityUtils;
  * @author ruoyi
  */
 @Service
+@RequiredArgsConstructor
 public class AiProviderServiceImpl extends BaseService<AiProviderMapper, AiProvider> implements IAiProviderService
 {
-    private static final String DEL_FLAG_REMOVED = "2";
 
-    @Autowired
-    private AiApiKeyMapper apiKeyMapper;
+    private final AiApiKeyMapper apiKeyMapper;
 
     @Override
     public Page<AiProvider> selectProviderPage(AiProvider provider)
@@ -38,7 +39,7 @@ public class AiProviderServiceImpl extends BaseService<AiProviderMapper, AiProvi
     public List<AiProvider> selectProviderAll()
     {
         return baseMapper.selectList(Wrappers.<AiProvider>lambdaQuery()
-                .eq(AiProvider::getStatus, "0")
+                .eq(AiProvider::getStatus, AiConstants.STATUS_NORMAL)
                 .orderByAsc(AiProvider::getSortOrder));
     }
 
@@ -83,13 +84,13 @@ public class AiProviderServiceImpl extends BaseService<AiProviderMapper, AiProvi
         List<Long> ids = Arrays.asList(providerIds);
         List<AiApiKey> keys = apiKeyMapper.selectList(Wrappers.<AiApiKey>lambdaQuery()
                 .in(AiApiKey::getProviderId, ids)
-                .eq(AiApiKey::getDelFlag, "0"));
+                .eq(AiApiKey::getDelFlag, AiConstants.DEL_FLAG_EXISTS));
         if (!keys.isEmpty())
         {
             return "厂商下存在 " + keys.size() + " 把密钥，请先删除密钥";
         }
         AiProvider del = new AiProvider();
-        del.setDelFlag(DEL_FLAG_REMOVED);
+        del.setDelFlag(AiConstants.DEL_FLAG_REMOVED);
         del.setUpdateBy(SecurityUtils.getUsername());
         baseMapper.update(del, Wrappers.<AiProvider>lambdaUpdate().in(AiProvider::getProviderId, ids));
         return null;
