@@ -65,6 +65,25 @@ export function changeConversationModel(conversationId, modelId) {
   return Promise.resolve(c)
 }
 
+/** 更新会话推理参数（语义对齐后端：null 不动 / -1 清除覆盖回落默认） */
+export function updateConversationParams(conversationId, params) {
+  const c = findConversation(conversationId)
+  if (!c) return Promise.reject(new Error('会话不存在'))
+  if (params.temperature != null && params.temperature !== -1 && (params.temperature < 0 || params.temperature > 2)) {
+    return Promise.reject(new Error('temperature 取值范围 0~2'))
+  }
+  if (params.maxTokens != null && params.maxTokens !== -1 && (params.maxTokens < 1 || params.maxTokens > 100000)) {
+    return Promise.reject(new Error('maxTokens 取值范围 1~100000'))
+  }
+  if (params.maxContexts != null && params.maxContexts !== -1 && (params.maxContexts < 0 || params.maxContexts > 500)) {
+    return Promise.reject(new Error('maxContexts 取值范围 0~500'))
+  }
+  if (params.temperature !== undefined) c.temperature = params.temperature === -1 ? null : params.temperature
+  if (params.maxTokens !== undefined) c.maxTokens = params.maxTokens === -1 ? null : params.maxTokens
+  if (params.maxContexts !== undefined) c.maxContexts = params.maxContexts === -1 ? null : params.maxContexts
+  return Promise.resolve(c)
+}
+
 export function listAgents() {
   return Promise.resolve(AGENTS.filter(a => a.status === '0'))
 }
@@ -294,6 +313,11 @@ export function sendMessage({ conversationId, content, handlers } = {}) {
   if (!c) return Promise.reject(new Error('会话不存在'))
   if (timers.has(conversationId)) {
     return Promise.reject(new Error('该会话有生成中的消息，请先停止'))
+  }
+  // 自动起名（对齐后端 autoTitleIfDefault）：默认「新会话」的首条消息前 20 字
+  if (c.title === '新会话' && content && content.trim()) {
+    const t = content.trim().replace(/\s+/g, ' ')
+    c.title = t.length > 20 ? t.substring(0, 20) : t
   }
   const u = makeMessage(conversationId, null, 'user', content, 1)
   ;(messagesByConversation.get(conversationId) || []).push(u)

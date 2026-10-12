@@ -89,21 +89,6 @@ export const constantRoutes = [
         meta: { title: '个人中心', icon: 'user' }
       }
     ]
-  },
-  {
-    // AI 对话页（specs/2.0.0 前端冒烟入口）：静态路由直挂 Layout，不进侧边栏、不配 sys_menu，
-    // 登录后浏览器直接访问 /ai/chat 即可；2.1.0 做正式对话模块时再迁入菜单体系
-    path: '/ai',
-    component: Layout,
-    hidden: true,
-    children: [
-      {
-        path: 'chat',
-        component: () => import('@/views/ai/chat/index'),
-        name: 'AiChat',
-        meta: { title: 'AI 对话', icon: 'message' }
-      }
-    ]
   }
 ]
 

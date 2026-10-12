@@ -1,11 +1,10 @@
-// AI 对话域接口（specs/2.0.2 阶段 A）
-// 签名 = 阶段 B 真实接口的契约；当前实现指向 Mock（内存假数据 + 假流式）。
-// 阶段 B 切换：USE_MOCK 置 false 并补齐 real 实现（SSE），组件零改动。
+// AI 对话域接口（specs/2.0.2）
+// 阶段 B：USE_MOCK=false 切真实实现（REST + SSE），组件零改动。
 import * as mock from './mock/mockChat'
+import * as real from './real/index.js'
 
-const USE_MOCK = true
-// 阶段 B：import * as real from './real'
-const impl = USE_MOCK ? mock : null
+const USE_MOCK = false
+const impl = USE_MOCK ? mock : real
 
 /** 会话列表（pinned 置顶组在前，组内按 lastMessageTime 倒序） */
 export function listConversations() {
@@ -64,6 +63,14 @@ export function changeConversationModel(conversationId, modelId) {
   return impl.changeConversationModel(conversationId, modelId)
 }
 
+/**
+ * 更新会话推理参数（specs/2.0.3）：{ temperature, maxTokens, maxContexts }。
+ * null 字段 = 不动；-1 = 清除覆盖回落模型默认；返回更新后的会话对象。
+ */
+export function updateConversationParams(conversationId, params) {
+  return impl.updateConversationParams(conversationId, params)
+}
+
 /** 模型下拉（对话模型 type=1，按 sort_order；阶段 A Mock 静态数据，阶段 B 走 2.0.1 模型接口） */
 export function listChatModels() {
   return impl.listChatModels()
@@ -74,7 +81,7 @@ export function listAgents() {
   return impl.listAgents()
 }
 
-/** 仅 Mock：开关强制出错路径（UI 评审用，阶段 B 移除） */
+/** 仅 Mock：开关强制出错路径（UI 评审用） */
 export function setMockErrorEnabled(enabled) {
   if (USE_MOCK && mock.setMockErrorEnabled) mock.setMockErrorEnabled(enabled)
 }

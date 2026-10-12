@@ -51,7 +51,7 @@ function scrollToBottom() {
 }
 
 watch(
-  () => props.messages.map(m => m.content.length + String(m.msgStatus)).join('|'),
+  () => props.messages.map(m => String(m.content ?? '').length + String(m.msgStatus)).join('|'),
   () => {
     if (followBottom.value) {
       nextTick(() => {
@@ -64,7 +64,7 @@ watch(
 </script>
 
 <style scoped>
-.msg-list { flex: 1; min-height: 0; overflow-y: auto; padding: 12px 16px; position: relative; border: 1px solid var(--el-border-color-light); border-radius: 6px; background: var(--el-bg-color); }
+.msg-list { flex: 1; min-height: 0; overflow-y: auto; padding: 6px 14px; position: relative; border: 1px solid var(--el-border-color-light); border-radius: 6px; background: var(--el-bg-color); }
 .back-bottom { position: absolute; right: 20px; bottom: 20px; width: 32px; height: 32px; border-radius: 50%; background: var(--el-bg-color-overlay); border: 1px solid var(--el-border-color); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--el-box-shadow-light); }
 .back-bottom:hover { color: var(--el-color-primary); }
 </style>

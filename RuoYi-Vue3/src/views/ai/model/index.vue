@@ -125,9 +125,20 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <div class="dialog-footer">
-          <el-button type="primary" @click="submitForm">确 定</el-button>
-          <el-button @click="cancel">取 消</el-button>
+        <div style="display: flex; justify-content: space-between; width: 100%">
+          <el-button
+            v-if="form.modelId != undefined"
+            type="success"
+            plain
+            icon="Connection"
+            :loading="testing"
+            @click="handleTest"
+          >测试连接</el-button>
+          <span v-else>保存后可测试连通性</span>
+          <span>
+            <el-button type="primary" @click="submitForm">确 定</el-button>
+            <el-button @click="cancel">取 消</el-button>
+          </span>
         </div>
       </template>
     </el-dialog>
@@ -135,7 +146,7 @@
 </template>
 
 <script setup name="AiModel">
-import { listModel, getModel, addModel, updateModel, delModel } from "@/api/ai/model"
+import { listModel, getModel, addModel, updateModel, delModel, testModel } from "@/api/ai/model"
 import { selectAllProvider } from "@/api/ai/provider"
 import { listKeyByProvider } from "@/api/ai/modelKey"
 
@@ -189,6 +200,24 @@ function loadProviders() {
   selectAllProvider().then(response => {
     providerOptions.value = response.data
   })
+}
+
+/** 连通性测试：发送最小请求验证 地址/密钥/模型 全链路（specs/2.0.3） */
+const testing = ref(false)
+async function handleTest() {
+  if (form.value.modelId == undefined) return
+  testing.value = true
+  try {
+    const res = await testModel(form.value.modelId)
+    const d = res.data
+    if (d.success) {
+      proxy.$modal.alert("连通正常（" + d.durationMs + "ms）" + (d.reply ? "\n模型回复：" + d.reply : ""))
+    } else {
+      proxy.$modal.alert("测试失败：" + d.message)
+    }
+  } finally {
+    testing.value = false
+  }
 }
 
 /** 厂商变更 → 重载该厂商的启用密钥下拉 */

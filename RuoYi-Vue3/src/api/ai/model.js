@@ -42,3 +42,12 @@ export function delModel(modelIds) {
     method: 'delete'
   })
 }
+
+// 连通性测试（specs/2.0.3）：发送一次最小请求验证 厂商地址/密钥/模型 全链路
+export function testModel(modelId) {
+  return request({
+    url: `/ai/model/${modelId}/test`,
+    method: 'post',
+    timeout: 60000
+  })
+}
