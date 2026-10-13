@@ -30,6 +30,6 @@
 3. **react-router library 模式**（`createBrowserRouter`/`useRoutes`），不引 framework 模式（无 SSR 需求，纯 SPA 对位）。
 4. **动态路由 Gate 方案**（React 无 `router.addRoute`）：权限数据（getInfo + getRouters）就绪前渲染全屏 Loading，就绪后 `useRoutes` 全量重渲染；404 catch-all 放最后防误伤深层链接；外链（http）不注册 Route，渲染为侧边栏 `<a>` 跳转。
 5. **KeepAlive 自研方案已设计、暂不实现**（用户 2026-09-27）：按路由 name 缓存组件实例 + 非激活隐藏；现阶段页签切换即重挂载（deviations #1）。
-6. **dev 端口 8090**：与 RuoYi-Vue3（80）并行，逐页对照验收。
+6. **dev 端口 8090**：与 RuoYi-Vue3（8888）并行，逐页对照验收。
 7. **主题色派生交给 antd token**：不手写十八档色阶（Vue3 版 utils/theme.js 的 hex 混白混黑），ConfigProvider colorPrimary 自动派生——界面不等价前提下允许的简化。
 8. **不引入的状态管理/请求备选**：Zustand（JD 也点名，但用户默认 RTK）、TanStack Query（服务端状态层与现有 axios 拦截器体系重叠）、Next.js（JD 加分项，但本项目是纯 SPA 复刻，不适用）。

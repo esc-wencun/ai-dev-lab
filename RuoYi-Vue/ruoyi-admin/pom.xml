@@ -54,6 +54,12 @@
             <artifactId>ruoyi-generator</artifactId>
         </dependency>
 
+        <!-- AI 能力模块（Spring AI 2.0 + Spring AI Alibaba，specs/2.0.0 起）-->
+        <dependency>
+            <groupId>com.ruoyi</groupId>
+            <artifactId>ruoyi-ai</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>

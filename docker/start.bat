@@ -1,6 +1,6 @@
 @echo off
 rem ===== RuoYi local dev environment - START (Windows) =====
-rem Starts MySQL 8.0 + Redis 7.0 containers. First start auto-imports schema.
+rem Starts MySQL 8.0 + Redis Stack containers. First start auto-imports schema.
 rem Note: keep this file ASCII-only (no Chinese) -- cmd.exe parses batch files
 rem with the OEM codepage, and UTF-8 Chinese breaks parsing. Docs: see README.md
 
@@ -26,7 +26,7 @@ if errorlevel 1 (
     )
 )
 
-echo [START] MySQL 8.0 + Redis 7.0 ...
+echo [START] MySQL 8.0 + Redis Stack ...
 docker compose up -d
 if errorlevel 1 (
     echo [ERROR] Start failed. Check the messages above.
@@ -36,7 +36,7 @@ if errorlevel 1 (
 
 echo.
 echo [DONE] Containers started. First-time initialization takes 1-2 minutes.
-echo   MySQL: 127.0.0.1:3306  user: wencun / 111111  database: ry-vue
-echo   Redis: 127.0.0.1:6379  password: 111111
+echo   MySQL: 127.0.0.1:13306  user: wencun / 111111  database: ry-vue
+echo   Redis: 127.0.0.1:16379  password: 111111
 echo Status: docker compose ps
 pause

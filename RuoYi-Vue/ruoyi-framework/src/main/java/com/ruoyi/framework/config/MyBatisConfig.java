@@ -153,6 +153,9 @@ public class MyBatisConfig
 
         GlobalConfig globalConfig = new GlobalConfig();
         GlobalConfig.DbConfig dbConfig = new GlobalConfig.DbConfig();
+        // 逻辑删除全局化：delFlag 属性自动命中（@TableLogic 等价），MP 注入的 CRUD 自动过滤/改写；
+        // XML 手写 SQL 不受影响（sys 三表仍靠自己的 where del_flag='0'）。PoC 验证中（2.0.5）。
+        dbConfig.setLogicDeleteField("delFlag");
         dbConfig.setLogicDeleteValue("2");
         dbConfig.setLogicNotDeleteValue("0");
         globalConfig.setDbConfig(dbConfig);

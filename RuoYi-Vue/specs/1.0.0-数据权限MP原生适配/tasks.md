@@ -1,7 +1,7 @@
 # Tasks · 1.0.0 数据权限 MP 原生适配
 
 > 勾选纪律：做完即勾（含对应验证跑通）；没做的不许勾，行尾注明原因；勾选 = 验收通过。
-> 依赖：0.0.0（MP 3.5.17 就位、分页插件已注册）。方案依据：spec.md 第三/五/七节（dcoa 校准版）。
+> 依赖：0.0.0（MP 3.5.17 就位、分页插件已注册）。方案依据：spec.md 第三/五节。
 > 环境约束：编译验证遵循项目 AGENTS.md《编译纪律》A 类（spec 任务可自主编译测试，动 mvn 前先停 IDEA 里的服务并在回复中明说）；数据权限验证必须用受限角色实测（admin 全权限测不出失效）。
 
 ## Task 1: 范围 DTO 与范围解析器（语义层，不碰 SQL）
@@ -22,7 +22,7 @@
 
 - [x] `DataPermissionRule` 接口新建（**framework**——返回 jsqlparser Expression，不进 common）：`Set<String> getTableNames()` + `Expression getExpression(String tableName, Alias tableAlias, RuoYiDeptDataPermissionDTO dto)`
 - [x] `DeptDataPermissionRule` 新建（framework）：内部 `deptColumns`/`userColumns` 两个 `Map<String,String>`；注册方法 `addDeptColumn(Class<?>)`（TableInfoHelper 解析表名，默认列 dept_id）/ `addDeptColumn(String table, String column)` / `addUserColumn(Class<?>, String column)` / `addUserColumn(String table, String column)`；`getTableNames()` 返回双 Map key 合集
-- [x] `getExpression` 实现（按 DTO 拼 JSqlParser AST，参照 dcoa DeptDataPermissionRule）：all→null；无 deptIds 且非 self→`EqualsTo(null,null)` 空集兜底；dept 维度→`dept_id IN (deptIds)`；user 维度→`user_id = userId`；并存→括号 OR；该表无对应列配置→该维度返回 null
+- [x] `getExpression` 实现（按 DTO 拼 JSqlParser AST）：all→null；无 deptIds 且非 self→`EqualsTo(null,null)` 空集兜底；dept 维度→`dept_id IN (deptIds)`；user 维度→`user_id = userId`；并存→括号 OR；该表无对应列配置→该维度返回 null
 - [x] `RuoYiDataPermissionHandler` 新建（framework）implements `MultiDataPermissionHandler`：ContextHolder 未激活或 enable=false→null；逐规则表名命中判断（剥反引号），未命中→null；命中→getExpression
 - [x] 表白名单注册入口：system 模块配置类提供 `@Bean` 组装（本期**白名单为空表起步**——现无带范围语义的纯 MP 查询）；注释写明"注册即生效，改动必须走 checklist 数据权限实测"
 - [x] 单元测试：DTO→Expression 逐 scope 断言（生成 SQL 字符串比对：IN/=/(A OR B)/null=null）；白名单命中与未命中；缺列配置时维度降级

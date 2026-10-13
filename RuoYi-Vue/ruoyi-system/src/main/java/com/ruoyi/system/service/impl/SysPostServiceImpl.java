@@ -111,7 +111,7 @@ public class SysPostServiceImpl extends BaseService<SysPostMapper, SysPost> impl
 
     /**
      * 通过岗位ID查询岗位使用数量
-     * 
+     *
      * @param postId 岗位ID
      * @return 结果
      */
@@ -150,7 +150,7 @@ public class SysPostServiceImpl extends BaseService<SysPostMapper, SysPost> impl
                 throw new ServiceException(String.format("%1$s已分配,不能删除", post.getPostName()));
             }
         }
-        return baseMapper.deleteBatchIds(java.util.Arrays.asList(postIds));
+        return baseMapper.deleteByIds(java.util.Arrays.asList(postIds));
     }
 
     /**

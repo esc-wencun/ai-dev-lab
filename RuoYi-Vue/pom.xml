@@ -19,6 +19,8 @@
         <java.version>17</java.version>
         <spring-boot.version>4.1.0</spring-boot.version>
         <mybatis-spring-boot.version>4.1.0</mybatis-spring-boot.version>
+        <spring-ai.version>2.0.1</spring-ai.version>
+        <spring-ai-alibaba.version>2.0.0-M1.1</spring-ai-alibaba.version>
         <druid.version>1.2.28</druid.version>
         <yauaa.version>8.2.0</yauaa.version>
         <kaptcha.version>2.3.3</kaptcha.version>
@@ -44,6 +46,22 @@
                 <version>${spring-boot.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <!-- Spring AI BOM（2.0 线，Boot 4 兼容；1.x 只支持 Boot 3，勿混用） -->
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>${spring-ai.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Spring AI Alibaba（2.0 里程碑线；其 BOM 不管理 dashscope starter，显式声明版本） -->
+            <dependency>
+                <groupId>com.alibaba.cloud.ai</groupId>
+                <artifactId>spring-ai-alibaba-starter-dashscope</artifactId>
+                <version>${spring-ai-alibaba.version}</version>
             </dependency>
 
             <!-- 阿里数据库连接池 -->
@@ -176,6 +194,13 @@
                 <version>${ruoyi.version}</version>
             </dependency>
 
+            <!-- AI 能力模块-->
+            <dependency>
+                <groupId>com.ruoyi</groupId>
+                <artifactId>ruoyi-ai</artifactId>
+                <version>${ruoyi.version}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 
@@ -186,6 +211,7 @@
         <module>ruoyi-quartz</module>
         <module>ruoyi-generator</module>
         <module>ruoyi-common</module>
+        <module>ruoyi-ai</module>
     </modules>
     <packaging>pom</packaging>
 

@@ -76,7 +76,7 @@ RuoYi-Vue-FastApi/
 
 ### 2. 配置
 
-**方式 A（推荐，本地 Docker 环境）**：先按根目录 [docker/README.md](../docker/README.md) 启动 MySQL 8.0 + Redis 7.0，然后直接使用现成的 `.env.docker`（已指向 `127.0.0.1`，账号 `wencun` / `111111`）：
+**方式 A（推荐，本地 Docker 环境）**：先按根目录 [docker/README.md](../docker/README.md) 启动 MySQL 8.0 + Redis Stack，然后直接使用现成的 `.env.docker`（已指向 `127.0.0.1`，账号 `wencun` / `111111`）：
 
 ```bash
 python app.py --env=docker

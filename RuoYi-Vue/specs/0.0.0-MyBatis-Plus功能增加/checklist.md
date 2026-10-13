@@ -17,6 +17,20 @@
 - [x] 文档同步完成：Python specs/README 对位表、GO tech-stack ORM 行、工作区 readme（2 处）、根 AGENTS.md 工作区结构行
 - [x] `RuoYi-Vue/specs/README.md` 模块总表标 ✅ + 日期（2026-09-26）
 
+## Task 10 验收（逻辑删除全局化，2026-10-13 追加）
+
+> PoC 已先行（2026-10-13，探索通道）：select 过滤 ✅、update(entity) SET 剔除 del_flag 实锤 ✅（坑 9）——用户确认后动工。
+
+- [x] 10.1 配置生效：冷启动后 AI 三管理页列表不再出现已删行（GLM-4.7 / 百炼占位Key）——model total=3、key total=4 实测
+- [x] 10.2 五处删除改写后实测：删除接口返回成功且 **DB 实查 del_flag='2' + update_by=username 双写**（key 134 实查 del_flag=2/update_by=admin）；列表即消失——改写前 PoC 同场景 del_flag 恒 '0'（坑 9），改写后修复
+- [x] 10.3 冗余清扫后全量 grep：`DEL_FLAG_EXISTS` 引用仅剩 AiConstants 常量定义（0 处调用点）；selectStaleGenerating/getInfo selectById 两处历史豁免本就无过滤、维持原状
+- [x] 10.4 语义变化验证：已删密钥名 T10Temp 重建成功（checkUnique 自动带存活过滤，已删名字可复用）
+- [x] 10.5 对话链路：删会话后 DB 实查会话 del_flag=2/status=1/update_by=admin，消息 del_flag 级联（remaining_active=0）；消息接口报"会话不存在"；列表不出现
+- [x] 10.6 系统模块零扰动：user/role/dept/config/dict/post 六接口 HTTP 200 数据正常（XML 路径与无 delFlag 实体均不受全局配置影响）
+- [x] 10.7 数据权限共存：造 deptId=900+角色2(dataScope=2) 测试用户实测 user list 仅见自己（total=1），DataPermissionInterceptor 与逻辑删除过滤共存无冲突；测试数据已删
+- [x] 10.8 `mvn clean package` 全模块编译通过 + `mvn test -pl ruoyi-common` 10/10 全绿
+- [x] 10.9 测试数据清理、admin 密码/会话复原（T10Temp 密钥/T10会话/t10user 用户/t10dept 全删，DB 实查 0 残留；密码未动过）
+
 ## 遗留与决策记录
 
 - pageSize 无上限：现状行为，本次保持（不悄悄改契约）；是否加上限留待后续决策。（2026-09-25 立项时登记）

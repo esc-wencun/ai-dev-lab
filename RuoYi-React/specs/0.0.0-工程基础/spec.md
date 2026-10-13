@@ -21,7 +21,7 @@
 2. **svg 精灵同源**：`vite-plugin-svg-icons`，`iconDirs: [src/assets/icons/svg]`，`symbolId: 'icon-[dir]-[name]'`；约 90 个 svg **从 RuoYi-Vue3/src/assets/icons/svg 全量复制**——DB 菜单 `meta.icon` 存的是精灵名，资源不同源则菜单图标全丢。
 3. **环境变量三份**：`.env.development`（`VITE_APP_BASE_API='/dev-api'`）/ `.env.production`（`/prod-api`）/ `.env.staging`（`/stage-api`）；`VITE_APP_TITLE=若依管理系统` 三处同步。
 4. React 19 + antd 兼容告警时按官方引入 `@ant-design/v5-patch-for-react-19`（记录版本）。
-5. dev 端口 8090 与 RuoYi-Vue3（80）并行——有意差异，见 [../deviations.md](../deviations.md) #6。
+5. dev 端口 8090 与 RuoYi-Vue3（8888）并行——有意差异，见 [../deviations.md](../deviations.md) #6。
 
 ## 设计决策
 

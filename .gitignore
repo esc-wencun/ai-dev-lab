@@ -2,10 +2,10 @@
 
 # ---- 敏感配置（绝不提交）----
 # 各版 .env.dev 已统一为本地 Docker 默认配置（127.0.0.1，账号 wencun/111111），无真实凭据，允许提交
-# 含真实云环境凭据的配置不提交；docker/.env 是本地覆盖文件也不提交
+# 含真实云环境凭据的配置不提交
+# docker/.env 也刻意入库（全部为公开的本地开发默认值，同 .env.example）；确有隐私时本地改后不要提交
 **/.env.prod
 **/.env.local
-docker/.env
 
 # AGENTS.local.md 刻意入库（本机环境参考，内容与 .env.dev 同口径、无云凭据）；反选全局 gitignore 的 *.local.md 规则
 !AGENTS.local.md
@@ -30,6 +30,9 @@ venv/
 # ---- IDE ----
 .idea/
 .vscode/
+
+# ---- 本机工具缓存 ----
+.workbuddy/
 
 # ---- OS ----
 .DS_Store

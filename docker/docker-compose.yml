@@ -1,4 +1,4 @@
-# RuoYi 本地开发环境（MySQL 8.0 + Redis 7.0）
+# RuoYi 本地开发环境（MySQL 8.0 + Redis Stack）
 #
 # 用法（在 docker 目录下执行，或加 -f 指定本文件）：
 #   启动：   docker compose up -d
@@ -36,7 +36,7 @@ services:
       - --default-time-zone=+08:00
       - --lower_case_table_names=1
     ports:
-      - "${MYSQL_PORT:-3306}:3306"
+      - "${MYSQL_PORT:-13306}:3306"
     volumes:
       - ruoyi-mysql-data:/var/lib/mysql
       - ./mysql/init:/docker-entrypoint-initdb.d:ro
@@ -48,15 +48,23 @@ services:
       start_period: 30s
 
   redis:
-    image: redis:7.0
+    # Redis Stack = 社区 Redis + RediSearch/RedisJSON 等模块，除普通缓存外提供向量检索能力
+    # （Spring AI RedisVectorStore 等依赖 FT.CREATE / JSON.* 的场景必需）。密码与数据卷沿用原 redis:7.0 的约定。
+    image: redis/redis-stack-server:latest
     container_name: ruoyi-redis
     restart: unless-stopped
     environment:
+      # Stack 镜像的启动参数必须经 REDIS_ARGS 传入：entrypoint 脚本负责加载模块，
+      # 用 command 覆盖 redis-server 会绕过模块加载（模块缺失时向量命令报 unknown command）。
+      REDIS_ARGS: >-
+        --requirepass ${REDIS_PASSWORD:-111111}
+        --appendonly yes
+        --appendfsync everysec
+        --maxmemory ${REDIS_MAXMEMORY:-512mb}
+        --maxmemory-policy ${REDIS_EVICTION:-noeviction}
       REDIS_PASSWORD: ${REDIS_PASSWORD:-111111}
-    # 密码通过 requirepass 设置；AOF 持久化，会话数据重启不丢
-    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:-111111}", "--appendonly", "yes", "--appendfsync", "everysec"]
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+      - "${REDIS_PORT:-16379}:6379"
     volumes:
       - ruoyi-redis-data:/data
     healthcheck:

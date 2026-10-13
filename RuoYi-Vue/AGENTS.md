@@ -25,37 +25,42 @@ mvn clean package -Dmaven.test.skip=true        # 全模块编译（JDK 17，本
 mvn test -pl ruoyi-common                        # 单元测试（surefire 3.5.3 + JUnit 5）
 ```
 
-启动验证遵循根 AGENTS.md 环境约束：8080 端口互斥（三版同时只能跑一个）、共用库测试数据测完清理、编译验证的分流规则见下节《编译纪律》。
+启动验证遵循根 AGENTS.md 环境约束：8080 端口互斥（三版同时只能跑一个）、共用库测试数据测完清理、编译规则见下节《编译纪律》（唯一判据：服务是否在运行）。
 
 ## 编译纪律（必须遵守）
 
-**按任务性质分流，不以"服务是否在跑"为唯一依据**：
+**唯一判据：服务端是否在运行。与任务性质无关**——spec 任务、临时改动、探索验证一视同仁（2026-10-08 重写；此前的"按任务性质分流 A/B"方案在 IDEA 调试场景实测出坑，废除）。
 
-### A. spec 驱动的开发任务（tasks.md 有对应 Task / checklist 在验收期）——可自主编译测试
+### 检测：服务是否在运行（动 mvn 前必查）
 
-- spec 流程本身就要求"做完即勾（含验证跑通）"，编译与端到端验证是任务的一部分，**不受服务运行状态限制**；
-- 动 mvn 前（`clean / package / repackage` 会删除或改写 `ruoyi-admin.jar`）**必须先停掉正在运行的服务**：
-  1. 8080 端口被 java 进程监听 → `taskkill //F //PID <pid>` 停掉（若是开发者 IDEA 里启动的，在回复里明说"我停掉了你 IDEA 里跑的服务，验证完请自行重启"）；
-  2. mvn 编译 → 冷启动 → 端到端验证 → **验证完把服务停掉**（不留后台进程占用 8080，干扰开发者下一次 IDEA 启动）；
-- 已知坑：服务在跑时执行 `mvn clean`（删 jar 失败）与 `repackage`（rename 失败）都会报错——本机实际踩过，先停服务再编译。
+任一命中即视为"服务运行中"：
 
-### B. 非任务性质的临时改动（修 typo、补注释、用户口头让改的小点，无 spec 依据）——服务运行中只做语法检查
+1. **8080 端口被监听**：`netstat -ano | findstr :8080` 后 `tasklist /fi "PID eq <pid>"` 确认是 java.exe（不区分谁启动的——IDEA 调试的、agent 起的、jar 残留的，一律算运行中）；
+2. **IDEA 正打开本项目**：`idea64.exe` 进程存在且 `.idea/` 属于本项目（此时即使服务没起，也可能随时被用户点起来）。
 
-1. 检测信号（任一命中即视为"服务运行中"）：
-   - 8080 端口被 java 进程监听（`netstat -ano | findstr :8080` 后 `tasklist /fi "PID eq <pid>"` 确认是 java.exe）；
-   - IDEA 正打开本项目（`idea64.exe` 进程存在且 `.idea/` 目录属于本项目）。
-2. 命中时：不执行 mvn 编译类命令、不启停服务，只做语法检查——
-   ```bash
-   # classpath 清单首次生成（只读依赖树不产编译产物；只能用 ruoyi-common 生成——
-   # 其他模块依赖 workspace 内模块、本地仓库无 install 过的 jar，会解析失败）：
-   mvn dependency:build-classpath -Dmdep.outputFile=%TEMP%\ruoyi-cp.txt -q -pl ruoyi-common
-   # 对改动的 .java 做语法检查（-d 指向临时目录；模块间依赖用 IDEA 编译好的
-   # target/classes——服务在跑时它们就是最新产物）：
-   javac -proc:none -encoding UTF-8 -d "%TEMP%\ruoyi-syntax-check" \
-     -cp "$(cat %TEMP%/ruoyi-cp.txt);ruoyi-common/target/classes;ruoyi-system/target/classes;ruoyi-framework/target/classes;ruoyi-quartz/target/classes;ruoyi-generator/target/classes" \
-     <改动的 .java 文件...>
-   ```
-   javac 报语法/符号错误当场修掉；需要运行时才能验证的行为，在回复里注明"待开发者重启服务验证"。2026-09-26 已全流程实测（正向 10 文件零错误 + 反向注入错误被正确捕获）。
-3. 未命中（服务没在跑）时可自主编译验证，同 A 类纪律（编译完不留后台进程）。
+> 判定拿不准时（如 8080 空闲但 IDEA 进程在）：按"运行中"处理——宁可少编译，不可干扰开发者。
 
-> 判定拿不准时（如 8080 空闲但 IDEA 进程在）：按"运行中"处理——宁可少编译，不可干扰开发者的 IDEA 会话。
+### 服务运行中：不编译、不启停
+
+- **不执行任何 mvn 编译类命令**（compile / package / clean / install / repackage 全部禁止）——无论什么任务；
+- 原因：IDEA 跑的服务 classpath 就是本项目 `target/classes`，agent 一编译，devtools 会感知并热重启服务，等于暗中改写开发者正在调试的运行时；`clean/package` 还会删除/改写 `ruoyi-admin.jar`（2026-10-08 实测踩坑：一次 `mvn compile` 热重启了用户的 IDEA debug 会话）；
+- 不启停服务：不 `taskkill`、不启动新实例（8080 也起不来）；
+- 此时代码改动的做法：javac 语法检查——
+  ```bash
+  # classpath 清单首次生成（只读依赖树不产编译产物；只能用 ruoyi-common 生成——
+  # 其他模块依赖 workspace 内模块、本地仓库无 install 过的 jar，会解析失败）：
+  mvn dependency:build-classpath -Dmdep.outputFile=%TEMP%\ruoyi-cp.txt -q -pl ruoyi-common
+  # 对改动的 .java 做语法检查（-d 指向临时目录；模块间依赖用 IDEA 编译好的
+  # target/classes——服务在跑时它们就是最新产物）：
+  javac -proc:none -encoding UTF-8 -d "%TEMP%\ruoyi-syntax-check" \
+    -cp "$(cat %TEMP%/ruoyi-cp.txt);ruoyi-common/target/classes;ruoyi-system/target/classes;ruoyi-framework/target/classes;ruoyi-quartz/target/classes;ruoyi-generator/target/classes" \
+    <改动的 .java 文件...>
+  ```
+  javac 报语法/符号错误当场修掉；需要运行时才能验证的行为，在回复里写清"改了什么、哪些要等用户重新 Build / 重启后验证"——**编译与重启由用户自己完成**。前端/Python/Go 的改动不受此限（不碰 Java 产物）。
+
+### 服务未运行：可自主编译、启动、验证
+
+- 编译：`mvn clean package -Dmaven.test.skip=true`（或按需 `compile`）；
+- 启动验证：`"C:\Program Files\Java\jdk-17.0.12\bin\java.exe" -jar ruoyi-admin/target/ruoyi-admin.jar` 冷启动（启动前确认 8080 仍空闲）；
+- 端到端验证完**必须停掉服务**（按 PID 精确 `taskkill //F //PID <pid>`，禁止 `//IM java.exe` 批杀），不留后台进程占用 8080 干扰开发者下一次 IDEA 启动；
+- 已知坑：服务在跑时执行 `mvn clean`（删 jar 失败）与 `repackage`（rename 失败）都会报错——这正是"运行中禁止编译"的原因之一。

@@ -10,7 +10,7 @@
 - **RuoYi-Vue3/** — Vue 3 + Element Plus + Vite 前端，三个后端共用。2026-09-25 起纳入可修改范围（按学习需要演进）；改动需以不破坏三版后端通用性为前提（优先用 `features` 能力开关而非硬编码语言判断，见 12.0.0）。仍是 RuoYi-React 的**基准前端**（行为参照）。
 - **RuoYi-Vue-FastApi/** — Python (FastAPI) 版服务端，当前开发重点（学习 AI + Python 项目）。目标是与 Java 版接口完全兼容，前端零改动即可切换后端。
 - **RuoYi-Vue-GO/** — Go 版服务端（Gin + GORM）。定位与 Python 版相同：复刻 Java 版接口、前端零改动切换。规范入口 `RuoYi-Vue-GO/AGENTS.md`，任务清单 `RuoYi-Vue-GO/specs/README.md`，技术选型 `RuoYi-Vue-GO/specs/tech-stack.md`。同监听 8080，与 Java/Python 版互斥。
-- **RuoYi-React/** — React 19 + TypeScript + Ant Design 5 + Redux Toolkit 前端，2026-09-27 起新增（学习 React + 求职导向）。功能等价复刻 RuoYi-Vue3（界面不强求一致），服务三版后端；规范入口 `RuoYi-React/AGENTS.md`，任务清单 `RuoYi-React/specs/README.md`，选型 `RuoYi-React/specs/tech-stack.md`，与基准的有意差异 `RuoYi-React/specs/deviations.md`。dev 端口 **8090**，与 RuoYi-Vue3（80）并行。
+- **RuoYi-React/** — React 19 + TypeScript + Ant Design 5 + Redux Toolkit 前端，2026-09-27 起新增（学习 React + 求职导向）。功能等价复刻 RuoYi-Vue3（界面不强求一致），服务三版后端；规范入口 `RuoYi-React/AGENTS.md`，任务清单 `RuoYi-React/specs/README.md`，选型 `RuoYi-React/specs/tech-stack.md`，与基准的有意差异 `RuoYi-React/specs/deviations.md`。dev 端口 **8090**，与 RuoYi-Vue3（8888）并行。
 
 > 「前端零改动」指三版后端切换时前端无需适配（兼容契约的目标），不是禁止改前端——2026-09-25 起前端与 Java 版均可按学习需要修改，改完注意评估对另外两个后端的影响。
 
@@ -30,7 +30,7 @@ python -m pytest tests/test_login_logic.py -k bcrypt -v  # 按名过滤
 
 ```bash
 npm install
-npm run dev           # 开发服务器，端口 80，/dev-api 代理到 localhost:8080
+npm run dev           # 开发服务器，端口 8888，/dev-api 代理到 localhost:8080
 npm run build:prod    # 生产构建
 ```
 
@@ -76,6 +76,8 @@ Python 版存在的意义就是复刻 Java 版接口，以下兼容点是所有�
 - **契约先行**：动手前先读 Java 版对应 Controller + ServiceImpl + Mapper XML，把端点路径、方法、参数、返回 JSON 结构写进 spec 的 API 清单，不凭记忆。
 - **验收以前端为准**：接口完成的标准是 RuoYi-Vue3 对应页面能正常操作，且响应字段名、状态码约定与 Java 版一致。
 - 测试分层：纯逻辑（树构建、格式转换等）写 pytest 单元测试；涉及数据库/Redis 的用真实环境端到端验证。
+- **spec 定稿后须用户确认才动工（2026-10-08 起）**：创建/更新 spec 三件套（spec.md / tasks.md / checklist.md）后**必须停下等用户明确确认**，才能开始实施 Task——不许写完 spec 就自动进入编码/执行。调研、版本验证等 spec **前置**工作不受此限（先验证再写 spec 正是推荐顺序）；但"按 spec 改代码、跑集成"属于动工，一律以用户确认为起点。spec 内容本身有争议时同样先确认再改。
+- **探索通道（2026-10-08 起，学习/探索类任务可用）**：目的为"学清楚某个东西"的探索/验证任务（技术验证、概念学习、原型试跑）允许**代码先行**——先动手跑通拿认知，事后再把 spec 三件套**补录**归档（记录做了什么、结论是什么、坑在哪），补录的 spec 状态头标"事后补录"。边界：**涉及接口契约、表结构、多端影响面的工作不走此通道**，仍按契约先行；探索中产生的临时代码若要转正，转正时必须回到正常 spec 流程（含用户确认）。
 - **CHANGELOG 维护规则**：完成一个功能里程碑（新功能、既有能力的重大改造如框架替换/架构级重构）时，在根目录 [CHANGELOG.md](CHANGELOG.md) 追加一条——日期倒序、一条 = 日期 + 标题 + 2~3 行要点、PR 附链接。**只记功能**：文档调整、叙事修改、配置说明、规范补齐等非功能性操作一律不记。逐 commit 细节以 git log 为准，不在此重复。
 
 ## spec checklist 纪律（2026-09 核对事故后新增，必须遵守）
@@ -105,6 +107,7 @@ checklist 是任务的验收记录，不是进度装饰。曾出现"状态头写
 5. **暂停态定时任务启用后不调度**：`resume_job` 对不在调度器里的 job 是静默空操作，必须从库补载（`scheduler_util.resume_job` 已修复，勿回退）。
 6. **共享 Redis 里 Java 写的 FastJson 缓存**（带 `@type`/`1L`）：解析走 `RedisCache.get_cache_object` 的兼容逻辑；严禁解析失败就删除缓存键（会破坏 Java 侧会话）。
 7. **路由遮蔽**：`/xxx/{param}` 会吞掉 `/xxx/clean` 这类固定路径——固定路径路由的处理函数内要对保留字转发（参考 job_controller 的 clean 处理）。
+8. **MP 全局逻辑删除下，update(实体) 写不进逻辑删除字段**（RuoYi-Vue 2026-10-13）：`MyBatisConfig.DbConfig.logicDeleteField="delFlag"` 生效后，`updateById(entity)`/`update(entity, wrapper)` 的 SET 子句在**启动时静态剔除**逻辑删除字段——`entity.setDelFlag("2")` 再 update 会静默丢弃、接口还报成功（实测踩中）。软删一律用 `LambdaUpdateWrapper.set(delFlag,...).set(updateBy,...)` 或 `deleteById`（后者无法携带 update_by，按需取舍）。
 
 ## 环境约束（重要）
 

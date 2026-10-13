@@ -68,13 +68,35 @@ spring:
     restart:
       # 热部署开关
       enabled: true
+  autoconfigure:
+    # Spring AI Alibaba 2.0.0-M1.1 打包缺陷（specs/2.0.0 缺陷 D1）：imports 声明的
+    # DashScopeMultimodalEmbeddingAutoConfiguration 类未打进 jar，启动即崩——排除之，
+    # SAA 出 GA 后移除此行
+    exclude:
+      - com.alibaba.cloud.ai.autoconfigure.dashscope.DashScopeMultimodalEmbeddingAutoConfiguration
+  # AI 大模型接入（specs/2.0.0 起；GLM 网关走 OpenAI 兼容协议，密钥经环境变量注入，不入库不入 git）
+  ai:
+    # classpath 同时存在 openai 与 dashscope 两个 ChatModel 自动配置，必须显式指定
+    model:
+      chat: openai
+    openai:
+      # 环境变量缺省时用占位值保证可启动（调用时报错）
+      api-key: ${glm_api_key:no-key}
+      base-url: ${glm_base_url:https://open.bigmodel.cn/api/paas}
+      chat:
+        options:
+          model: ${glm_model:glm-4.7}
+        completions-path: /v1/chat/completions
+    dashscope:
+      # SAA 自动配置（DashScopeAgent 等）启动时强校验 key：占位值保证无 key 环境可启动（缺陷 D4）
+      api-key: ${DASHSCOPE_API_KEY:sk-no-op}
   data:
     # redis 配置（本地 Docker Redis，见根目录 docker/README.md）
     redis:
       # 地址
       host: 127.0.0.1
       # 端口，默认为6379
-      port: 6379
+      port: 16379
       # 数据库索引
       database: 0
       # 密码

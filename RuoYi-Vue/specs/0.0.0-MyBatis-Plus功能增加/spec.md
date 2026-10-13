@@ -228,6 +228,22 @@ public class BaseService<M extends BaseMapper<T>, T>   // 泛型：注入 mapper
 
 [controller.java.vm](../../ruoyi-generator/src/main/resources/vm/java/controller.java.vm) 的 `startPage()` 分支改为新分页模式（`Page<${ClassName}> page = ...getDataTable(page)`）；[mapper.java.vm](../../ruoyi-generator/src/main/resources/vm/java/mapper.java.vm) 与 [mapper.xml.vm](../../ruoyi-generator/src/main/resources/vm/xml/mapper.xml.vm) 是否改为 BaseMapper 风格，本期只评估记录、不实施（避免扩大面）。
 
+### 3.8 逻辑删除全局化（Task 10，2026-10-13 追加）
+
+> 背景：AI 域（2.0.1/2.0.2/2.0.4）软删后列表仍查出已删行——实体无 `@TableLogic`，各查询手写 `.eq(delFlag,'0')` 补丁式过滤（累计 13+ 处）仍漏了 provider/model/key 三 page 查询与会话列表（用户实测踩中）。逐查询手写过滤不可持续，按用户决策改用 **MP 全局逻辑删除**根治。归属本 spec（MyBatis-Plus 功能增加范畴），不另立编号。
+
+**机制（MP 3.5.17 字节码级验证 + 真实环境 PoC 实测，见实施记录坑 9/10）**：`GlobalConfig.DbConfig` 三件套——`logicDeleteField("delFlag")`（属性名匹配，等价 @TableLogic；无 delFlag 属性的实体不命中，天然零误伤）+ `logicDeleteValue("2")` + `logicNotDeleteValue("0")`。生效范围 = MP 注入的 CRUD（selectList/selectPage/selectCount/selectById/update/delete 系列）自动拼 `WHERE del_flag='0'`；`deleteById/delete(wrapper)` 改写为 `UPDATE ... SET del_flag='2' WHERE ... AND del_flag='0'`；insert 空值自动填 `'0'`；**XML 手写 SQL 完全不受影响**（sys_user/role/dept 纯 XML 路径零扰动）。
+
+**关键实测结论（PoC-2，决定 Task 10.2）**：启用后 **`update(entity, wrapper)` / `updateById(entity)` 的 SET 子句剔除逻辑删除字段**（启动时静态生成 SQL，不看运行时实体值）——AI 现有 `new 实体 + setDelFlag('2') + update()` 软删写法将**静默失效**（实测：接口报"操作成功"，库里 del_flag 仍 '0'、只写进了 update_by）。删除方法必须改写。
+
+**改动清单**：
+
+1. **配置**（MyBatisConfig）：补 `dbConfig.setLogicDeleteField("delFlag")`——原 0.0.0 Task 2 已设 del 值二件套，本次补齐字段名即全局生效；
+2. **删除方法改写**（5 处，保 update_by 审计字段，不用 deleteById——其 SQL 无法携带 update_by）：`update(实体, wrapper)` → `update(null, LambdaUpdateWrapper.set(delFlag,'2').set(updateBy,username).in(id,ids))`——wrapper 的 `${ew.sqlSet}` 运行时拼接不受实体 SET 过滤器影响（PoC 复验项）；provider/model/key/agent 批量删 + 会话删（连带消息级联同步改写）；
+3. **冗余清扫**：本会话与 2.0.4 时代手写的 `.eq(delFlag,'0')` 共 13 处移除（全局过滤后成 `del_flag='0' AND del_flag='0'` 冗余条件）；`selectStaleGenerating`/`selectById`（getInfo）两处有意不加过滤的历史决策维持（调用路径不可达软删行，见 2.0.4 checklist 审计记录）；
+4. **语义变化（用户拍板 2026-10-13）**：AI 域 `checkUnique` 自动带 `del_flag='0'`——查重语义从「含已删行全表唯一」变为「存活行唯一」，即**已删名字/编码可复用**，与 2.0.4 智能体域既有决策一致；spec 3.6 与 R5 的"有 del_flag 的表不迁 checkUnique"结论据此反转，BaseService javadoc 同步更新；
+5. **影响面**：sys 三模块零改动（纯 XML）；AI 六实体全生效；`BaseEntity` 无 delFlag，其余实体（config/dict/post/job/gen 等）不命中字段名，零波及。
+
 ## 四、风险清单（开发时逐条对答）
 
 
@@ -266,6 +282,8 @@ public class BaseService<M extends BaseMapper<T>, T>   // 泛型：注入 mapper
 - 2026-09-26 Task 5 完成：字典/参数三模块全链路切 BaseMapper + Wrapper（含 betweenIfPresent 时间区间、字典改名级联 updateDictDataType(update+wrapper)），端到端 17 步全绿，DB 实查 0 残留。
 - 2026-09-26 Task 6 完成：日志两模块按坑 6 模式落 IPage 首参 + XML 分页（SQL 逻辑零改动仅参数前缀化），端到端 7 步全绿。
 - 2026-09-26 Task 7 完成：notice/job/gen 按范围决策"仅切分页、CRUD 留 XML"；SysJobLog 坑 6 模式；user/role 4 处 IPage+DataScope。端到端 11 项 + 数据权限受限角色专测全绿，测试数据全部清理。
+- 2026-10-13 坑 9：**全局逻辑删除启用后，`update(entity, wrapper)`/`updateById(entity)` 的 SET 子句静态剔除逻辑删除字段**（字节码：`Update` 注入模板传 `sqlSet(true,...)` → `getAllSqlSet` 过滤 `isLogicDelete` 字段）——PoC 实测：AI 密钥删除接口报成功、库里 del_flag 仍 '0' 只有 update_by 写入。**给带 delFlag 的实体手工 setDelFlag 再 update 的软删写法在全局逻辑删除下全部静默失效**，必须改 `LambdaUpdateWrapper.set()` 或 `deleteById`。凡启用逻辑删除的模块都要排查此类写法。
+- 2026-10-13 坑 10：PoC-1 复核发现**手写过滤与全局过滤叠加无害**（`del_flag='0' AND del_flag='0'`），且 selectList/selectPage/selectCount 全部自动拼 del_flag 条件；insert 自动填充 `'0'` 与库默认值一致，行为无差异。全局逻辑删除的生效范围**不含 XML 手写 SQL**——sys_user/role/dept 纯 XML 查询不受任何影响（PoC 复核通过）。
 
 ## 附录 A：PageHelper 使用点全清单（改造自查表，16 处调用 / 12 controller 文件 + 1 模板 + 3 支撑类）
 

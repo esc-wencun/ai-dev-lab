@@ -13,7 +13,7 @@
 
 ```bash
 npm install
-npm run dev           # 开发服务器，端口 80，自动开浏览器；/dev-api 代理到 http://localhost:8080
+npm run dev           # 开发服务器，端口 8888，自动开浏览器；/dev-api 代理到 http://localhost:8080
 npm run build:prod    # 生产构建，产物 dist/
 npm run build:stage   # 预发布构建（读 .env.staging）
 npm run preview       # 预览构建产物

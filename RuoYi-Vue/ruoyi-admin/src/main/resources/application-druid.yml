@@ -6,7 +6,7 @@ spring:
         druid:
             # 主库数据源（本地 Docker MySQL，见根目录 docker/README.md）
             master:
-                url: jdbc:mysql://127.0.0.1:3306/ry-vue?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=GMT%2B8
+                url: jdbc:mysql://127.0.0.1:13306/ry-vue?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=GMT%2B8
                 username: wencun
                 password: 111111
             # 从库数据源
