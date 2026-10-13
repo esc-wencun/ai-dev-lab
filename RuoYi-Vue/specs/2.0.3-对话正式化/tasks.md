@@ -78,3 +78,10 @@
 - [x] 实测结果：model 101 → `{success:true, reply:"pong", durationMs:1783~3819ms}`；model 100 → `{success:false, message:"模型无响应：...（网关返回了非标准响应）"}`——成功/失败双路径正确
 - [x] 前端：模型表单 footer 加「测试连接」按钮（仅编辑态，保存后可测）+ `testModel` API；成功弹窗含耗时与模型回复，失败弹窗带原因
 - [ ] 浏览器 UI 点验——tabbit 与 vite dev 的 HMR websocket 偶发导航超时（非本项目问题），按钮代码就位，随用户日常使用确认
+
+## Task 12: 密钥占位符示例提示 + 创建态连通测试（用户需求第二轮，2026-10-13）
+- [x] **密钥表单提示落成示例**（原"格式见内置数据示例"太空）：直接给 `${glm_api_key}` / `${DASHSCOPE_API_KEY}` 真实示例与格式说明（`${变量名}`，调用时从服务端环境变量取值不落明文；脱敏规则 前4+***+后4、占位符原样显示）——后端脱敏与 `${ENV_VAR}` 解析链 2.0.1 已实现，本轮纯提示文案
+- [x] **创建态连通测试**（原按钮仅编辑态可用）：新增 `POST /ai/model/testDraft`（ai:model:add）+ `AiModelTestDraftBody`（providerId/keyId/modelCode/modelName）——resolver 抽 `resolveByParts` 后段共用，`resolveDraft` 按构件走同一条链（草稿壳 status=null 天然跳过停用校验），测试结果与保存后正式链路完全一致
+- [x] **测试提示词改「你是哪个模型？」**（原 "reply with the single word: pong"）：回复即暴露真实模型名，顺带验证推理与计费——TEST_PROMPT 常量收口一处。**用户实测后手动修正两处**：提示词追加版本追问（"你是哪个模型？哪个版本？"）；maxTokens 256→1024（推理模型思考链 256 仍会被耗尽导致误判失败）
+- [x] 前端：模型表单 footer 两态都显示「测试连接」（创建态调 testModelDraft，表单三项必填由后端 resolveDraft 前置校验兜底提示）；api/ai/model.js 加 testModelDraft
+- [x] javac 全模块 0 错误（DTO 漏 modelName 字段在检查中抓到修复）——端到端待用户 Build 后走页面实测（testDraft 双路径 + 密钥页提示文案）

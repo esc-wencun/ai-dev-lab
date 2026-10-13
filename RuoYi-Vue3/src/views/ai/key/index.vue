@@ -74,7 +74,7 @@
         <el-form-item label="密钥内容" prop="apiKey">
           <el-input v-model="form.apiKey" placeholder="真实 Key 或环境变量占位符" show-password />
           <div style="font-size: 12px; color: var(--el-text-color-secondary); line-height: 1.5">
-            支持环境变量占位符（格式见内置数据示例），库里不落明文；列表中显示为脱敏格式
+            支持环境变量占位符 <code>${glm_api_key}</code> / <code>${DASHSCOPE_API_KEY}</code>（格式 <code>${变量名}</code>，内置数据即此写法）：调用时从服务端环境变量取值，库里不落明文；列表与回显按前4+***+后4 脱敏，占位符原样显示便于核对变量名
           </div>
         </el-form-item>
         <el-form-item label="Key网关地址" prop="baseUrl">

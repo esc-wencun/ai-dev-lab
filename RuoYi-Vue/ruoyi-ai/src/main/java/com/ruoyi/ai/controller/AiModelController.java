@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.ruoyi.ai.controller.dto.AiModelTestDraftBody;
 import com.ruoyi.ai.domain.AiModel;
 import com.ruoyi.ai.service.IAiModelService;
 import com.ruoyi.ai.service.IAiModelTestService;
@@ -51,6 +52,18 @@ public class AiModelController extends BaseController
     public AjaxResult testConnectivity(@PathVariable Long modelId)
     {
         return success(modelTestService.testConnectivity(modelId));
+    }
+
+    /**
+     * 连通性测试·草稿模式（specs/2.0.3 用户需求）：新增弹窗里模型尚未入库，
+     * 按表单所选 厂商/密钥/模型标识 直接发起同链路测试。
+     */
+    @PreAuthorize("@ss.hasPermi('ai:model:add')")
+    @PostMapping("/testDraft")
+    public AjaxResult testDraft(@RequestBody AiModelTestDraftBody body)
+    {
+        return success(modelTestService.testDraft(
+                body.getProviderId(), body.getKeyId(), body.getModelCode(), body.getModelName()));
     }
 
     /**

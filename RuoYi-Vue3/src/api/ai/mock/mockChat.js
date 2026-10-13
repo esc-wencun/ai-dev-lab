@@ -314,11 +314,6 @@ export function sendMessage({ conversationId, content, handlers } = {}) {
   if (timers.has(conversationId)) {
     return Promise.reject(new Error('该会话有生成中的消息，请先停止'))
   }
-  // 自动起名（对齐后端 autoTitleIfDefault）：默认「新会话」的首条消息前 20 字
-  if (c.title === '新会话' && content && content.trim()) {
-    const t = content.trim().replace(/\s+/g, ' ')
-    c.title = t.length > 20 ? t.substring(0, 20) : t
-  }
   const u = makeMessage(conversationId, null, 'user', content, 1)
   ;(messagesByConversation.get(conversationId) || []).push(u)
   touch(conversationId)

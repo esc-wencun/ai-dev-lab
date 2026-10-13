@@ -51,3 +51,13 @@ export function testModel(modelId) {
     timeout: 60000
   })
 }
+
+// 连通性测试·草稿模式（specs/2.0.3）：新增弹窗里模型未入库，按所选 厂商/密钥/模型标识 直接测试
+export function testModelDraft(data) {
+  return request({
+    url: '/ai/model/testDraft',
+    method: 'post',
+    data: data,
+    timeout: 60000
+  })
+}

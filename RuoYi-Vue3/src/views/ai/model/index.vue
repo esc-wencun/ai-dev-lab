@@ -127,14 +127,12 @@
       <template #footer>
         <div style="display: flex; justify-content: space-between; width: 100%">
           <el-button
-            v-if="form.modelId != undefined"
             type="success"
             plain
             icon="Connection"
             :loading="testing"
             @click="handleTest"
           >测试连接</el-button>
-          <span v-else>保存后可测试连通性</span>
           <span>
             <el-button type="primary" @click="submitForm">确 定</el-button>
             <el-button @click="cancel">取 消</el-button>
@@ -146,7 +144,7 @@
 </template>
 
 <script setup name="AiModel">
-import { listModel, getModel, addModel, updateModel, delModel, testModel } from "@/api/ai/model"
+import { listModel, getModel, addModel, updateModel, delModel, testModel, testModelDraft } from "@/api/ai/model"
 import { selectAllProvider } from "@/api/ai/provider"
 import { listKeyByProvider } from "@/api/ai/modelKey"
 
@@ -202,19 +200,28 @@ function loadProviders() {
   })
 }
 
-/** 连通性测试：发送最小请求验证 地址/密钥/模型 全链路（specs/2.0.3） */
+/** 连通性测试：发送最小请求（你是哪个模型？）验证 地址/密钥/模型 全链路（specs/2.0.3）
+ *  编辑态按已存模型测；创建态模型未入库，按表单草稿（厂商/密钥/模型标识）走同一条解析链 */
 const testing = ref(false)
 async function handleTest() {
-  if (form.value.modelId == undefined) return
   testing.value = true
   try {
-    const res = await testModel(form.value.modelId)
+    const res = form.value.modelId != undefined
+      ? await testModel(form.value.modelId)
+      : await testModelDraft({
+          providerId: form.value.providerId,
+          keyId: form.value.keyId,
+          modelCode: (form.value.modelCode || '').trim(),
+          modelName: form.value.modelName
+        })
     const d = res.data
     if (d.success) {
       proxy.$modal.alert("连通正常（" + d.durationMs + "ms）" + (d.reply ? "\n模型回复：" + d.reply : ""))
     } else {
       proxy.$modal.alert("测试失败：" + d.message)
     }
+  } catch (e) {
+    // 前置不足（未选厂商/密钥、未填模型标识）——request 层已弹后端的可读提示，这里静默
   } finally {
     testing.value = false
   }

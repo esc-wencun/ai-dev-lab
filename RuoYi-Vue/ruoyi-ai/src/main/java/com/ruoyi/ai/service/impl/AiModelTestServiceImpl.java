@@ -18,8 +18,9 @@ import com.ruoyi.common.exception.ServiceException;
 
 /**
  * AI 模型连通性测试服务实现（specs/2.0.3 用户需求）。
- * 复用 2.0.1 的解析链（AiModelResolver）与实例路由（ChatModelRouter），
- * 发一次最小对话请求（"ping"，maxTokens 限 8 控制成本），空回复/异常均判失败并带可读原因。
+ * 复用基础域解析链（AiModelResolver）与实例路由（ChatModelRouter），
+ * 发一次最小对话请求（默认问"你是哪个模型？哪个版本？"，maxTokens 限 1024 容纳推理模型思考），
+ * 空回复/异常均判失败并带可读原因。
  *
  * @author ruoyi
  */
@@ -31,6 +32,9 @@ public class AiModelTestServiceImpl implements IAiModelTestService
     /** 连通性测试超时（秒）——测试请求不该长时间挂起 */
     private static final long TEST_TIMEOUT_SECONDS = 30;
 
+    /** 连通性测试提示词（specs/2.0.3 用户指定）：回复即暴露真实模型名，顺带验证推理与计费 */
+    private static final String TEST_PROMPT = "你是哪个模型？哪个版本？";
+
     private final AiModelResolver modelResolver;
 
     private final ChatModelRouter chatModelRouter;
@@ -38,12 +42,23 @@ public class AiModelTestServiceImpl implements IAiModelTestService
     @Override
     public Map<String, Object> testConnectivity(Long modelId)
     {
+        return doTest(modelResolver.resolve(modelId));
+    }
+
+    @Override
+    public Map<String, Object> testDraft(Long providerId, Long keyId, String modelCode, String modelName)
+    {
+        return doTest(modelResolver.resolveDraft(providerId, keyId, modelCode, modelName));
+    }
+
+    /** 测试主体：resolve/resolveDraft 之后的调用与判定完全共用 */
+    private Map<String, Object> doTest(AiModelResolver.ResolvedAiModel resolved)
+    {
         Map<String, Object> result = new HashMap<>();
         long startedAt = System.currentTimeMillis();
         String reply;
         try
         {
-            AiModelResolver.ResolvedAiModel resolved = modelResolver.resolve(modelId);
             if (!AiConstants.PROTOCOL_OPENAI.equals(resolved.getProtocol()))
             {
                 result.put("success", false);
@@ -52,13 +67,13 @@ public class AiModelTestServiceImpl implements IAiModelTestService
                 return result;
             }
             ChatModel chatModel = chatModelRouter.getChatModel(resolved);
-            // maxTokens 256：推理模型（如 GLM-5.3-Flash）的思考内容也计入输出，8 会被思考耗尽导致 content 恒空
+            // maxTokens 1024：推理模型（如 GLM-5.3-Flash）的思考内容也计入输出，太小会被思考耗尽导致 content 恒空
             reply = ChatClient.builder(chatModel).build()
                     .prompt()
                     .options(ChatOptions.builder()
                             .model(resolved.getModel().getModelCode())
-                            .maxTokens(256))
-                    .user("reply with the single word: pong")
+                            .maxTokens(1024))
+                    .user(TEST_PROMPT)
                     .call()
                     .content();
         }
@@ -66,11 +81,24 @@ public class AiModelTestServiceImpl implements IAiModelTestService
         {
             long cost = System.currentTimeMillis() - startedAt;
             String reason = e.getMessage() != null && !e.getMessage().isBlank() ? e.getMessage() : e.getClass().getSimpleName();
-            log.warn("模型连通性测试失败 modelId={} cost={}ms: {}", modelId, cost, reason);
-            // SDK 内部异常（如 \`choices\` is not set）对用户不可读——映射为连通性语义
+            log.warn("模型连通性测试失败 model={} cost={}ms: {}", resolved.getModel().getModelCode(), cost, reason);
+            // SDK 内部异常（如 `choices` is not set）对用户不可读——映射为连通性语义
             if (reason.contains("is not set") || reason.contains("choices"))
             {
                 reason = "模型无响应：模型可能不存在、已下线，或服务网关异常（网关返回了非标准响应）";
+            }
+            // 高频 HTTP 状态语义（2026-10-13 DeepSeek 实测 402 原样透出）：测试弹窗给中文可读提示
+            else if (reason.startsWith("402") || reason.contains("Insufficient Balance"))
+            {
+                reason = "账户余额不足（402 Insufficient Balance）——密钥与链路均已连通，请到厂商控制台充值后重试";
+            }
+            else if (reason.startsWith("401") || reason.contains("Unauthorized"))
+            {
+                reason = "认证失败（401 Unauthorized）——密钥无效、已撤销，或不是该厂商的 Key";
+            }
+            else if (reason.startsWith("429"))
+            {
+                reason = "请求过于频繁（429）——稍后重试，或检查厂商限流配额";
             }
             result.put("success", false);
             result.put("durationMs", cost);
