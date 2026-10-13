@@ -25,7 +25,9 @@ docker compose up -d
 首次启动会自动：
 
 1. 创建数据库 `ry-vue`，普通账号 `wencun` / `111111`（root 密码也是 `111111`）
-2. 执行 `mysql/init/01-ruoyi-schema.sql` + `02-quartz.sql` 建表并灌入若依预置数据（含 `admin / admin123` 账号）
+2. 执行 `mysql/init/01-ruoyi-schema.sql` + `02-quartz.sql` 建表并灌入数据（含 `admin / admin123` 账号与 AI 模块预置数据）
+
+> `01-ruoyi-schema.sql` 由 `export-init-sql.sh` 从运行库导出生成（日志表只留结构、软删行剔除），不要手工编辑；运行库表结构变更后执行 `bash docker/export-init-sql.sh` 重新生成即可。注意 init SQL 只在数据卷为空时执行，对已有数据卷不生效——要应用新导出的数据需 `docker compose down -v` 重置。
 
 等待 MySQL 健康检查通过（首次初始化约 1~2 分钟）：
 
@@ -75,10 +77,11 @@ docker compose up -d
 docker/
 ├── start.bat / start.sh    # 启动脚本（Windows / macOS / Linux）
 ├── stop.bat / stop.sh      # 停止脚本（数据保留）
+├── export-init-sql.sh      # 从运行库重新导出 init SQL（表结构变更后执行）
 ├── docker-compose.yml      # MySQL 8.0 + Redis Stack 服务定义
 ├── .env.example            # 端口/密码/内存覆盖模板（.env 与其同内容，均已提交）
 └── mysql/init/
-    ├── 01-ruoyi-schema.sql # 若依业务表（20 张，来自 RuoYi-Vue/sql）
+    ├── 01-ruoyi-schema.sql # 业务表（26 张）+ 数据快照（export-init-sql.sh 生成；日志表只留结构、软删行剔除）
     └── 02-quartz.sql       # Quartz 表（11 张，供 Java 版使用）
 ```
 
