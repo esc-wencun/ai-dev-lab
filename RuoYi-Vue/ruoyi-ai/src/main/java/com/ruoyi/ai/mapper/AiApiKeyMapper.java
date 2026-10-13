@@ -2,6 +2,7 @@ package com.ruoyi.ai.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.ruoyi.ai.common.AiConstants;
 import com.ruoyi.ai.domain.AiApiKey;
 import com.ruoyi.common.core.mybatis.LambdaQueryWrapperX;
 import com.ruoyi.common.utils.PageUtils;

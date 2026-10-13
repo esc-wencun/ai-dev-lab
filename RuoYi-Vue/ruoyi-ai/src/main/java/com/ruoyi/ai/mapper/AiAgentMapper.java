@@ -14,7 +14,8 @@ import com.ruoyi.common.core.mybatis.LambdaQueryWrapperX;
 public interface AiAgentMapper extends BaseMapper<AiAgent>
 {
     /**
-     * 智能体下拉：公开 + 本人私有，status=0
+     * 智能体下拉：公开 + 本人私有，status=0，未删除
+     * （AI 域无 @TableLogic，del_flag 过滤手写——2.0.4 修复：漏过滤会让已删智能体继续进下拉）
      *
      * @param userId 当前用户
      * @return 智能体列表
@@ -28,7 +29,7 @@ public interface AiAgentMapper extends BaseMapper<AiAgent>
     }
 
     /**
-     * 管理页分页查询
+     * 管理页列表（未删除）
      */
     default List<AiAgent> selectAgentList(AiAgent agent)
     {

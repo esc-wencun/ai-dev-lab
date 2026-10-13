@@ -18,8 +18,9 @@ public class BaseService<M extends BaseMapper<T>, T>
 
     /**
      * 唯一性校验：true=唯一。keyValue 传 null = 新增校验；传当前 id = 编辑时排除自身。
-     * 注意：标了 @TableLogic 的实体会被 MP 自动追加 del_flag 过滤，与 RuoYi 全表唯一性语义不一致——
-     * 有 del_flag 的表不适用本方法（保留 XML 版 checkXxxUnique），见 0.0.0 spec 3.6。
+     * 语义（0.0.0 Task 10 起反转）：实体启用全局逻辑删除（delFlag 属性命中 DbConfig.logicDeleteField）时，
+     * selectCount 自动带 del_flag='0'——查重范围为存活行，已删名字/编码可复用（AI 域用户拍板 2026-10-13）；
+     * 仍需"含已删行全表唯一"语义的表，查重走 XML 手写 SQL。
      */
     public boolean checkUnique(SFunction<T, ?> keyField, Object keyValue, SFunction<T, ?> field, Object value)
     {

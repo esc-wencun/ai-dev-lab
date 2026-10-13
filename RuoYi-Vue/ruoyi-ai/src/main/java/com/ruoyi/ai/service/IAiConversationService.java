@@ -54,18 +54,12 @@ public interface IAiConversationService
     void updateParams(Long conversationId, Double temperature, Integer maxTokens, Integer maxContexts);
 
     /**
-     * 自动起名：标题仍为默认「新会话」时，取首条用户消息前 20 字符作标题（已重命名/重生成不触发）。
-     * 返回是否实际改名（供调用方决定是否刷会话列表）。
+     * 会话消息计数维护（消息落库/重生成后调用）：messageCount/contextMsgCount/lastMessageTime
      */
-    boolean autoTitleIfDefault(Long conversationId, String firstUserContent);
+    void refreshMessageStats(Long conversationId);
 
     /**
      * 取本人会话（不存在/非本人 → 业务异常）
      */
     AiConversation getOwnedConversation(Long conversationId);
-
-    /**
-     * 会话消息计数维护（消息落库/重生成后调用）：messageCount/contextMsgCount/lastMessageTime
-     */
-    void refreshMessageStats(Long conversationId);
 }

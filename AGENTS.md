@@ -107,6 +107,7 @@ checklist 是任务的验收记录，不是进度装饰。曾出现"状态头写
 5. **暂停态定时任务启用后不调度**：`resume_job` 对不在调度器里的 job 是静默空操作，必须从库补载（`scheduler_util.resume_job` 已修复，勿回退）。
 6. **共享 Redis 里 Java 写的 FastJson 缓存**（带 `@type`/`1L`）：解析走 `RedisCache.get_cache_object` 的兼容逻辑；严禁解析失败就删除缓存键（会破坏 Java 侧会话）。
 7. **路由遮蔽**：`/xxx/{param}` 会吞掉 `/xxx/clean` 这类固定路径——固定路径路由的处理函数内要对保留字转发（参考 job_controller 的 clean 处理）。
+8. **MP 全局逻辑删除下，update(实体) 写不进逻辑删除字段**（RuoYi-Vue 2026-10-13）：`MyBatisConfig.DbConfig.logicDeleteField="delFlag"` 生效后，`updateById(entity)`/`update(entity, wrapper)` 的 SET 子句在**启动时静态剔除**逻辑删除字段——`entity.setDelFlag("2")` 再 update 会静默丢弃、接口还报成功（实测踩中）。软删一律用 `LambdaUpdateWrapper.set(delFlag,...).set(updateBy,...)` 或 `deleteById`（后者无法携带 update_by，按需取舍）。
 
 ## 环境约束（重要）
 

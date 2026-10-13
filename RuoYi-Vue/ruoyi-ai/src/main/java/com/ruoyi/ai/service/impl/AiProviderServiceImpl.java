@@ -75,7 +75,7 @@ public class AiProviderServiceImpl extends BaseService<AiProviderMapper, AiProvi
 
     /**
      * 批量软删厂商。级联校验（设计文档坑 5）：任一厂商下存在未删密钥即整体拒绝，先删子再删父。
-     * 注意：实体未标 @TableLogic，BaseMapper 不会自动过滤 del_flag——计数查询须显式加 del_flag='0'。
+     * 全局逻辑删除（spec 0.0.0 Task 10）下 update(实体) 的 SET 剔除 del_flag——软删必须走 wrapper set()。
      */
     @Override
     @Transactional
@@ -83,16 +83,15 @@ public class AiProviderServiceImpl extends BaseService<AiProviderMapper, AiProvi
     {
         List<Long> ids = Arrays.asList(providerIds);
         List<AiApiKey> keys = apiKeyMapper.selectList(Wrappers.<AiApiKey>lambdaQuery()
-                .in(AiApiKey::getProviderId, ids)
-                .eq(AiApiKey::getDelFlag, AiConstants.DEL_FLAG_EXISTS));
+                .in(AiApiKey::getProviderId, ids));
         if (!keys.isEmpty())
         {
             return "厂商下存在 " + keys.size() + " 把密钥，请先删除密钥";
         }
-        AiProvider del = new AiProvider();
-        del.setDelFlag(AiConstants.DEL_FLAG_REMOVED);
-        del.setUpdateBy(SecurityUtils.getUsername());
-        baseMapper.update(del, Wrappers.<AiProvider>lambdaUpdate().in(AiProvider::getProviderId, ids));
+        baseMapper.update(null, Wrappers.<AiProvider>lambdaUpdate()
+                .set(AiProvider::getDelFlag, AiConstants.DEL_FLAG_REMOVED)
+                .set(AiProvider::getUpdateBy, SecurityUtils.getUsername())
+                .in(AiProvider::getProviderId, ids));
         return null;
     }
 }

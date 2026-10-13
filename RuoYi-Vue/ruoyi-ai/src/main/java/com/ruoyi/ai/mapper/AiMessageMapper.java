@@ -15,7 +15,7 @@ import com.ruoyi.common.core.mybatis.LambdaQueryWrapperX;
 public interface AiMessageMapper extends BaseMapper<AiMessage>
 {
     /**
-     * 按会话拉历史（升序）
+     * 按会话拉历史（升序，未删除——已删会话的连带软删消息不再回显）
      *
      * @param conversationId 会话ID
      * @return 消息列表
@@ -28,7 +28,7 @@ public interface AiMessageMapper extends BaseMapper<AiMessage>
     }
 
     /**
-     * 会话内最近 N 条活跃消息（上下文窗口拼装用，倒序取再正序用）
+     * 会话内最近 N 条活跃消息（上下文窗口拼装用，倒序取再正序用；未删除）
      *
      * @param conversationId 会话ID
      * @param limit 条数上限
@@ -46,7 +46,7 @@ public interface AiMessageMapper extends BaseMapper<AiMessage>
     }
 
     /**
-     * 同一回复下的活跃 assistant 消息（重生成去重：只保留最新）
+     * 同一回复下的活跃 assistant 消息（重生成去重：只保留最新；未删除）
      *
      * @param replyId user 消息ID
      * @return 该回复的全部活跃 assistant 消息（升序）

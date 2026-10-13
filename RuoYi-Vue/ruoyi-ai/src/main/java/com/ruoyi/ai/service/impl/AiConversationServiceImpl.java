@@ -132,19 +132,18 @@ public class AiConversationServiceImpl implements IAiConversationService
     @Transactional
     public void deleteConversation(Long conversationId)
     {
-        AiConversation conv = getOwnedConversation(conversationId);
-        conv.setStatus(AiConstants.STATUS_DISABLED);
-        conv.setDelFlag(AiConstants.DEL_FLAG_REMOVED);
-        conv.setUpdateBy(SecurityUtils.getUsername());
-        conversationMapper.updateById(conv);
-        // 连带软删消息
-        List<AiMessage> msgs = messageMapper.selectByConversation(conversationId);
-        for (AiMessage m : msgs)
-        {
-            m.setDelFlag(AiConstants.DEL_FLAG_REMOVED);
-            m.setUpdateBy(SecurityUtils.getUsername());
-            messageMapper.updateById(m);
-        }
+        getOwnedConversation(conversationId);
+        // 全局逻辑删除（spec 0.0.0 Task 10）下 updateById(实体) 的 SET 剔除 del_flag——软删走 wrapper set()
+        conversationMapper.update(null, Wrappers.<AiConversation>lambdaUpdate()
+                .set(AiConversation::getStatus, AiConstants.STATUS_DISABLED)
+                .set(AiConversation::getDelFlag, AiConstants.DEL_FLAG_REMOVED)
+                .set(AiConversation::getUpdateBy, SecurityUtils.getUsername())
+                .eq(AiConversation::getConversationId, conversationId));
+        // 连带软删消息（单条 UPDATE ... SET，替代逐行 updateById）
+        messageMapper.update(null, Wrappers.<AiMessage>lambdaUpdate()
+                .set(AiMessage::getDelFlag, AiConstants.DEL_FLAG_REMOVED)
+                .set(AiMessage::getUpdateBy, SecurityUtils.getUsername())
+                .eq(AiMessage::getConversationId, conversationId));
     }
 
     @Override
@@ -160,21 +159,6 @@ public class AiConversationServiceImpl implements IAiConversationService
         conv.setModelCode(model.getModelCode());
         conv.setUpdateBy(SecurityUtils.getUsername());
         conversationMapper.updateById(conv);
-    }
-
-    @Override
-    public boolean autoTitleIfDefault(Long conversationId, String firstUserContent)
-    {
-        AiConversation conv = getOwnedConversation(conversationId);
-        if (!"新会话".equals(conv.getTitle()) || firstUserContent == null || firstUserContent.isBlank())
-        {
-            return false;
-        }
-        String t = firstUserContent.trim().replaceAll("\s+", " ");
-        conv.setTitle(t.length() > 20 ? t.substring(0, 20) : t);
-        conv.setUpdateBy(SecurityUtils.getUsername());
-        conversationMapper.updateById(conv);
-        return true;
     }
 
     @Override

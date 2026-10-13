@@ -55,8 +55,7 @@ public class AiModelServiceImpl extends BaseService<AiModelMapper, AiModel> impl
         Long dup = baseMapper.selectCount(Wrappers.<AiModel>lambdaQuery()
                 .eq(AiModel::getProviderId, model.getProviderId())
                 .eq(AiModel::getKeyId, model.getKeyId())
-                .eq(AiModel::getModelCode, model.getModelCode())
-                .eq(AiModel::getDelFlag, AiConstants.DEL_FLAG_EXISTS));
+                .eq(AiModel::getModelCode, model.getModelCode()));
         if (dup != null && dup > 0)
         {
             return false;
@@ -82,7 +81,6 @@ public class AiModelServiceImpl extends BaseService<AiModelMapper, AiModel> impl
                 .eq(AiModel::getProviderId, model.getProviderId())
                 .eq(AiModel::getKeyId, model.getKeyId())
                 .eq(AiModel::getModelCode, model.getModelCode())
-                .eq(AiModel::getDelFlag, AiConstants.DEL_FLAG_EXISTS)
                 .ne(AiModel::getModelId, model.getModelId()));
         if (dup != null && dup > 0)
         {
@@ -96,10 +94,10 @@ public class AiModelServiceImpl extends BaseService<AiModelMapper, AiModel> impl
     @Transactional
     public void deleteModelByIds(Long[] modelIds)
     {
-        AiModel del = new AiModel();
-        del.setDelFlag(AiConstants.DEL_FLAG_REMOVED);
-        del.setUpdateBy(SecurityUtils.getUsername());
-        baseMapper.update(del, Wrappers.<AiModel>lambdaUpdate().in(AiModel::getModelId, Arrays.asList(modelIds)));
+        baseMapper.update(null, Wrappers.<AiModel>lambdaUpdate()
+                .set(AiModel::getDelFlag, AiConstants.DEL_FLAG_REMOVED)
+                .set(AiModel::getUpdateBy, SecurityUtils.getUsername())
+                .in(AiModel::getModelId, Arrays.asList(modelIds)));
     }
 
     /** key 与厂商一致性（设计文档坑 3）：key 不存在 / key 已删 / key 挂别的厂商 → 业务异常 */

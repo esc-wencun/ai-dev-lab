@@ -29,7 +29,7 @@ public interface AiConversationMapper extends BaseMapper<AiConversation>
     }
 
     /**
-     * 按智能体查会话（删除前置校验用）
+     * 按智能体查会话数（删除前置校验用；排除已删会话——已删会话不应永远阻塞智能体删除）
      *
      * @param agentId 智能体ID
      * @return 会话数
