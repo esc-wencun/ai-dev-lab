@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.ruoyi.ai.common.AiAgentPayload;
 import com.ruoyi.ai.domain.AiAgent;
 import com.ruoyi.ai.mapper.AiAgentMapper;
 import com.ruoyi.ai.service.IAiAgentService;
@@ -33,11 +34,11 @@ public class AiAgentController extends BaseController
 
     private final IAiAgentService agentService;
 
-    /** 智能体下拉：公开 + 本人私有（对话页角色下拉用，登录态即可） */
+    /** 智能体下拉：公开 + 本人私有（对话页角色下拉用，登录态即可）；出口整形 suggestedQuestions→数组（specs/2.0.4） */
     @GetMapping("/options")
     public AjaxResult options()
     {
-        return success(agentMapper.selectVisibleAgents(SecurityUtils.getUserId()));
+        return success(AiAgentPayload.toList(agentMapper.selectVisibleAgents(SecurityUtils.getUserId())));
     }
 
     /** 管理页列表 */
@@ -45,14 +46,14 @@ public class AiAgentController extends BaseController
     @GetMapping
     public AjaxResult list(AiAgent query)
     {
-        return success(agentMapper.selectAgentList(query));
+        return success(AiAgentPayload.toList(agentMapper.selectAgentList(query)));
     }
 
     @PreAuthorize("@ss.hasPermi('ai:agent:query')")
     @GetMapping("/{agentId}")
     public AjaxResult getInfo(@PathVariable Long agentId)
     {
-        return success(agentMapper.selectById(agentId));
+        return success(AiAgentPayload.toOne(agentMapper.selectById(agentId)));
     }
 
     @PreAuthorize("@ss.hasPermi('ai:agent:add')")
