@@ -135,6 +135,8 @@ async function openConversation(id) {
   activeId.value = id
   const list = await listMessages(id)
   messages.value = applyReasoningOverlay(id, list)
+  // 切换/打开会话后光标自动落输入框（Claude Code 同款，用户指令 2026-10-14）
+  nextTick(() => chatInputRef.value?.focusInput())
 }
 
 function handleSelect(id) {
@@ -158,7 +160,6 @@ async function handleCreate() {
       createTime: ''
     })
   }
-  nextTick(() => chatInputRef.value?.focusInput())
 }
 
 async function handleModelChange(modelId) {
@@ -267,7 +268,8 @@ function makeHandlers(conversationId) {
   return {
     onBegin: (a) => {
       currentMsgId.v = a.messageId
-      messages.value.push(a)
+      // 只往当前可见会话的消息列表 push（后台流的占位行不进别家视图——D15）
+      if (activeId.value === conversationId) messages.value.push(a)
     },
     onToken: (chunk, a) => {
       const mid = a.messageId || currentMsgId.v
@@ -364,8 +366,9 @@ async function handleSend(content) {
   } finally {
     // 兜底复位：无论 resolve/reject 都保证按钮回到可发送态
     streamingSet.delete(convId)
-    // 失败后从服务端拉一次真实历史（本地乐观插入的气泡与服务端对齐；成功路径由 begin 事件流自然衔接）
-    if (messages.value.length && messages.value[messages.value.length - 1].messageId < 0) {
+    // 失败后从服务端拉一次真实历史（本地乐观插入的气泡与服务端对齐；成功路径由 begin 事件流自然衔接）。
+    // 重拉只在该会话仍是当前可见会话时执行——否则会用流所属会话的历史覆盖当前视图（D15）
+    if (activeId.value === convId && messages.value.length && messages.value[messages.value.length - 1].messageId < 0) {
       listMessages(convId).then(list => { messages.value = applyReasoningOverlay(convId, list) }).catch(() => {})
     }
   }
