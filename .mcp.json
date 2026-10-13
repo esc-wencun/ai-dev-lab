@@ -11,6 +11,11 @@
         "MYSQL_PASSWORD": "${MYSQL_PASSWORD}",
         "MYSQL_DATABASE": "${MYSQL_DATABASE}"
       }
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"]
     }
   }
 }
