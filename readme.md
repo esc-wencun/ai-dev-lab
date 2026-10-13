@@ -87,6 +87,17 @@ Go / Python 版每模块的 API 契约、任务分解与验收记录见各自 sp
 
 技术要点：GLM 经 OpenAI 兼容协议接入（密钥仅环境变量注入）；SSE 流式含完成/错误/取消三路落库与深度思考（reasoning）独立事件；`docker/` 的 Redis 已升级 Redis Stack（RediSearch/RedisJSON），为 RAG 向量检索预留。实现期踩的坑全部回写 specs（如 MP 全局逻辑删除下 update 写不进 del_flag、SSE 异步派发重走 Security 过滤器的误诊、text 列容量不足导致流中断等）。
 
+### 后续规划（按依赖顺序，动工前仍走 spec 确认制）
+
+| 方向 | 内容 | 依赖的既有基础 |
+|------|------|---------------|
+| **Function Calling / Tool Use** | 工具注册表（业务方法注解暴露为工具）+ 模型工具调用协议接入 + 调用过程前端可视化（调用卡片/参数/结果） | ChatModelRouter（各厂商 tool-call 能力开关）、SSE 流式事件通道（新增 tool_call 事件） |
+| **MCP（Model Context Protocol）** | MCP 客户端接入（stdio/SSE 两类 server）、MCP 工具与内置工具统一注册、智能体可勾选挂载 MCP server | 智能体表的 mcp_ids 挂载列（已预留）、工具注册表 |
+| **RAG（检索增强生成）** | 知识库/文档管理页、切分与 Embedding 管道、Redis Stack 向量检索（RediSearch）、引用溯源展示（segment_ids 消息卡跳转） | Redis Stack（已就绪）、Embedding 走多厂商路由、对话页消息卡已预留引用位置 |
+| **智能体编排** | 多智能体协作（主子任务分发/结果汇聚）、工作流式编排（节点/连线画布或 DSL）、执行轨迹回放 | 智能体层（已上线）、Function Calling / MCP 工具生态 |
+
+这些方向正好覆盖本项目学习路线的后三站（Function Calling → RAG → Agent），每项落地时继续按"契约先行 → spec 三件套 → 数据验收"的流程推进，过程与踩坑照例回写 specs。
+
 ## 技术栈对照
 
 | 组件 | Java 版 | Go 版 | Python 版 |
