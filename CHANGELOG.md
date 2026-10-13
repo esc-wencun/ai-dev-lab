@@ -4,14 +4,25 @@
 
 格式参照 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，日期倒序。
 
+## 2026-10-14
+
+### feat(ai): AI 功能线管理面收口——智能体管理页、软删过滤与多会话隔离（specs 2.0.4 ✅ / 2.0.3 🚧）
+
+- **2.0.4 智能体管理页完成**：智能体 CRUD（提示词/默认模型/挂载知识库/开场白/建议问题/可见性四档）、菜单 2030 放出、suggestedQuestions 契约修复（入口前端序列化、出口经 AiAgentPayload 后端转数组，三口实测）；单测 37/37 全绿
+- **AI 域软删过滤补齐**：MP 全局逻辑删除开启后 AI 域八处 del_flag 手写过滤补齐，修复删后漏出、查重误报、删会话被引用阻塞三类缺陷；顺带沉淀"MP update(实体) 写不进逻辑删除字段"踩坑（根 AGENTS.md 坑 8）
+- **深度思考全链路修复与根除**：定位 reasoning_content text 列容量不足导致流中断（错误路带同一超长字段再落库再炸、异步 ERROR 派发重走 Security 过滤器构成 AuthorizationDeniedException 误诊），拍板"思考仅对话时展示、不落库"，列与实体字段一并移除（迁移 SQL 备好）
+- **多会话隔离收口**：后台流回调会话守卫与会话切换聚焦（specs 2.0.2 D14/D15）
+- **基础设施**：Redis init SQL 导出脚本化（export-init-sql skill）
+
 ## 2026-10-12
 
-### feat(ai): AI 对话域全链路——三表/SSE 流式/思考过程/Claude Code 风格对话页
+### feat(ai): AI 对话域全链路——三表/SSE 流式/思考过程/Claude Code 风格对话页（specs 2.0.2 ✅）
 
 - 对话域三表 + 会话/智能体接口 + AiPromptPlanner + SSE 流式三路落库（specs 2.0.2）
 - 深度思考：enable_thinking 会话快照驱动、reasoning 独立 SSE 事件、思考耗时折叠行（specs 2.0.2 D7/D8）
 - 前端对话页 Claude Code 终端风格定稿，真实 API 接入（fetch+ReadableStream SSE），组件与 Mock 契约零改动
 - ruoyi-ai 模块 Lombok 化；基础域模型连通性测试接口（specs 2.0.1 收尾）
+- **AI 开发线首批落地**（specs 2.0.0 ✅ / 2.0.1 ✅，2026-10-11）：Spring AI 2.0.1 + SAA 2.0.0-M1.1（Boot 4 线）、GLM OpenAI 兼容接入、厂商/密钥/模型三表三管理页、AiModelResolver + ChatModelRouter（21 家厂商目录）
 
 
 ## 2026-10-03
