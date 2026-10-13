@@ -7,9 +7,10 @@
       </div>
       <div class="input-row">
         <el-input
+          ref="textareaRef"
           v-model="input"
           type="textarea"
-          :rows="2"
+          :autosize="{ minRows: 1, maxRows: 10 }"
           resize="none"
           :disabled="streaming"
           class="terminal-input"
@@ -44,6 +45,20 @@ defineProps({
 })
 
 const input = ref('')
+// 暴露 focus 供父组件在新建会话后调用（光标自动落输入框）
+const textareaRef = ref(null)
+
+function focusInput() {
+  const el = textareaRef.value
+  // EP textarea 组件实例：focus 方法在原生实例上；取不到则退回 querySelector
+  if (el && typeof el.focus === 'function') {
+    el.focus()
+  } else if (el && el.$el) {
+    el.$el.querySelector('textarea')?.focus()
+  }
+}
+
+defineExpose({ focusInput })
 
 function handleSend() {
   const content = input.value.trim()

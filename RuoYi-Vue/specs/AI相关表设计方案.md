@@ -364,7 +364,6 @@ ai_agent（智能体） 1 ──── N  ai_conversation（会话） 1 ──�
 | `model_code` | varchar(100) | | 冗余模型标识（同会话表理由） |
 | `msg_status` | tinyint | ✓ | **消息状态**：0 生成中（流式占位行）/ 1 完成 / 2 出错 / 3 已取消。前端据此渲染"生成中"动效或失败样式；服务启动时把残留的 0 置 3（孤儿清理） |
 | `content` | mediumtext | | 正文：user 存提问原文；assistant 存**流式聚合完成后的完整回答** |
-| `reasoning_content` | text | | **深度思考模型的推理过程**（R1/QwQ 类），与正文分开存，前端折叠展示 |
 | `use_context` | tinyint(1) | ✓ | 是否纳入后续请求的历史拼装。默认 1；超长回复/测试消息置 0 即从上下文窗口剔除但不删记录 |
 | `segment_ids` | varchar(1024) | | **RAG 溯源**：回答引用的知识库分段 ID 数组（JSON），前端点引用跳知识库段落 |
 | `web_search_pages` | text | | 联网来源：JSON 数组（标题/URL/摘要），前端展示来源列表 |
@@ -499,7 +498,6 @@ CREATE TABLE ai_message (
   model_code         varchar(100)  DEFAULT NULL            COMMENT '模型标识（冗余，免联表）',
   msg_status         tinyint       NOT NULL DEFAULT 1      COMMENT '消息状态（0生成中 1完成 2出错 3已取消；启动时残留0置3）',
   content            mediumtext                            COMMENT '消息内容（流式聚合后完整值）',
-  reasoning_content  text                                  COMMENT '深度思考推理过程（与正文分开存）',
   use_context        tinyint       NOT NULL DEFAULT 1      COMMENT '是否纳入上下文拼装（0剔除但不删）',
   segment_ids        varchar(1024) DEFAULT NULL            COMMENT '引用的知识库分段ID数组（JSON，RAG溯源）',
   web_search_pages   text                                  COMMENT '联网来源（JSON：标题/URL/摘要）',

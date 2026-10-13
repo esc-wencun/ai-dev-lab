@@ -43,10 +43,14 @@ public class ChatModelRouter
         AiModel model = resolved.getModel();
         String cacheKey = resolved.getBaseUrl() + "|" + resolved.getResolvedApiKey() + "|" + model.getModelCode();
         return cache.computeIfAbsent(cacheKey, k -> {
+            // timeout 必须显式给大：Spring AI 2.0.1 AbstractOpenAiOptions.DEFAULT_TIMEOUT=60s，
+            // 深度思考模型长思考期（仅思考不出正文）超过 60s 请求即被掐断（实测 D11：duration_ms≈60000 整、
+            // SDK 报 OpenAIIoException "Stream failed"）。30 分钟对齐整流上限（request 超时同为该值）。
             OpenAiChatOptions options = OpenAiChatOptions.builder()
                     .baseUrl(resolved.getBaseUrl())
                     .apiKey(resolved.getResolvedApiKey())
                     .model(model.getModelCode())
+                    .timeout(java.time.Duration.ofMinutes(30))
                     .build();
             return OpenAiChatModel.builder().options(options).build();
         });

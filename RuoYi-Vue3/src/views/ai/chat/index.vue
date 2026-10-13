@@ -29,6 +29,7 @@
           @ask="handleAsk"
         />
         <ChatInput
+          ref="chatInputRef"
           :streaming="isCurrentStreaming"
           :models="chatModels"
           :model-id="activeModelId"
@@ -69,18 +70,22 @@ import ConversationSidebar from './components/ConversationSidebar.vue'
 import MessageList from './components/MessageList.vue'
 import ChatInput from './components/ChatInput.vue'
 
+const { proxy } = getCurrentInstance()
+const chatInputRef = ref(null)
+
 const conversations = ref([])
 const activeId = ref(null)
 const messages = ref([])
 // 生成态归属到会话（specs/2.0.3 修复：原全局单值 streaming 导致多会话共享状态、
-// 切会话后按钮态错乱）；isCurrentStreaming 是模板消费的派生值
-const streamingConversationId = ref(null)
+// 切会话后按钮态错乱）。D14 修正：单值 ref 仍会在多会话并发流时互相覆盖（A 流跑着切到 B
+// 发消息，单值被 B 覆盖，切回 A 停止按钮消失/防重入失效）——改 Set，多会话各自记账
+const streamingSet = reactive(new Set())
 // 本地乐观消息的负数 key 生成器：同毫秒创建多条（欢迎语+首问）会撞 :key 导致 Vue 渲染异常
 let localMsgSeq = 0
 function nextLocalId() {
   return -Date.now() * 10 - (localMsgSeq++)
 }
-const isCurrentStreaming = computed(() => streamingConversationId.value !== null && streamingConversationId.value === activeId.value)
+const isCurrentStreaming = computed(() => streamingSet.has(activeId.value))
 const agents = ref([])
 const activeAgent = computed(() => {
   const conv = conversations.value.find(c => c.conversationId === activeId.value)
@@ -104,9 +109,32 @@ async function refreshConversations() {
   conversations.value = await listConversations()
 }
 
+// ---- 思考内容 overlay（2026-10-14）----
+// 思考不落库（用户决策），此前只存当前可见 messages 数组——切会话被服务端数据覆盖、
+// 后台流的增量 findIndex 不到行静默丢弃，切回即丢。改为按 会话:消息 键控的内存 overlay：
+// 增量恒写 overlay，打开会话时贴回。仍是纯前端态（刷新即失），只是跨会话切换不丢。
+const reasoningOverlay = new Map() // `${conversationId}:${messageId}` -> { text, thinkingMs }
+
+function overlayKey(convId, messageId) {
+  return convId + ':' + messageId
+}
+
+/** 把 overlay 中该会话的思考缓冲贴回消息列表（openConversation / 失败重拉共用） */
+function applyReasoningOverlay(convId, list) {
+  for (const m of list) {
+    const o = reasoningOverlay.get(overlayKey(convId, m.messageId))
+    if (o) {
+      if (o.text) m.reasoningContent = o.text
+      if (o.thinkingMs != null) m._thinkingMs = o.thinkingMs
+    }
+  }
+  return list
+}
+
 async function openConversation(id) {
   activeId.value = id
-  messages.value = await listMessages(id)
+  const list = await listMessages(id)
+  messages.value = applyReasoningOverlay(id, list)
 }
 
 function handleSelect(id) {
@@ -130,10 +158,21 @@ async function handleCreate() {
       createTime: ''
     })
   }
+  nextTick(() => chatInputRef.value?.focusInput())
 }
 
 async function handleModelChange(modelId) {
   if (!activeId.value) return
+  // 会话已有真实消息（本地欢迎语除外）时二次确认：新模型接手旧上下文，切换可逆但要知道后果
+  const hasHistory = messages.value.some(m => !m.welcome)
+  if (hasHistory) {
+    const target = chatModels.value.find(m => m.modelId === modelId)
+    try {
+      await proxy.$modal.confirm(`切换后，本会话将由「${target ? target.modelName : modelId}」继续对话，已有消息会作为上下文一并带给新模型。确定切换吗？`)
+    } catch (e) {
+      return // 取消：受控 select 的 model-value 未变，UI 自动回显原模型
+    }
+  }
   await changeConversationModel(activeId.value, modelId)
   refreshConversations()
 }
@@ -204,6 +243,10 @@ async function handlePin(id, pinned) {
 
 async function handleDelete(id) {
   await deleteConversation(id)
+  // overlay 是内存数据：会话删了就一并清（防 Map 滞留；消息级清理不追——刷新整体释放）
+  for (const k of reasoningOverlay.keys()) {
+    if (k.startsWith(id + ':')) reasoningOverlay.delete(k)
+  }
   await refreshConversations()
   if (activeId.value === id) {
     activeId.value = null
@@ -214,30 +257,51 @@ async function handleDelete(id) {
 function makeHandlers(conversationId) {
   // 思考计时（Claude Code 同款"Thought for Ns"）：reasoning 首帧起表，首个正文 token 止表
   const thinkStartAt = { v: null }
+  // 该流最新消息 id（begin 登记；token/reasoning 载荷不带 id 时用它定位）
+  const currentMsgId = { v: null }
   return {
-    onBegin: (a) => { messages.value.push(a) },
+    onBegin: (a) => {
+      currentMsgId.v = a.messageId
+      messages.value.push(a)
+    },
     onToken: (chunk, a) => {
-      const i = messages.value.findIndex(m => m.messageId === a.messageId)
+      const mid = a.messageId || currentMsgId.v
+      // 增量恒写 overlay（切走后仍在跑的流靠它不丢数据），可见时同步到视图
+      const key = overlayKey(conversationId, mid)
+      const o = reasoningOverlay.get(key) || { text: '', thinkingMs: null }
+      if (chunk && thinkStartAt.v != null && o.thinkingMs == null) {
+        o.thinkingMs = Date.now() - thinkStartAt.v
+      }
+      reasoningOverlay.set(key, o)
+      const i = messages.value.findIndex(m => m.messageId === mid)
       if (i >= 0) {
-        const patch = { ...a }
-        if (chunk && thinkStartAt.v != null && patch._thinkingMs == null) {
-          patch._thinkingMs = Date.now() - thinkStartAt.v
-        }
+        const patch = { ...a, reasoningContent: o.text }
+        if (o.thinkingMs != null) patch._thinkingMs = o.thinkingMs
         messages.value[i] = patch
       }
     },
     onReasoning: (chunk, a) => {
-      // 思考增量缓冲到消息的 reasoningContent（流式期间 MessageItem 展开显示）
+      // 思考增量：恒写 overlay（不落库，刷新即失；跨会话切换不丢——2026-10-14）
       if (chunk && thinkStartAt.v == null) thinkStartAt.v = Date.now()
-      const i = messages.value.findIndex(m => m.messageId === a.messageId)
+      const mid = a.messageId || currentMsgId.v
+      const key = overlayKey(conversationId, mid)
+      const o = reasoningOverlay.get(key) || { text: '', thinkingMs: null }
+      o.text += chunk
+      reasoningOverlay.set(key, o)
+      const i = messages.value.findIndex(m => m.messageId === mid)
       if (i >= 0) {
-        const prev = messages.value[i].reasoningContent || ''
-        messages.value[i] = { ...a, reasoningContent: prev + chunk }
+        messages.value[i] = { ...a, reasoningContent: o.text, _thinkingMs: o.thinkingMs }
       }
     },
     onDone: (a) => {
-      const i = messages.value.findIndex(m => m.messageId === a.messageId)
-      if (i >= 0) messages.value[i] = { ...a }
+      const mid = a.messageId || currentMsgId.v
+      // 终态并入 overlay（思考与耗时保留，正文不进 overlay——以服务端为准）
+      const key = overlayKey(conversationId, mid)
+      const o = reasoningOverlay.get(key) || { text: '', thinkingMs: null }
+      reasoningOverlay.set(key, o)
+      const i = messages.value.findIndex(m => m.messageId === mid)
+      // 保留本地思考缓冲与耗时（服务端载荷不含这两个本地态字段）
+      if (i >= 0) messages.value[i] = { ...a, reasoningContent: o.text, _thinkingMs: o.thinkingMs }
       // 只清自己会话的生成态（防切会话后旧流 done 误清新会话）
       if (streamingConversationId.value === conversationId) streamingConversationId.value = null
       refreshConversations()
@@ -268,6 +332,15 @@ async function handleSend(content) {
   const convId = activeId.value
   if (streamingConversationId.value === convId) return // 同会话防重入（real 层单流句柄，双发互覆）
   streamingConversationId.value = convId
+  // 自动起名（客户端判断，2026-10-13 决策）：标题仍是默认「新会话」时，取首条消息前 20 字
+  // 调服务端改名接口落库，成功后刷会话列表回显（已重命名的会话不触发）
+  const conv = conversations.value.find(c => c.conversationId === convId)
+  if (conv && conv.title === '新会话' && content && content.trim()) {
+    const t = content.trim().replace(/\s+/g, ' ')
+    renameConversation(convId, t.length > 20 ? t.substring(0, 20) : t)
+      .then(() => refreshConversations())
+      .catch(() => {})
+  }
   // 先本地插 user 气泡（服务端落库异步，UI 即时回显——Claude Code 同款体验）
   messages.value.push({
     messageId: nextLocalId(),
@@ -288,7 +361,7 @@ async function handleSend(content) {
     if (streamingConversationId.value === convId) streamingConversationId.value = null
     // 失败后从服务端拉一次真实历史（本地乐观插入的气泡与服务端对齐；成功路径由 begin 事件流自然衔接）
     if (messages.value.length && messages.value[messages.value.length - 1].messageId < 0) {
-      listMessages(convId).then(list => { messages.value = list }).catch(() => {})
+      listMessages(convId).then(list => { messages.value = applyReasoningOverlay(convId, list) }).catch(() => {})
     }
   }
 }

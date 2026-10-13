@@ -51,9 +51,6 @@ public class AiMessage extends BaseEntity
     /** 消息内容（流式聚合后完整值） */
     private String content;
 
-    /** 深度思考推理过程 */
-    private String reasoningContent;
-
     /** 是否纳入上下文拼装（0剔除但不删） */
     private Boolean useContext;
 

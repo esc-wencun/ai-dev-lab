@@ -20,7 +20,7 @@
 - 真实后端接口、建表 SQL、菜单 SQL、权限点；
 - 智能体选择（本阶段会话一律"自由对话"形态，Mock 里的 agent 字段预留 null）；
 - Markdown 渲染 / 代码高亮（列为 UI 评审候选项：需新增 `marked` + `highlight.js` 依赖，看了纯文本效果再定）；
-- RAG 溯源展示（segment_ids 引用跳转）、深度思考折叠（reasoning_content）、附件上传——消息卡预留位置，不做实现。
+- RAG 溯源展示（segment_ids 引用跳转）、深度思考折叠（仅对话时展示、不落库——2026-10-12 决策）、附件上传——消息卡预留位置，不做实现。
 
 ## 二、Mock API 契约（阶段 A 的"接口先行"，签名即阶段 B 的真实接口）
 
@@ -71,7 +71,7 @@ views/ai/chat/
 2. **内置数据**：
    - 2 个预置智能体（平台使用助手：限定答题范围 system_prompt + welcome_message + suggested_questions；写作助手），visibility=1 公开、user_id=admin 的 userId（取 sys_user.admin 的 id=1）；
    - **不预置会话/消息**（用户数据运行时产生）；
-3. **菜单**（2020 号段）：「AI 对话」C 类型菜单（component=`ai/chat/index`，perms 留空——对话页本人数据无需按按钮授权；菜单可见性走角色分配）+ 角色授权 admin；
+3. **菜单**（2020 号段）：「AI对话」C 类型菜单（component=`ai/chat/index`，perms 留空——对话页本人数据无需按按钮授权；菜单可见性走角色分配）+ 角色授权 admin；（2026-10-13 起升级为**顶级菜单** parent=0，与「AI管理」并列——对话是用户侧功能不入管理目录，见 2.0.4 实施记录）
 4. `/ai/chat` 静态路由**保留**（浏览器直达）；菜单与静态路由并存不冲突（菜单渲染的是动态路由，同一组件两处入口）。
 
 同步 `docker/mysql/init/01-ruoyi-schema.sql`（追加三表 DDL，风格同 2.0.1）。本机验证：docker exec 对 13306 执行两次验证幂等。
@@ -138,6 +138,14 @@ com.ruoyi.ai/
   ③ 思考过程 UI：`✻` 前缀折叠行（黄星）、思考体斜体灰字、生成中默认展开。
   ④ **坑 D8（端到端抓到的真 bug）**：GLM 网关帧结构——`reasoning_content` 走 metadata 累积、**同一帧的 text 同时携带正文增量**，原 map() 的"reasoning/content 互斥"假设导致正文增量被 reasoning 分支吞掉（表现为"只思考不回答"）。修复：map→flatMap，一帧两路各自非空各发一个事件。修复后实测：reasoning 事件 ×90、token ×1（content="2"）、reasoning 落库 17072 字符、13s 完成。
 - **Lombok 化（2026-10-11，用户指令）**：ruoyi-ai 全模块 35 类转 Lombok——实体用 `@Getter @Setter`（**不用 @Data**：避免 MP 实体上生成全字段 equals/hashCode 的陷阱）、服务/控制器注入字段转 `private final` + `@RequiredArgsConstructor`、手写 Logger 转 `@Slf4j`；内部纯数据类 ResolvedAiModel 同步转换。依赖只在 ruoyi-ai pom（provided 1.18.48），**其余模块不动**（保持手写风格，不扩大影响面）。验证：javac -proc:full 全量 0 错误 + mvn BUILD SUCCESS + 冷启动 SSE 全链路（model 101 流式正常落库）。**前置条件：IDEA 需开启 annotation processing**（Settings → Build → Compiler → Annotation Processors），否则本地编译报"找不到 getXxx"。
+- **D9（2026-10-12 端到端）：reasoning_content 列容量不足**——建表时该列用 `text`（64KB 字节上限，utf8mb4 中文约 2.1 万字），正文 content 却是 `mediumtext`（16MB）；GLM 深度思考推理链超限后完成路 `updateById` 抛 `Data too long for column 'reasoning_content'`，**onErrorResume 错误路带着同一超长字段再落库再炸**，done 事件未下发、流异常终止。两个连锁误诊点：①后端日志随之打出成串 `AuthorizationDeniedException`——那是 SSE 响应已提交后 Tomcat 异步 ERROR 派发重走 Security 过滤器所致（异步线程无 SecurityContext），**不是权限问题**；②流失败留下 msg_status=0 的孤儿占位行、会话 message_count/context_msg_count 未刷新（refreshMessageStats 在写库处崩掉没执行）。**最终处置（2026-10-12 决策，10-13 落地完毕）**：思考内容改为**仅对话时展示、不落库**，`reasoning_content` 列连同实体字段一并删除（D9 随之根除；线上库已 DROP，服务以新代码运行实测正常）。顺带修复既有前端 bug：onToken/onDone 用服务端载荷整体替换消息对象，而 fastjson2 不序列化 null 字段、载荷无 reasoningContent key，正文 token 一到思考缓冲即被清掉——改为本地态字段保留合并。**10-13 语义确认（用户）**：思考由会话 `enable_thinking` 快照门控——开启 = 思考仅流式返回前端展示、不落库；关闭 = 不向模型请求思考（曾短暂改为"恒开"，已回退）。当前局限：自由对话（无智能体）没有开关 UI，仅选开思考的智能体（如"平台使用助手"）建会话才有思考；开关 UI 随 2.0.4 智能体管理页落地。
+- **D9 附带修复（2026-10-13，UI 层隐匿 bug）**：SSE `token`/`reasoning` 事件载荷只带 `{delta}` 不带 messageId，前端 stream.js 把裸载荷传给组件，处理器按 `a.messageId` 定位消息行永远 miss（findIndex 恒 -1）——**流式期间 UI 从不更新**，正文一直靠 done 事件整段蹦出、思考完全不显示（curl 断言只数事件数未暴露；Mock 载荷带完整消息所以阶段 A 正常）。修复：stream.js 在分发 token/reasoning 时合并 begin 登记的占位 messageId 再回调。
+- **D10（2026-10-14，用户报"思考文字拼接错乱"）：reasoning 累积/增量语义错配**——GLM 网关 metadata 里的 reasoning_content 是**累积全量**（每帧含全部前文：`'The'`→`'The user'`→`'The user is'`，尾帧 732 字符），后端按增量逐帧下发、前端再 `prev+chunk` 累加，187 帧拼出 8.4 万字符重复膨胀文本（D8 当时的"落库 17072 字符"实为同源膨胀值，恰被 UI 不显示掩盖）。D8 注释"reasoning_content 走 metadata 累积"写了结论但代码按增量处理了——**两处教训：注释里的语义结论必须落进代码行为；网关流式字段语义（增量 vs 累积）要抓原始帧验证，不能靠单轮结果反推**。修复：后端下发前归一化——新帧以前文为前缀且更长判为累积帧取后缀（StringBuilder 同步置换为全量），否则增量帧透传；qwen 等真增量网关不受影响，前端拼接逻辑不变恒正确。归一化已抽静态纯函数 normalizeReasoningDelta 并补单测 5 用例（累积帧取后缀/增量透传/全量重复帧空增量/异常帧兜底/空 buffer）。
+- **D11（2026-10-14，用户报"思考过程过长时 Stream failed"）：请求超时 60s 掐断长思考**——库实查 5 条失败消息 duration_ms 全部 ≈60000 整（error_message="Stream failed"），qwen3:4b 与 GLM 均中招；排查链：openai-java SDK Timeout 默认（connect 1min/read=request 10min）→ OkHttp 装配逐项排除 → 钉到 **Spring AI 2.0.1 `AbstractOpenAiOptions.DEFAULT_TIMEOUT = Duration.ofSeconds(60)`**（OpenAiChatOptions.timeout 属性，构建 options 时未显式设置即吃默认）。深度思考"仅思考不出正文"期超过 60s 请求即被掐断。修复：ChatModelRouter 实例级与 buildThinkingOptions 请求级 options 均显式 `timeout=30min`。教训：**第三方客户端库的"默认值"要用字节码/源码实证，报错文案（Stream failed）与真实原因（超时）可能完全对不上**；60s 整数倍数时长是最快的超时指纹。
+- 附带：doStream 重构（2026-10-14，用户指令）——编排层从 210 行收到 ~90 行：三路落库合一 finishAssistant、prepareUserMessage/insertAssistantPlaceholder、buildEffectivePrompt（思考门控收口）、normalizeReasoningDelta、SSE 事件构造三小件；行为零变化（javac 41 文件 0 错误 + 归一化单测 5/5）。
+- **D12（2026-10-14，用户报"切换会话后前端不再响应"）：流句柄模块级单例无会话隔离**——stream.js 的 currentController/currentMessageId/activeResolve/activeReject 全局一份，思考模式把流拉长到分钟级后跨会话并发流互相踩：后发流覆盖单例 → 旧流 done 误 resolve 新流的 Promise 并清空停止句柄（停止失灵、状态错乱）。修复：句柄表改 Map（conversationId → {controller,messageId,resolve,reject}），finishStream 加条目一致性检查（只结算自己的条目），stopStream(conversationId) 按会话精确停止；顺带封 stop 后 Promise 悬挂缺口（主动断流本地立即 settle，组件 finally 兜底照常执行）。**用户浏览器实测通过**。
+- **D13（2026-10-14，用户报"切换会话后思考过程没了"）：思考缓冲只存当前可见数组**——思考不落库（D9 处置）后思考只在前端内存，此前仅存当前可见 messages 数组：切会话被服务端数据覆盖丢失、后台流增量 findIndex 不到行静默丢弃。修复：按 会话:消息 键控的内存 overlay（reasoningOverlay Map），增量恒写 overlay、openConversation/失败重拉时贴回、onDone 终态并入、删会话清理条目；仍是纯前端态（刷新即失，"不落库"边界不变），只是跨会话切换不丢。**用户浏览器实测通过**。
+- 小改进（2026-10-14，用户指令）：①输入框 autosize（minRows 1 / maxRows 10，Claude Code 同款随内容长高、超限内滚）；②新建会话后光标自动落输入框（ChatInput defineExpose focusInput + handleCreate nextTick 调用）。均已实测通过。
 ## 五、风险与约束
 
 | # | 风险/约束 | 应对 |

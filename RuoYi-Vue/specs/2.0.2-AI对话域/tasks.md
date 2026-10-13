@@ -35,7 +35,7 @@
 > 表权威源：[../AI相关表设计方案.md](../AI相关表设计方案.md) 第二部分（已回写 suggested_questions 列）。接口清单见 spec 4.2 表。
 
 ## Task B1: 数据库
-- [x] `RuoYi-Vue/sql/ai_20261012.sql`：三表 DDL（搬运设计文档，含 msg_status/水位线/context_msg_count/suggested_questions）+ 2 个预置智能体（100 平台使用助手/101 写作助手，带开场白与建议问题 JSON）+ 菜单（2020「AI对话」挂 2000 目录下）
+- [x] `RuoYi-Vue/sql/ai_20261012.sql`：三表 DDL（搬运设计文档，含 msg_status/水位线/context_msg_count/suggested_questions）+ 2 个预置智能体（100 平台使用助手/101 写作助手，带开场白与建议问题 JSON）+ 菜单（2020「AI对话」，2026-10-13 起为顶级菜单，seed SQL 已同步）
 - [x] docker/mysql/init/01-ruoyi-schema.sql 同步三表 DDL（+95 行）；13306 执行两次幂等验证通过（agents=2/convs=0/msgs=0/menu 2020 在；suggested_questions JSON_EXTRACT 正常）
 - [ ] 表设计文档第二部分标"已实施"注记——随模块收口一并做
 
