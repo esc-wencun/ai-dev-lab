@@ -145,7 +145,9 @@ com.ruoyi.ai/
 - 附带：doStream 重构（2026-10-14，用户指令）——编排层从 210 行收到 ~90 行：三路落库合一 finishAssistant、prepareUserMessage/insertAssistantPlaceholder、buildEffectivePrompt（思考门控收口）、normalizeReasoningDelta、SSE 事件构造三小件；行为零变化（javac 41 文件 0 错误 + 归一化单测 5/5）。
 - **D12（2026-10-14，用户报"切换会话后前端不再响应"）：流句柄模块级单例无会话隔离**——stream.js 的 currentController/currentMessageId/activeResolve/activeReject 全局一份，思考模式把流拉长到分钟级后跨会话并发流互相踩：后发流覆盖单例 → 旧流 done 误 resolve 新流的 Promise 并清空停止句柄（停止失灵、状态错乱）。修复：句柄表改 Map（conversationId → {controller,messageId,resolve,reject}），finishStream 加条目一致性检查（只结算自己的条目），stopStream(conversationId) 按会话精确停止；顺带封 stop 后 Promise 悬挂缺口（主动断流本地立即 settle，组件 finally 兜底照常执行）。**用户浏览器实测通过**。
 - **D13（2026-10-14，用户报"切换会话后思考过程没了"）：思考缓冲只存当前可见数组**——思考不落库（D9 处置）后思考只在前端内存，此前仅存当前可见 messages 数组：切会话被服务端数据覆盖丢失、后台流增量 findIndex 不到行静默丢弃。修复：按 会话:消息 键控的内存 overlay（reasoningOverlay Map），增量恒写 overlay、openConversation/失败重拉时贴回、onDone 终态并入、删会话清理条目；仍是纯前端态（刷新即失，"不落库"边界不变），只是跨会话切换不丢。**用户浏览器实测通过**。
-- 小改进（2026-10-14，用户指令）：①输入框 autosize（minRows 1 / maxRows 10，Claude Code 同款随内容长高、超限内滚）；②新建会话后光标自动落输入框（ChatInput defineExpose focusInput + handleCreate nextTick 调用）。均已实测通过。
+- 小改进（2026-10-14，用户指令）：①输入框 autosize（minRows 1 / maxRows 10，Claude Code 同款随内容长高、超限内滚）；②新建会话后光标自动落输入框（ChatInput defineExpose focusInput，openConversation 统一挂 nextTick——切换/新建/初始加载三路全生效，2026-10-14 用户实测"切换会话仍不聚焦"后从 handleCreate 上移收口）。均已实测通过。
+- **D14（2026-10-14，用户报"切换会话后无法停止"）：生成态跟踪仍是单值**——D12 只隔离了流句柄层，index.vue 的 streamingConversationId 还是单值 ref：A 流跑着切到 B 发消息，单值被 B 覆盖，切回 A 停止按钮不渲染（Esc 同理失效）、防重入守卫失效（可二重发送）。修复：改 reactive Set（streamingSet），多会话各自记账、onDone/finally 各自 delete；顺带补删除会话先停流的卫生口。**用户浏览器实测通过**。教训：**状态隔离要审到每一层——句柄隔离了不代表派生 UI 态（按钮渲染条件）也隔离了**。
+- **D15（2026-10-14，D14 后专项排查多会话隔离，用户指令）：后台流回调写共享视图的两处漏网**——①onBegin 无条件 messages.push：后台流的 assistant 占位行会推进当前可见的别家会话视图（A 的气泡出现在 B 里）；②handleSend finally 的"失败重拉历史"不校验会话归属：A 流失败时人在 B，会用 A 的历史覆盖 B 的列表。修复：两处均加 activeId === conversationId 守卫（后台流数据走 overlay/落库，切回时自然带回）。并发 refreshConversations 竞态（两后台流同时 done 后写者胜）幂等无碍，登记不修。**多会话状态全面排查结论：生成态/流句柄/思考 overlay/handlers 闭包/组件内状态全部按会话隔离，无其他泄漏**。用户实测通过。
 ## 五、风险与约束
 
 | # | 风险/约束 | 应对 |
