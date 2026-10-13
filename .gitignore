@@ -31,6 +31,9 @@ venv/
 .idea/
 .vscode/
 
+# ---- 本机工具缓存 ----
+.workbuddy/
+
 # ---- OS ----
 .DS_Store
 Thumbs.db
