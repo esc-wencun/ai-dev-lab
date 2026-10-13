@@ -91,7 +91,6 @@ CREATE TABLE IF NOT EXISTS ai_message (
   model_id           bigint        DEFAULT NULL            COMMENT '实际生成模型ID（中途切模型时与会话当前值不同）',
   model_code         varchar(100)  DEFAULT NULL            COMMENT '模型标识（冗余，免联表）',
   content            mediumtext                            COMMENT '消息内容（流式聚合后完整值）',
-  reasoning_content  text                                  COMMENT '深度思考推理过程（与正文分开存）',
   use_context        tinyint       NOT NULL DEFAULT 1      COMMENT '是否纳入上下文拼装（0剔除但不删）',
   segment_ids        varchar(1024) DEFAULT NULL            COMMENT '引用的知识库分段ID数组（JSON，RAG溯源）',
   web_search_pages   text                                  COMMENT '联网来源（JSON：标题/URL/摘要）',
@@ -116,7 +115,7 @@ CREATE TABLE IF NOT EXISTS ai_message (
 -- ----------------------------
 delete from ai_agent where agent_id between 100 and 199;
 insert into ai_agent values(100, '平台使用助手', null, '平台', '解答本平台的使用问题',
-  '你是本平台的操作助手，只回答与本平台功能使用相关的问题；与平台无关的问题礼貌拒答。',
+  '`你是本平台的操作助手，只回答与本平台功能使用相关的问题；与平台无关的问题礼貌拒答。',
   101, null, null, null, 0,
   '你好！我是平台使用助手，关于系统功能的问题都可以问我。',
   '["怎么重置密码？","用户管理在哪？","怎么新增一个角色？"]',
@@ -129,7 +128,9 @@ insert into ai_agent values(101, '写作助手', null, '效率', '文案润色�
   1, 1, 2, '0', '写作润色助手', 'admin', sysdate(), '', null, '0');
 
 -- ----------------------------
--- 菜单：「AI 对话」（2020 号段；2020 目录+2021 页面，按钮权限随智能体管理模块另配）
+-- 菜单：「AI对话」为顶级菜单（parent 0，与 AI管理并列——对话是用户侧功能，不属于管理目录）；
+-- 「AI管理」图标 skill，避免与对话的 message 重复。2020 号段。
 -- ----------------------------
 delete from sys_menu where menu_id between 2020 and 2029;
-insert into sys_menu values('2020', 'AI对话', '2000', '4', 'chat', 'ai/chat/index', '', '', 1, 0, 'C', '0', '0', 'ai:chat:chat', 'wechat', 'admin', sysdate(), '', null, 'AI 对话页');
+insert into sys_menu values('2020', 'AI对话', '0', '10', 'chat', 'ai/chat/index', '', '', 1, 0, 'C', '0', '0', 'ai:chat:chat', 'message', 'admin', sysdate(), '', null, 'AI 对话页（顶级菜单）');
+update sys_menu set icon = 'skill' where menu_id = 2000;

@@ -78,3 +78,30 @@
 - [x] Python 版 `specs/README.md` 技术对位表 MyBatis 行补"Java 侧 2026-09-26 已切 MyBatis-Plus"备注；GO 版 `specs/tech-stack.md` ORM 行同步
 - [x] 工作区 `readme.md` ORM 行（MyBatis → MyBatis-Plus）+ 目录注释同步；根 `AGENTS.md` 工作区结构行同步
 - [x] `RuoYi-Vue/specs/README.md` 模块总表本模块标 ✅ + 日期（2026-09-26，checklist 总验收通过后执行）
+
+## Task 10: 逻辑删除全局化（2026-10-13 追加，spec 3.8；用户拍板归属本 spec）
+
+> 背景：AI 域软删后列表仍查出已删行（用户实测），逐查询手写过滤已漏 4 处且不可持续。PoC 已完成（2026-10-13，坑 9/10）：全局过滤对 select 全系生效；**现有 update(实体) 软删写法将静默失效**——10.2 是必须项不是优化项。
+> Task 10 全部完成（2026-10-13）：checklist 10.1~10.9 全勾。
+
+### 10.1 配置
+- [x] `MyBatisConfig`：`dbConfig.setLogicDeleteField("delFlag")` 补入（PoC 时已加，随本 Task 正式验收）
+
+### 10.2 删除方法改写（保 update_by 审计；不用 deleteById——无法携带审计字段）
+- [x] `AiProviderServiceImpl.deleteProviderByIds`：`update(实体, wrapper)` → `update(null, LambdaUpdateWrapper.set(delFlag,'2').set(updateBy,username).in(providerId,ids))`
+- [x] `AiModelServiceImpl.deleteModelByIds`：同模式
+- [x] `AiApiKeyServiceImpl.deleteKeyByIds`：同模式
+- [x] `AiAgentServiceImpl` 删除方法：同模式
+- [x] `AiConversationServiceImpl.deleteConversation`：updateById 三字段写法拆改——会话本体与消息级联均改 LambdaUpdateWrapper.set 模式（status/delFlag/updateBy 一次 set 齐；消息级联顺带从逐行 updateById 改为单条 UPDATE）
+
+### 10.3 冗余清扫
+- [x] AI 六 mapper + service 手写 `.eq(delFlag, DEL_FLAG_EXISTS)` 移除（实查 17 处：mapper 10 + service 7；全局过滤后冗余。`selectStaleGenerating` 与 getInfo `selectById` 两处历史豁免维持不动——它们本就没有过滤，维持原状）
+- [x] `BaseService.checkUnique` javadoc 更新：3.6/R5 的"有 del_flag 的表不迁"结论反转——全局逻辑删除下 checkUnique 自动带存活过滤，AI 域查重语义=存活行唯一（已删名字可复用，用户拍板）
+
+### 10.4 回归验证（冷启动，禁 uvicorn 残留进程纪律同样适用于 java 残留）
+- [x] AI 四管理页：列表只现存活行（model total=3/key total=4）；删除后立即消失；再建同名成功（T10Temp 复用实测）
+- [x] 对话页：删会话后消息不可达（消息接口报"会话不存在"）；agent 下拉不出现已删 agent（options 走 selectVisibleAgents，同全局过滤）
+- [x] 系统回归抽查：user/role/dept/config/dict/post 六接口 200 数据正常（XML 路径与无 delFlag 实体均不受全局配置影响）
+- [x] 数据权限回归：造 deptId=900+角色2(dataScope=2) 测试用户实测 user list 仅见自己（total=1），DataPermissionInterceptor 与逻辑删除共存无冲突
+- [x] `mvn clean package` + `mvn test -pl ruoyi-common`（既有单测不破，10/10）
+- [x] 测试数据清理 + admin 密码/会话复原（T10Temp/T10会话/t10user/t10dept 全删 DB 实查 0 残留；密码未动过）

@@ -242,6 +242,11 @@ async function handlePin(id, pinned) {
 }
 
 async function handleDelete(id) {
+  // 生成中的会话先停流再删（D14 伴随：否则删除后流还挂着，done 回调刷新已删会话）
+  if (streamingSet.has(id)) {
+    await stopGenerate(id).catch(() => {})
+    streamingSet.delete(id)
+  }
   await deleteConversation(id)
   // overlay 是内存数据：会话删了就一并清（防 Map 滞留；消息级清理不追——刷新整体释放）
   for (const k of reasoningOverlay.keys()) {
@@ -303,7 +308,7 @@ function makeHandlers(conversationId) {
       // 保留本地思考缓冲与耗时（服务端载荷不含这两个本地态字段）
       if (i >= 0) messages.value[i] = { ...a, reasoningContent: o.text, _thinkingMs: o.thinkingMs }
       // 只清自己会话的生成态（防切会话后旧流 done 误清新会话）
-      if (streamingConversationId.value === conversationId) streamingConversationId.value = null
+      streamingSet.delete(conversationId)
       refreshConversations()
     }
   }
@@ -330,8 +335,8 @@ async function handleSend(content) {
     }
   }
   const convId = activeId.value
-  if (streamingConversationId.value === convId) return // 同会话防重入（real 层单流句柄，双发互覆）
-  streamingConversationId.value = convId
+  if (streamingSet.has(convId)) return // 同会话防重入（real 层按会话单流，双发互覆）
+  streamingSet.add(convId)
   // 自动起名（客户端判断，2026-10-13 决策）：标题仍是默认「新会话」时，取首条消息前 20 字
   // 调服务端改名接口落库，成功后刷会话列表回显（已重命名的会话不触发）
   const conv = conversations.value.find(c => c.conversationId === convId)
@@ -358,7 +363,7 @@ async function handleSend(content) {
     // request 层已弹错误提示；这里兜底复位（done 缺失/断流/HTTP 错误都走这）
   } finally {
     // 兜底复位：无论 resolve/reject 都保证按钮回到可发送态
-    if (streamingConversationId.value === convId) streamingConversationId.value = null
+    streamingSet.delete(convId)
     // 失败后从服务端拉一次真实历史（本地乐观插入的气泡与服务端对齐；成功路径由 begin 事件流自然衔接）
     if (messages.value.length && messages.value[messages.value.length - 1].messageId < 0) {
       listMessages(convId).then(list => { messages.value = applyReasoningOverlay(convId, list) }).catch(() => {})
@@ -370,20 +375,20 @@ function handleStop() {
   if (!activeId.value) return
   const convId = activeId.value
   stopGenerate(convId).finally(() => {
-    if (streamingConversationId.value === convId) streamingConversationId.value = null
+    streamingSet.delete(convId)
   })
 }
 
 async function handleRegenerate(messageId) {
   const convId = activeId.value
-  if (streamingConversationId.value === convId) return // 同会话防重入
-  streamingConversationId.value = convId
+  if (streamingSet.has(convId)) return // 同会话防重入
+  streamingSet.add(convId)
   try {
     await regenerate(messageId, makeHandlers(convId))
   } catch (e) {
     // 兜底提示见 request 层；复位在 finally
   } finally {
-    if (streamingConversationId.value === convId) streamingConversationId.value = null
+    streamingSet.delete(convId)
   }
 }
 

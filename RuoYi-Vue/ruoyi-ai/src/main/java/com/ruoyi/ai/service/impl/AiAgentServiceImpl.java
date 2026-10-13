@@ -29,6 +29,7 @@ public class AiAgentServiceImpl implements IAiAgentService
     @Override
     public void insertAgent(AiAgent agent)
     {
+        // 查重排除已删行（del_flag=2 的名字可复用；全局逻辑删除自动过滤）
         Long dup = agentMapper.selectCount(Wrappers.lambdaQuery(AiAgent.class)
                 .eq(AiAgent::getAgentName, agent.getAgentName()));
         if (dup != null && dup > 0)
@@ -60,6 +61,7 @@ public class AiAgentServiceImpl implements IAiAgentService
         {
             throw new ServiceException("智能体不存在");
         }
+        // 查重排除已删行 + 排除自身
         Long dup = agentMapper.selectCount(Wrappers.lambdaQuery(AiAgent.class)
                 .eq(AiAgent::getAgentName, agent.getAgentName())
                 .ne(AiAgent::getAgentId, agent.getAgentId()));
@@ -83,10 +85,9 @@ public class AiAgentServiceImpl implements IAiAgentService
         {
             throw new ServiceException("该智能体已被 " + convCount + " 个会话使用，禁止删除（先删会话或停用智能体）");
         }
-        AiAgent del = new AiAgent();
-        del.setAgentId(agentId);
-        del.setDelFlag(AiConstants.DEL_FLAG_REMOVED);
-        del.setUpdateBy(SecurityUtils.getUsername());
-        agentMapper.updateById(del);
+        agentMapper.update(null, Wrappers.<AiAgent>lambdaUpdate()
+                .set(AiAgent::getDelFlag, AiConstants.DEL_FLAG_REMOVED)
+                .set(AiAgent::getUpdateBy, SecurityUtils.getUsername())
+                .eq(AiAgent::getAgentId, agentId));
     }
 }
