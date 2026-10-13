@@ -68,6 +68,23 @@ Go / Python 版每模块的 API 契约、任务分解与验收记录见各自 sp
 | 2.0.3 对话正式化 | 权限点收敛（ai:chat:*）、侧边栏菜单、会话参数 UI（temperature/max_tokens/上下文轮数） | 🚧 |
 | 2.0.4 智能体管理页 | 智能体 CRUD（提示词/默认模型/开场白/建议问题/可见性）、AI 域软删过滤补齐 | ✅ |
 
+**界面实拍**（`docs/screenshots/`，均为运行中系统的真实截图）：
+
+| | |
+|---|---|
+| ![AI 对话页](docs/screenshots/ai-chat-live.png) | ![智能体管理](docs/screenshots/ai-agent.png) |
+| *对话页：深度思考折叠、流式正文、会话列表、模型切换* | *智能体管理：平台预置 + 自建智能体 CRUD* |
+| ![厂商管理](docs/screenshots/ai-provider.png) | ![模型管理](docs/screenshots/ai-model.png) |
+| *厂商管理：21 家厂商目录，彩色图标外链* | *模型管理：模型/密钥/参数统一维护* |
+
+**功能设计亮点**：
+
+- **管理面与运行面分离**：厂商 → 密钥 → 模型三层基础域 + 智能体层，全部走标准若依 CRUD 管理页（权限点/菜单/导出对齐既有规范）；对话运行面则是全新交互形态——对话能力从"写死的接口调用"变成"数据驱动的可配置资产"。
+- **多厂商接入收敛为一个路由点**：`AiModelResolver`（按 modelId 解析出 厂商+密钥+参数）与 `ChatModelRouter`（按协议实例化 Spring AI ChatModel）把"新增一家厂商"收敛为两行配置，业务代码零改动；GLM/DeepSeek/百炼/Ollama 等经 OpenAI 兼容协议统一接入。
+- **SSE 流式三路落库**：完成/错误/取消三条终止路径都会把消息状态机（生成中→完成/出错/已取消）与会话统计落库，前端刷新后会话完整可回放；深度思考（reasoning）走独立 SSE 事件、前端折叠展示（经评审拍板不落库，见 specs 2.0.2 D9 排查记录）。
+- **提示词装配器 `AiPromptPlanner`**：system_prompt（智能体）+ 上下文窗口（水位线压缩）+ 会话参数（temperature 等）三源装配，单测覆盖；智能体的建议问题（suggested questions）以对话页 chip 呈现，点击即问。
+- **前端两阶段交付**：对话页先以 Mock 界面交付评审、交互定稿后切真实 API，组件零改动（接口签名即契约）；最终形态为 Claude Code 终端风格。
+
 技术要点：GLM 经 OpenAI 兼容协议接入（密钥仅环境变量注入）；SSE 流式含完成/错误/取消三路落库与深度思考（reasoning）独立事件；`docker/` 的 Redis 已升级 Redis Stack（RediSearch/RedisJSON），为 RAG 向量检索预留。实现期踩的坑全部回写 specs（如 MP 全局逻辑删除下 update 写不进 del_flag、SSE 异步派发重走 Security 过滤器的误诊、text 列容量不足导致流中断等）。
 
 ## 技术栈对照
